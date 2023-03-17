@@ -206,6 +206,59 @@ func main() {
 		officeGroup.POST("/delete_comment", office.DeleteComment)
 	}
 
+	// CloudWallet
+	cloudWalletGroup := r.Group("/cloudWalletGroup")
+	{
+		// 用户账户管理
+		cloudWalletGroup.POST("/check_user_have_account")
+		cloudWalletGroup.POST("/create_user_account")
+		cloudWalletGroup.POST("/check_user_account_balance")
+		// 查询用余额
+		cloudWalletGroup.POST("/check_user_account_balance")
+
+		// 云钱包明细：云钱包收支情况，userid ，data range
+		cloudWalletGroup.POST("/get_account_change_list")
+		//用户银行卡管理
+		cloudWalletGroup.POST("/get_user_bankcard_list")
+		cloudWalletGroup.POST("/add_user_bankcard")
+		cloudWalletGroup.POST("/del_user_bankcard")
+		// 备注： 绑卡的时候 只能帮开户的身份证的卡来绑定
+
+		// 账户充值提现
+		cloudWalletGroup.POST("/charge_account")
+		cloudWalletGroup.POST("/draw_account")
+
+		// 红包管理
+		cloudWalletGroup.POST("/send_red_packet")
+		cloudWalletGroup.POST("/click_red_packet")
+
+		//通过红包id查红包状态
+		cloudWalletGroup.POST("/get_red_packet_info")
+		// 红包领取明细
+		cloudWalletGroup.POST("/red_packet_click_detail")
+		// 根据日期-》 查询用户的红包记录 ： userid- red.list
+		cloudWalletGroup.POST("/list_red_packet_record")
+		// 红包支付确认 ： 当需要选择银行卡支付的时候存在短信验证码
+		cloudWalletGroup.POST("/confirm_send_red_packet_code")
+
+		// 支付密码管理  写覆盖
+		cloudWalletGroup.POST("/set_payment_secret")
+
+		// 回调 ： 充值是异步的，提现结果也是异步
+		cloudWalletGroup.POST("/send_red_packet_notify")
+		cloudWalletGroup.POST("/draw_notify")
+
+		// ====================== 规划：软删除========================
+		// 删除红包记录 : UserID , data range ,RedIds
+		cloudWalletGroup.POST("/del_red_packet_record")
+		// 删除领钱明细: UserID , data range ,RedIds
+		cloudWalletGroup.POST("/del_account_change_record")
+
+		// ===================== 脚本 ======================
+		// 红包24小时未领取，通知
+		// 红包24小时未领取退回
+	}
+
 	organizationGroup := r.Group("/organization")
 	{
 		organizationGroup.POST("/create_department", organization.CreateDepartment)

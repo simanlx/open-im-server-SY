@@ -652,8 +652,8 @@ func unmarshalConfig(config interface{}, configName string) {
 			panic(err.Error())
 		}
 	} else {
-		// 原始路径： ../config/%s
-		bytes, err := ioutil.ReadFile(fmt.Sprintf("../config/%s", configName))
+		// 原始路径： ../config/%s   ./
+		bytes, err := ioutil.ReadFile(fmt.Sprintf("./config/%s", configName))
 		if err != nil {
 			panic(err.Error() + configName)
 		}
