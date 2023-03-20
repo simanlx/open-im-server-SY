@@ -71,6 +71,7 @@ func (r1 *Resolver) ResolveNow(rn resolver.ResolveNowOptions) {
 func (r1 *Resolver) Close() {
 }
 
+// 这里容易出现问题： 当etcd 获取连接失败，就容易出现panic，空指针
 func getConn(schema, etcdaddr, serviceName string, operationID string) *grpc.ClientConn {
 	rwNameResolverMutex.RLock()
 	r, ok := nameResolver[schema+serviceName]

@@ -1,0 +1,3 @@
+syntax = "proto3";
+option go_package = "Open_IM/pkg/proto/cloud_wallet;cloud_wallet";
+package cloud_wallet;
