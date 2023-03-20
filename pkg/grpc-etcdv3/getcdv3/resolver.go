@@ -35,6 +35,7 @@ var (
 	rwNameResolverMutex sync.RWMutex
 )
 
+// 这里是创建新的grpc连接
 func NewResolver(schema, etcdAddr, serviceName string, operationID string) (*Resolver, error) {
 	etcdCli, err := clientv3.New(clientv3.Config{
 		Endpoints: strings.Split(etcdAddr, ","),
@@ -87,6 +88,7 @@ func getConn(schema, etcdaddr, serviceName string, operationID string) *grpc.Cli
 		return r.grpcClientConn
 	}
 
+	// 当连接不存在的时候，创建新的链接
 	r, err := NewResolver(schema, etcdaddr, serviceName, operationID)
 	if err != nil {
 		log.Error(operationID, "etcd failed ", schema, etcdaddr, serviceName, err.Error())

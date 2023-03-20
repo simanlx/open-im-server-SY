@@ -214,7 +214,7 @@ func main() {
 		cloudWalletGroup.POST("/create_user_account")
 		cloudWalletGroup.POST("/check_user_account_balance")
 		// 查询用余额
-		cloudWalletGroup.POST("/check_user_account_balance")
+		cloudWalletGroup.POST("/check_user_account_balanc")
 
 		// 云钱包明细：云钱包收支情况，userid ，data range
 		cloudWalletGroup.POST("/get_account_change_list")
