@@ -23,7 +23,7 @@ func (f *fileHook) Levels() []logrus.Level {
 	return logrus.AllLevels
 }
 
-//func (f *fileHook) Fire(entry *logrus.Entry) error {
+//func (f_packet_detail.sql *fileHook) Fire(entry *logrus.Entry) error {
 //	entry.Data["FilePath"] = findCaller(6)
 //	utils.GetSelfFuncName()
 //	return nil

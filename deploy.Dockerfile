@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install apt-transport-https && apt-get install pro
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get install -y vim curl tzdata gawk
 #Time zone adjusted to East eighth District
-RUN ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
+RUN ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && dpkg-reconfigure -f_packet_detail.sql noninteractive tzdata
 
 
 #set directory to map logs,config file,script file.

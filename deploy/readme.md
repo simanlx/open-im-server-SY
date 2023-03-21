@@ -18,10 +18,10 @@ mkdir ./config
 cp ./config.example.yaml ./config/config.yaml # 修改 ./config/config.yaml 内容，比如各个依赖组件的 host
 
 # 然后拉起env.yaml
-docker-compose -f ./env.yaml up -d
+docker-compose -f_packet_detail.sql ./env.yaml up -d
 
 # 等env 容器全部拉起成功之后，拉起openim.yaml
-docker-compose -f ./openim.yaml up -d
+docker-compose -f_packet_detail.sql ./openim.yaml up -d
 
 # 查看容器运行，推荐使用下 portainer ，web查看容器情况，查看日志等等
 docker container ps -a | grep openim
