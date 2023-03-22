@@ -21,7 +21,7 @@ import (
 	"flag"
 	"fmt"
 
-	//_ "github.com/razeencheng/demo-go/swaggo-gin/docs"
+	//_ "github.com/razeencheng/demo-go/swaggo-gin/docs.bak"
 	"io"
 	"os"
 	"strconv"
