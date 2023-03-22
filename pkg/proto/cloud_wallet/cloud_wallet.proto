@@ -16,7 +16,6 @@ message CheckUserHaveAccountReq{
 
 message CheckUserHaveAccountResp{
   bool isHaveAccount = 1; //是否存在
-  CommonResp commonResp = 2;
 }
 
 //3. 检查用户的余额
