@@ -13,9 +13,9 @@ message CommonResp {
 message CheckUserHaveAccountReq{
   int32 userID = 1; //用户id
 }
-
 message CheckUserHaveAccountResp{
   bool isHaveAccount = 1; //是否存在
+  uint32 step = 2; //步骤 当前用户在哪个步骤
 }
 
 //3. 检查用户的余额
@@ -29,24 +29,25 @@ message checkUserAccountBalanceResp{
 
 //4. 云钱包收支明细
 message getAccountChangeListReq{
-  int32 userID = 1;
-  int32  pageNum = 2;
-  int32  pageSize = 3;
+  int32 userID = 1; //用户id
+  int32 year = 2; //年份
+  int32  pageNum = 3; //页码
+  int32  pageSize = 4; //每页条数
 }
 message getAccountChangeListResp{
   int32 userID = 1;
-  int32  pageNum = 2;
-  int32  pageSize = 3;
-  int32  total = 4;
-  repeated AccountChangeInfo accountChangeInfo = 5;
+  int32  total = 2;
+  repeated AccountChangeInfo accountChangeInfo = 3;
 }
 
 // accountChangeInfo
 message AccountChangeInfo{
   int32 userID = 1;
-  int32 type = 2; //类型
+  int32 type = 2; //类型 1充值 2提现 3消费 4退款 。。。 ？
   float amount = 3; //变动金额
   float afterAmount = 4; //变更后金额
+  int64 createdTime = 5; //变更时间
+  string remark = 6; //备注
 }
 
 //5.获取用户的银行卡列表
@@ -57,18 +58,19 @@ message getUserBankcardListResp{
   int32 userID = 1;
   repeated BankCardInfo bankCardInfo = 2;
 }
-
 message BankCardInfo{
-  string cardOwner = 1; //持卡者
-  int32  bankCardType = 2; //银行类型
-  string bankCardNumber = 3; //银行卡号 ****
-  string createdTime = 4; //绑定时间
+  int64  bankCardID = 1; //银行卡id
+  string cardOwner = 2; //持卡者
+  int32  bankCardType = 3; // 银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
+  string bankCardNumber = 4; //银行卡号 ****
+  string createdTime = 5; //绑定时间
 }
+
 // 6.添加用户银行卡
 message addUserBankcardReq{
   int32 userID = 1; //用户id
   string cardOwner = 2; //持卡者
-  int32  bankCardType = 3; //银行类型
+  int32  bankCardType = 3; //银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
   string bankCardNumber = 4; //银行卡号
   string mobile = 5; //手机号码
 }
@@ -80,23 +82,33 @@ message addUserBankcardResp{
 // 7.用户支付密码管理
 message setPaymentSecretReq{
   int32 userID = 1;
+  int64 paymentSecret = 2; //密码
+}
+message setPaymentSecretResp{
+  CommonResp commonResp = 1;
+}
+
+
+// 8.用户密码认证  部分操作需要用户密码认证
+message userPaymentSecretAuthReq{
+  int32 userID = 1;
   string paymentSecret = 2; //密码
 }
 
-message setPaymentSecretResp{
+message userPaymentSecretAuthResp{
   CommonResp commonResp = 1;
 }
 
 // ==============================================操作类 ===================
 
-// 8. 银行卡充值到用户钱包（红包账户 和 主要账户）
+// 8. 银行卡充值到用户钱包
 message chargeAccountReq {
-  int32 userID = 1;
+  int32 userID = 1; // http 使用header token进行传递
   string bankCardID = 2; //银行卡id
-  float amount = 3; //充值金额
+  int64 amount = 3; //充值金额 单位：分
 }
 message chargeAccountResp {
-  string amount = 1; //充值后余额
+  int64 amount = 1; //充值后余额 单位：分
   CommonResp commonResp = 2;
 }
 
@@ -104,28 +116,49 @@ message chargeAccountResp {
 message drawAccountReq {
   int32 userID = 1;
   string bankCardID = 2;//银行卡id
-  float amount = 3;//提现金额
+  int64 amount = 3;//提现金额 单位：分
 }
 message drawAccountResp {
-  CommonResp commonResp = 1;
+  int64 amount = 1; //提现后余额 单位：分
+  CommonResp commonResp = 2;
 }
 
 // ==============================================红包管理 ===================
 
 // 10. 发红包
 message sendRedPacketReq {
-  int32 userID = 1; //红包发起者
-  int32 packetType = 2; //红包类型(1个人红包、2群红包)
-  int32 is_lucky = 3; //是否为拼手气红包
-  int32 is_exclusive = 4; //是否为专属红包(0不是、1是)
-  string packet_title = 5; //红包标题
-  float amount = 6; //红包金额
-  int32 number = 7; //红包个数
+  int32 UserID = 1; //红包发起者
+  int32 PacketType = 2; //红包类型(1个人红包、2群红包)
+  int32 IsLucky = 3; //是否为拼手气红包
+  int32 IsExclusive = 4; //是否为专属红包(0不是、1是)
+  string PacketTitle = 5; //红包标题
+  float Amount = 6; //红包金额 单位：分
+  int32 Number = 7; //红包个数
 }
 message sendRedPacketResp {
   int32 redPacketID = 1;
   CommonResp commonResp = 2;
 }
+
+// 新红包通知结构体
+message RedPackageNotify {
+  int32 UserID = 1; //红包发起者
+  int64 RedPacketID = 2; //红包id
+  int64 SendTime = 3; //红包发送时间
+  string PacketTitle = 4; //红包标题
+  int32 PacketType = 5; //红包类型(1个人红包、2群红包)
+  int32 IsExclusive = 6; //是否为专属红包(0不是、1是)
+  int64 ExclusiveUserID = 7; //专属红包接收者 和isExclusive配合使用
+}
+
+// 红包被领取通知发送红包者 的结构体
+message RedPackageClickedNotify{
+  int64 PacketID = 1; //红包id
+  string UserName = 2; //领取者id，同时通知发送者 和接收者，但是两者的消息展示不同
+  string remark = 3; //备注
+}
+
+
 
 // 11. 抢红包
 message clickRedPacketReq {
@@ -135,7 +168,7 @@ message clickRedPacketReq {
 message clickRedPacketResp {
   string userID = 1;
   string redPacketID = 2; //红包id
-  string amount = 3; //领取到的红包金额
+  string amount = 3; //领取到的红包金额  单位：分
   int32 isReceive = 4; //是否领取成功
   CommonResp commonResp = 5;
 }
@@ -150,12 +183,13 @@ message getRedPacketInfoResp {
   int32 packetType = 2; //红包类型(1个人红包、2群红包)
   int32 is_lucky = 3; //是否为拼手气红包
   int32 is_exclusive = 4; //是否为专属红包(0不是、1是)
-  string packet_title = 5; //红包标题
-  float amount = 6; //红包金额
-  int32 number = 7; //红包个数
-  string expireTime = 8; //红包过期时间
-  float isReceiveCompleted = 9; //是否已领完
-  CommonResp commonResp = 10;
+  int32 exclusiveUserID = 5; //专属红包接收者 和isExclusive配合使用
+  string packet_title = 6; //红包标题
+  float amount = 7; //红包金额
+  int32 number = 8; //红包个数
+  string expireTime = 9; //红包过期时间
+  float isReceiveCompleted = 10; //是否已领完
+  CommonResp commonResp = 11;
 }
 
 // 13. 红包领取明细
@@ -164,13 +198,17 @@ message redPacketClickDetailReq {
   string redPacketID = 2;
 }
 
-message redPacketClickDetailResp {
+message redPacketClickDetail {
   uint32 userID = 1; //领取人id
   string nickname = 2; //领取人名称
   string avater = 3; //领取人头像
   uint32 redPacketID = 4; //红包id
   float amount = 5; //红包金额
-  CommonResp commonResp = 6;
+}
+
+message redPacketClickDetailResp {
+  repeated redPacketClickDetail redPacketClickDetail = 1;
+  CommonResp commonResp = 2;
 }
 
 // 14. 根据日期查询用户的红包记录 ： userid- red.list
@@ -179,6 +217,8 @@ message listRedPacketRecordReq {
   uint32 userID = 1;
   string date = 2;
 }
+
+
 message listRedPacketRecordResp {
   uint32 userID = 1; //领取人id
   string nickname = 2; //领取人名称
@@ -235,6 +275,16 @@ message idCardRealNameAuthResp {
   CommonResp commonResp = 2;
 }
 
+message  authPaymentSecretReq{
+  uint32 userID = 1; //用户id
+  string paymentSecret = 2; //支付密码
+}
+
+message authPaymentSecretResp {
+  uint32 step = 1; //步骤
+  CommonResp commonResp = 2;
+}
+
 // 钱包服务
 service cloudWallet{
   // ==================================云钱包管理 ========
@@ -246,6 +296,9 @@ service cloudWallet{
 
   // 用户支付密码管理
   rpc setPaymentSecret(setPaymentSecretReq)returns(setPaymentSecretResp);
+
+  // 用户支付密码认证
+  rpc authPaymentSecret(authPaymentSecretReq)returns(authPaymentSecretResp);
 
   // 检查用户余额
   rpc checkUserAccountBalance(checkUserAccountBalanceReq)returns(checkUserAccountBalanceResp);
