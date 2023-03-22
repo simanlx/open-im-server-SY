@@ -77,7 +77,7 @@ func ByteSize(bytes uint64) string {
 	case bytes == 0:
 		return "0"
 	}
-	result := strconv.FormatFloat(value, 'f_packet_detail.sql', 1, 64)
+	result := strconv.FormatFloat(value, 'f', 1, 64)
 	result = strings.TrimSuffix(result, ".0")
 	return result + unit
 }

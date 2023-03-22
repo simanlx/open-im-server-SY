@@ -4,6 +4,7 @@ import (
 	_ "Open_IM/cmd/open_im_api/docs"
 	apiAuth "Open_IM/internal/api/auth"
 	clientInit "Open_IM/internal/api/client_init"
+	"Open_IM/internal/api/cloud_wallet"
 	"Open_IM/internal/api/conversation"
 	"Open_IM/internal/api/friend"
 	"Open_IM/internal/api/group"
@@ -210,49 +211,49 @@ func main() {
 	cloudWalletGroup := r.Group("/cloudWalletGroup")
 	{
 		// 用户账户管理
-		cloudWalletGroup.POST("/check_user_have_account")
-		cloudWalletGroup.POST("/create_user_account")
-		cloudWalletGroup.POST("/check_user_account_balance")
+		cloudWalletGroup.POST("/check_user_have_account", cloud_wallet.CheckUserHaveAccount)
+		cloudWalletGroup.POST("/create_user_account", cloud_wallet.CreateUserAccount)
+		cloudWalletGroup.POST("/check_user_account_balance", cloud_wallet.CheckUserAccountBalance)
 		// 查询用余额
-		cloudWalletGroup.POST("/check_user_account_balanc")
+		cloudWalletGroup.POST("/check_user_account_balanc", cloud_wallet.CheckUserAccountBalance)
 
 		// 云钱包明细：云钱包收支情况，userid ，data range
-		cloudWalletGroup.POST("/get_account_change_list")
+		cloudWalletGroup.POST("/get_account_change_list", cloud_wallet.GetAccountChangeList)
 		//用户银行卡管理
-		cloudWalletGroup.POST("/get_user_bankcard_list")
-		cloudWalletGroup.POST("/add_user_bankcard")
-		cloudWalletGroup.POST("/del_user_bankcard")
+		cloudWalletGroup.POST("/get_user_bankcard_list", cloud_wallet.GetUserBankCardList)
+		cloudWalletGroup.POST("/add_user_bankcard", cloud_wallet.AddUserBankCard)
+		cloudWalletGroup.POST("/del_user_bankcard", cloud_wallet.DelUserBankCard)
 		// 备注： 绑卡的时候 只能帮开户的身份证的卡来绑定
 
 		// 账户充值提现
-		cloudWalletGroup.POST("/charge_account")
-		cloudWalletGroup.POST("/draw_account")
+		cloudWalletGroup.POST("/charge_account", cloud_wallet.ChargeAccount)
+		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
 
 		// 红包管理
-		cloudWalletGroup.POST("/send_red_packet")
-		cloudWalletGroup.POST("/click_red_packet")
+		cloudWalletGroup.POST("/send_red_packet", cloud_wallet.SendRedPacket)
+		cloudWalletGroup.POST("/click_red_packet", cloud_wallet.ClickRedPacket)
 
 		//通过红包id查红包状态
-		cloudWalletGroup.POST("/get_red_packet_info")
+		cloudWalletGroup.POST("/get_red_packet_info", cloud_wallet.GetRedPacketInfo)
 		// 红包领取明细
-		cloudWalletGroup.POST("/red_packet_click_detail")
+		cloudWalletGroup.POST("/red_packet_click_detail", cloud_wallet.RedPacketClickDetail)
 		// 根据日期-》 查询用户的红包记录 ： userid- red.list
-		cloudWalletGroup.POST("/list_red_packet_record")
+		cloudWalletGroup.POST("/list_red_packet_record", cloud_wallet.ListRedPacketRecord)
 		// 红包支付确认 ： 当需要选择银行卡支付的时候存在短信验证码
-		cloudWalletGroup.POST("/confirm_send_red_packet_code")
+		cloudWalletGroup.POST("/confirm_send_red_packet_code", cloud_wallet.ConfirmSendRedPacketCode)
 
 		// 支付密码管理  写覆盖
-		cloudWalletGroup.POST("/set_payment_secret")
+		cloudWalletGroup.POST("/set_payment_secret", cloud_wallet.SetPaymentSecret)
 
 		// 回调 ： 充值是异步的，提现结果也是异步
-		cloudWalletGroup.POST("/send_red_packet_notify")
-		cloudWalletGroup.POST("/draw_notify")
+		cloudWalletGroup.POST("/send_red_packet_notify", cloud_wallet.SendRedPacketNotify)
+		cloudWalletGroup.POST("/draw_notify", cloud_wallet.DrawNotify)
 
 		// ====================== 规划：软删除========================
 		// 删除红包记录 : UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_red_packet_record")
+		cloudWalletGroup.POST("/del_red_packet_record", cloud_wallet.DelRedPacketRecord)
 		// 删除领钱明细: UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_account_change_record")
+		cloudWalletGroup.POST("/del_account_change_record", cloud_wallet.DelAccountChangeRecord)
 
 		// ===================== 脚本 ======================
 		// 红包24小时未领取，通知
