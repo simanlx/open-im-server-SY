@@ -21,6 +21,8 @@ message CheckUserHaveAccountResp{
 //2. 为用户创建账户
 message createUserAccountReq{
   string userID = 1;
+  string mobile = 2;
+  string paymentSecret = 3;
 }
 message createUserAccountResp{
   string accountID = 1;
