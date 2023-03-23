@@ -5,6 +5,7 @@ import (
 	apiAuth "Open_IM/internal/api/auth"
 	clientInit "Open_IM/internal/api/client_init"
 	"Open_IM/internal/api/cloud_wallet"
+	"Open_IM/internal/api/cloud_wallet/account"
 	"Open_IM/internal/api/conversation"
 	"Open_IM/internal/api/friend"
 	"Open_IM/internal/api/group"
@@ -211,8 +212,9 @@ func main() {
 	cloudWalletGroup := r.Group("/cloudWalletGroup")
 	{
 		// 用户账户管理
-		cloudWalletGroup.POST("/check_user_have_account", cloud_wallet.CheckUserHaveAccount)
-		cloudWalletGroup.POST("/create_user_account", cloud_wallet.CreateUserAccount)
+		cloudWalletGroup.GET("/account", account.Account)                            //获取账户信息
+		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth) //身份证实名认证
+
 		cloudWalletGroup.POST("/check_user_account_balance", cloud_wallet.CheckUserAccountBalance)
 		// 查询用余额
 		cloudWalletGroup.POST("/check_user_account_balanc", cloud_wallet.CheckUserAccountBalance)

@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "Open_IM/pkg/proto/cloud_wallet;cloud_wallet";
+option go_package = "./;cloud_wallet";
 package cloud_wallet;
 
 
@@ -9,13 +9,17 @@ message CommonResp {
   string errMsg = 2;
 }
 
-//1. 检测用户是否存在账户
-message CheckUserHaveAccountReq{
+//1. 获取云账户信息
+message UserNcountAccountReq{
   int32 userID = 1; //用户id
 }
-message CheckUserHaveAccountResp{
-  bool isHaveAccount = 1; //是否存在
-  uint32 step = 2; //步骤 当前用户在哪个步骤
+message UserNcountAccountResp{
+  uint32 step = 1; //步骤
+  uint32 realAuth = 2; //是否已实名认证
+  string idCard = 3; //身份证
+  string realName = 4; //真实姓名
+  uint32 accountStatus = 5; //账户开通状态
+  CommonResp commonResp = 6;
 }
 
 //3. 检查用户的余额
@@ -248,29 +252,30 @@ message chargeNotifyReq {
 }
 
 message chargeNotifyResp {
-  CommonResp commonResp = 4;
+  CommonResp commonResp = 1;
 }
 
 // 17. 提现的回调接口： 提供给第三方
 message drawNotifyReq {
   string order_no = 1; //平台订单号
   string third_order_no = 2; //第三方订单号
-  string bank_card_number = 4; //银行卡号
-  float withdrawal_amount = 5; //提现金额
-  string card_owner = 6; //持卡者
+  string bank_card_number = 3; //银行卡号
+  float withdrawal_amount = 4; //提现金额
+  string card_owner = 5; //持卡者
 }
 message drawNotifyResp {
   CommonResp commonResp = 1;
 }
 
 // 身份证实名认证
-message idCardRealNameAuthReq{
-  uint32 userID = 1; //用户id
-  string idCard = 2; //身份证
-  string realName = 3; //真实姓名
+message IdCardRealNameAuthReq{
+  string user_id = 1; //用户id
+  string id_card = 2; //身份证
+  string real_name = 3; //真实姓名
+  string operationID = 4; //链路跟踪id
 }
 
-message idCardRealNameAuthResp {
+message IdCardRealNameAuthResp {
   uint32 step = 1; //步骤
   CommonResp commonResp = 2;
 }
@@ -288,11 +293,11 @@ message authPaymentSecretResp {
 // 钱包服务
 service cloudWallet{
   // ==================================云钱包管理 ========
-  // 检测用户是否存在账户
-  rpc checkUserHaveAccount(CheckUserHaveAccountReq)returns(CheckUserHaveAccountResp);
+  // 获取云账户信息
+  rpc UserNcountAccount(UserNcountAccountReq)returns(UserNcountAccountResp);
 
   // 身份证实名认证
-  rpc idCardRealNameAuth(idCardRealNameAuthReq)returns(idCardRealNameAuthResp);
+  rpc IdCardRealNameAuth(IdCardRealNameAuthReq)returns(IdCardRealNameAuthResp);
 
   // 用户支付密码管理
   rpc setPaymentSecret(setPaymentSecretReq)returns(setPaymentSecretResp);
@@ -330,7 +335,7 @@ service cloudWallet{
   // 根据日期查询用户的红包记录 ： userid- red.list
   rpc listRedPacketRecord(listRedPacketRecordReq)returns(listRedPacketRecordResp);
   // 确认发送红包的code
-  rpc confirmSendRedPacketCodeReq(confirmSendRedPacketCodeReq)returns(confirmSendRedPacketCodeResp);
+  rpc confirmSendRedPacketCode(confirmSendRedPacketCodeReq)returns(confirmSendRedPacketCodeResp);
 
   //======================================== 回调===============
 
