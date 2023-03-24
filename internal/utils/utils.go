@@ -47,3 +47,17 @@ func ProtoToMap(pb proto.Message, idFix bool) map[string]interface{} {
 	}
 	return out
 }
+
+func VerifyByIDCard(idCard string) bool {
+	if len(idCard) != 18 {
+		return false
+	}
+	weight := []int{7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2}
+	validate := []byte{'1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'}
+	sum := 0
+	for i := 0; i < len(weight); i++ {
+		sum += weight[i] * int(byte(idCard[i])-'0')
+	}
+	m := sum % 11
+	return validate[m] == idCard[17]
+}

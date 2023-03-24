@@ -212,15 +212,12 @@ func main() {
 	cloudWalletGroup := r.Group("/cloudWalletGroup")
 	{
 		// 用户账户管理
-		cloudWalletGroup.GET("/account", account.Account)                            //获取账户信息
-		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth) //身份证实名认证
+		cloudWalletGroup.POST("/account", account.Account)                                //获取账户信息
+		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth)      //身份证实名认证
+		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
+		cloudWalletGroup.POST("/user_account_balance", account.UserAccountBalance)        // 查询用户余额
+		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
 
-		cloudWalletGroup.POST("/check_user_account_balance", cloud_wallet.CheckUserAccountBalance)
-		// 查询用余额
-		cloudWalletGroup.POST("/check_user_account_balanc", cloud_wallet.CheckUserAccountBalance)
-
-		// 云钱包明细：云钱包收支情况，userid ，data range
-		cloudWalletGroup.POST("/get_account_change_list", cloud_wallet.GetAccountChangeList)
 		//用户银行卡管理
 		cloudWalletGroup.POST("/get_user_bankcard_list", cloud_wallet.GetUserBankCardList)
 		cloudWalletGroup.POST("/add_user_bankcard", cloud_wallet.AddUserBankCard)
@@ -243,9 +240,6 @@ func main() {
 		cloudWalletGroup.POST("/list_red_packet_record", cloud_wallet.ListRedPacketRecord)
 		// 红包支付确认 ： 当需要选择银行卡支付的时候存在短信验证码
 		cloudWalletGroup.POST("/confirm_send_red_packet_code", cloud_wallet.ConfirmSendRedPacketCode)
-
-		// 支付密码管理  写覆盖
-		cloudWalletGroup.POST("/set_payment_secret", cloud_wallet.SetPaymentSecret)
 
 		// 回调 ： 充值是异步的，提现结果也是异步
 		cloudWalletGroup.POST("/send_red_packet_notify", cloud_wallet.SendRedPacketNotify)

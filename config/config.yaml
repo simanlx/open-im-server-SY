@@ -166,6 +166,7 @@ rpcport: #rpc服务端口 默认即可
   openImConversationPort: [ 10230 ]
   openImCachePort: [ 10240 ]
   openImRealTimeCommPort: [ 11300 ]
+  openImCloudWalletPort: [ 12300 ]
   c2c:
     callbackBeforeSendMsg:
       switch: false
@@ -190,6 +191,7 @@ rpcregistername: #rpc注册服务名，默认即可
   openImConversationName: Conversation
   openImCacheName: Cache
   openImRealTimeCommName: RealTimeComm
+  openImCloudWalletName: CloudWallet
 log:
   storageLocation: ../logs/
   rotationTime: 24
