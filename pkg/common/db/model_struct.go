@@ -375,3 +375,24 @@ type FNcountAccount struct {
 func (FNcountAccount) TableName() string {
 	return "f_ncount_account"
 }
+
+// 用户银行卡绑定表
+type FNcountBankCard struct {
+	Id             int32     `gorm:"column:id" json:"id"`
+	UserId         string    `gorm:"column:user_id" json:"user_id"`                   //用户id
+	MerOrderId     string    `gorm:"column:mer_order_id" json:"mer_order_id"`         //平台订单号
+	NcountOrderId  string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`   //第三方签约订单号
+	BindCardAgrNo  string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"` //第三方绑卡协议号
+	Mobile         string    `gorm:"column:mobile" json:"mobile"`                     //手机号码
+	CardOwner      string    `gorm:"column:card_owner" json:"card_owner"`             //持卡者名字
+	BankCardType   int32     `gorm:"column:bank_card_type" json:"bank_card_type"`     //银行卡类型(1-...枚举)
+	BankCardNumber string    `gorm:"column:bank_card_number" json:"bank_card_number"` //银行卡号
+	IsBind         int       `gorm:"column:is_bind" json:"is_bind"`                   //是否绑定成功(0预提交、1绑定成功)
+	IsDelete       int       `gorm:"column:is_delete" json:"is_delete"`               //是否删除(0未删除，1已删除)
+	CreatedTime    time.Time `gorm:"column:created_time" json:"created_time"`         //
+	UpdatedTime    time.Time `gorm:"column:updated_time" json:"updated_time"`         //
+}
+
+func (FNcountBankCard) TableName() string {
+	return "f_ncount_bank_card"
+}

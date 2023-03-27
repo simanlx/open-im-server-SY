@@ -5,7 +5,6 @@ import (
 	"Open_IM/pkg/base_info/account"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/utils"
@@ -19,14 +18,8 @@ import (
 func Account(c *gin.Context) {
 	operationID := utils.OperationIDGenerator()
 
-	//获取token用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), operationID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errInfo})
-		return
-	}
-
-	req := &rpc.UserNcountAccountReq{UserId: userId}
+	userId, _ := c.Get("userID")
+	req := &rpc.UserNcountAccountReq{UserId: userId.(string)}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, operationID)
 	if etcdConn == nil {
@@ -69,14 +62,8 @@ func IdCardRealNameAuth(c *gin.Context) {
 	req := &rpc.IdCardRealNameAuthReq{}
 	utils.CopyStructFields(req, &params)
 
-	//获取token用户id
-	//ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
-	//if !ok {
-	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errInfo})
-	//	return
-	//}
-	userId := "cccccc"
-	req.UserId = userId
+	userId, _ := c.Get("userID")
+	req.UserId = userId.(string)
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
@@ -109,12 +96,8 @@ func SetPaymentSecret(c *gin.Context) {
 	utils.CopyStructFields(req, &params)
 
 	//获取token用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errInfo})
-		return
-	}
-	req.UserId = userId
+	userId, _ := c.Get("userID")
+	req.UserId = userId.(string)
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
@@ -139,15 +122,12 @@ func SetPaymentSecret(c *gin.Context) {
 func UserAccountBalance(c *gin.Context) {
 	operationID := utils.OperationIDGenerator()
 
-	//调新生支付接口获取用户余额
 	//获取token用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), operationID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errInfo})
-		return
-	}
+	userId, _ := c.Get("userID")
 
-	c.JSON(http.StatusOK, map[string]interface{}{"balance": 99, "user_id": userId})
+	//调新生支付接口获取用户余额
+
+	c.JSON(http.StatusOK, map[string]interface{}{"balance": 99, "user_id": userId, "operationID": operationID})
 	return
 }
 
@@ -156,17 +136,14 @@ func CloudWalletRecordList(c *gin.Context) {
 	operationID := utils.OperationIDGenerator()
 
 	//获取token用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), operationID)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errInfo})
-		return
-	}
+	userId, _ := c.Get("userID")
 
 	req := &rpc.CloudWalletRecordListReq{
-		UserId:   userId,
-		Date:     "2023-04",
-		PageNum:  0,
-		PageSize: 0,
+		UserId:      userId.(string),
+		Date:        "2023-04",
+		OperationID: operationID,
+		PageNum:     0,
+		PageSize:    0,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)

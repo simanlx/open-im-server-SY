@@ -2,6 +2,8 @@ package cloud_wallet
 
 import (
 	"Open_IM/pkg/common/constant"
+	"Open_IM/pkg/common/db"
+	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
@@ -11,6 +13,7 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 
 	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 
@@ -27,64 +30,8 @@ type CloudWalletServer struct {
 	etcdAddr        []string
 }
 
-// 获取用户余额
-//func (rpc *CloudWalletServer) UserAccountBalance(ctx context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.UserAccountBalanceResp, error) {
-//	return &cloud_wallet.UserAccountBalanceResp{
-//		CommonResp: &cloud_wallet.CommonResp{
-//			ErrCode: 1,
-//			ErrMsg:  "not",
-//		},
-//	}, nil
-//}
-
-func (rpc *CloudWalletServer) UserAccountBalance(ctx context.Context, req *cloud_wallet.UserAccountBalanceReq) (*cloud_wallet.UserAccountBalanceResp, error) {
-	return &cloud_wallet.UserAccountBalanceResp{
-		MainBalance: 100,
-	}, nil
-}
-
 func (rpc *CloudWalletServer) mustEmbedUnimplementedCloudWalletServer() {
-	//TODO implement me
 	return
-}
-
-// 获取云账户信息
-func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
-	return &cloud_wallet.UserNcountAccountResp{
-		Step:          2,
-		RealAuth:      1,
-		IdCard:        "456453",
-		RealName:      "名字",
-		AccountStatus: 0,
-	}, nil
-}
-
-// 身份证实名认证
-func (rpc *CloudWalletServer) IdCardRealNameAuth(ctx context.Context, req *cloud_wallet.IdCardRealNameAuthReq) (*cloud_wallet.IdCardRealNameAuthResp, error) {
-	return &cloud_wallet.IdCardRealNameAuthResp{
-		Step: 1,
-		CommonResp: &cloud_wallet.CommonResp{
-			ErrCode: 1,
-			ErrMsg:  "not",
-		},
-	}, nil
-}
-
-// 设置用户支付密码
-func (rpc *CloudWalletServer) SetPaymentSecret(ctx context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.SetPaymentSecretResp, error) {
-	return &cloud_wallet.SetPaymentSecretResp{
-		CommonResp: &cloud_wallet.CommonResp{
-			ErrCode: 1,
-			ErrMsg:  "not",
-		},
-	}, nil
-}
-
-// 云钱包收支明细
-func (rpc *CloudWalletServer) CloudWalletRecordList(ctx context.Context, req *cloud_wallet.CloudWalletRecordListReq) (*cloud_wallet.CloudWalletRecordListResp, error) {
-	return &cloud_wallet.CloudWalletRecordListResp{
-		Total: 100,
-	}, nil
 }
 
 func NewRpcCloudWalletServer(port int) *CloudWalletServer {
@@ -152,4 +99,113 @@ func (rpc *CloudWalletServer) Run() {
 		return
 	}
 	log.NewInfo(operationID, "rpc auth ok")
+}
+
+// 获取用户余额
+func (rpc *CloudWalletServer) UserAccountBalance(ctx context.Context, req *cloud_wallet.UserAccountBalanceReq) (*cloud_wallet.UserAccountBalanceResp, error) {
+	return &cloud_wallet.UserAccountBalanceResp{
+		MainBalance: 100,
+	}, nil
+}
+
+// 获取云账户信息
+func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
+	return &cloud_wallet.UserNcountAccountResp{
+		Step:          2,
+		RealAuth:      1,
+		IdCard:        "456453",
+		RealName:      "名字",
+		AccountStatus: 0,
+	}, nil
+}
+
+// 身份证实名认证
+func (rpc *CloudWalletServer) IdCardRealNameAuth(ctx context.Context, req *cloud_wallet.IdCardRealNameAuthReq) (*cloud_wallet.IdCardRealNameAuthResp, error) {
+	return &cloud_wallet.IdCardRealNameAuthResp{
+		Step: 1,
+		CommonResp: &cloud_wallet.CommonResp{
+			ErrCode: 1,
+			ErrMsg:  "not",
+		},
+	}, nil
+}
+
+// 设置用户支付密码
+func (rpc *CloudWalletServer) SetPaymentSecret(ctx context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.SetPaymentSecretResp, error) {
+	return &cloud_wallet.SetPaymentSecretResp{
+		CommonResp: &cloud_wallet.CommonResp{
+			ErrCode: 1,
+			ErrMsg:  "not",
+		},
+	}, nil
+}
+
+// 云钱包收支明细
+func (rpc *CloudWalletServer) CloudWalletRecordList(ctx context.Context, req *cloud_wallet.CloudWalletRecordListReq) (*cloud_wallet.CloudWalletRecordListResp, error) {
+	return &cloud_wallet.CloudWalletRecordListResp{
+		Total: 100,
+	}, nil
+}
+
+// 获取用户银行卡列表
+func (rpc *CloudWalletServer) GetUserBankcardList(_ context.Context, req *cloud_wallet.GetUserBankcardListReq) (*cloud_wallet.GetUserBankcardListResp, error) {
+	list, err := imdb.GetUserBankcardByUserId(req.UserId)
+	resp := &cloud_wallet.GetUserBankcardListResp{}
+	for _, v := range list {
+		resp.BankCardList = append(resp.BankCardList, &cloud_wallet.BankCardList{
+			BankCardID:     v.Id,
+			CardOwner:      v.CardOwner,
+			BankCardType:   v.BankCardType,
+			BankCardNumber: v.BankCardNumber,
+			CreatedTime:    v.CreatedTime.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return resp, err
+}
+
+// 绑定用户银行卡
+func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_wallet.BindUserBankcardReq) (*cloud_wallet.BindUserBankcardResp, error) {
+	//新生支付接口预提交
+	merOrderId, ncountOrderId, bindCardAgrNo := "434234424", "423424242", "42342424"
+
+	info := &db.FNcountBankCard{
+		UserId:         req.UserId,
+		MerOrderId:     merOrderId,
+		NcountOrderId:  ncountOrderId,
+		BindCardAgrNo:  bindCardAgrNo,
+		Mobile:         req.Mobile,
+		CardOwner:      req.CardOwner,
+		BankCardType:   req.BankCardType,
+		BankCardNumber: req.GetBankCardNumber(),
+		CreatedTime:    time.Now(),
+		UpdatedTime:    time.Now(),
+	}
+
+	//数据入库
+	err := imdb.BindUserBankcard(info)
+
+	return &cloud_wallet.BindUserBankcardResp{
+		BankCardId: info.Id,
+	}, err
+}
+
+// 绑定用户银行卡确认code
+func (rpc *CloudWalletServer) BindUserBankcardConfirm(ctx context.Context, req *cloud_wallet.BindUserBankcardConfirmReq) (*cloud_wallet.BindUserBankcardConfirmResp, error) {
+	//新生支付确定接口
+
+	//更新数据
+	err := imdb.BindUserBankcardConfirm(req.BankCardId, req.UserId, "")
+
+	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: req.BankCardId}, err
+}
+
+// 解绑用户银行卡
+func (rpc *CloudWalletServer) UnBindingUserBankcard(ctx context.Context, req *cloud_wallet.UnBindingUserBankcardReq) (*cloud_wallet.UnBindingUserBankcardResp, error) {
+	//新生支付解绑接口
+
+	//更新数据库
+	err := imdb.UnBindUserBankcard(req.BankCardId, req.UserId)
+
+	return &cloud_wallet.UnBindingUserBankcardResp{}, err
 }

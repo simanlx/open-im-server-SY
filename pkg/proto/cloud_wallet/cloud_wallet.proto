@@ -55,31 +55,58 @@ message RecordList{
 }
 
 //5.获取用户的银行卡列表
-message getUserBankcardListReq{
+message GetUserBankcardListReq{
   string userId = 1; //用户id
+  string operationID = 2; //链路跟踪id
 }
-message getUserBankcardListResp{
-  string userId = 1; //用户id
-  repeated BankCardInfo bankCardInfo = 2;
+message GetUserBankcardListResp{
+  repeated BankCardList bankCardList = 1;
 }
-message BankCardInfo{
-  int64  bankCardID = 1; //银行卡id
+message BankCardList{
+  int32  bankCardID = 1; //银行卡id
   string cardOwner = 2; //持卡者
   int32  bankCardType = 3; // 银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
   string bankCardNumber = 4; //银行卡号 ****
   string createdTime = 5; //绑定时间
 }
 
-// 6.添加用户银行卡
-message addUserBankcardReq{
+// 6.绑定用户银行卡
+message BindUserBankcardReq{
   string userId = 1; //用户id
   string cardOwner = 2; //持卡者
   int32  bankCardType = 3; //银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
   string bankCardNumber = 4; //银行卡号
   string mobile = 5; //手机号码
+  string operationID = 6; //链路跟踪id
 }
 
-message addUserBankcardResp{
+message BindUserBankcardResp{
+  int32  bankCardId = 1; //银行卡id
+  string  merOrderId = 2; //平台订单号
+  CommonResp commonResp = 3;
+}
+
+// 绑定用户银行卡确认
+message BindUserBankcardConfirmReq{
+  string userId = 1; //用户id
+  int32  bankCardId = 2; //银行卡id
+  string  merOrderId = 3; //平台订单号
+  int32  smsCode = 4; //验证码
+  string operationID = 5; //链路跟踪id
+}
+
+message BindUserBankcardConfirmResp{
+  int32  bankCardId = 1; //银行卡id
+  CommonResp commonResp = 2;
+}
+
+// 解绑绑定用户银行卡
+message UnBindingUserBankcardReq{
+  string userId = 1; //用户id
+  int32  bankCardId = 2; //银行卡id
+}
+
+message UnBindingUserBankcardResp{
   CommonResp commonResp = 1;
 }
 
@@ -308,4 +335,16 @@ service CloudWalletService {
 
   // 云钱包收支明细
   rpc CloudWalletRecordList(CloudWalletRecordListReq)returns(CloudWalletRecordListResp);
+
+  // 获取用户银行卡列表
+  rpc GetUserBankcardList(GetUserBankcardListReq)returns(GetUserBankcardListResp);
+
+  //绑定用户银行卡
+  rpc BindUserBankcard(BindUserBankcardReq)returns(BindUserBankcardResp);
+
+  //绑定用户银行卡确认code
+  rpc BindUserBankcardConfirm(BindUserBankcardConfirmReq)returns(BindUserBankcardConfirmResp);
+
+  //解绑用户银行卡
+  rpc UnBindingUserBankcard(UnBindingUserBankcardReq)returns(UnBindingUserBankcardResp);
 }
