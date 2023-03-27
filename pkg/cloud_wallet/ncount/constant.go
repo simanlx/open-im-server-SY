@@ -12,7 +12,7 @@ const (
 	NewAccountURL = "https://ncount.hnapay.com/api/r010.htm"
 
 	// 用户查询接口
-	checkUserAccountInfoURL = "https://ncount.hnapay.com/api/q001.htm"
+	checkUserAccountURL = "https://ncount.hnapay.com/api/q001.htm"
 
 	// 绑卡接口
 	bindCardURL = "https://ncount.hnapay.com/api/r007.htm"
@@ -23,7 +23,7 @@ const (
 	// 个人用户解绑接口
 	unbindCardURL = "https://ncount.hnapay.com/api/r009.htm"
 
-	// 用户账户明细查询接口：转账详情
+	// 用户账户详情接口
 	checkUserAccountDetailURL = "https://ncount.hnapay.com/api/q004.htm"
 
 	// 交易查询接口
@@ -40,4 +40,7 @@ const (
 
 	// 退款接口
 	refundURL = "https://ncount.hnapay.com/api/t005.htm"
+
+	// 提现接口
+	withdrawURL = "https://ncount.hnapay.com/api/t002.htm"
 )

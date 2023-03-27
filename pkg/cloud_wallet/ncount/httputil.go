@@ -1,12 +1,10 @@
 package ncount
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha1"
-	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
@@ -14,10 +12,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 )
 
-func httpPost(url string, body []byte) ([]byte, error) {
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+func httpPost(url string, form url.Values) ([]byte, error) {
+	resp, err := http.PostForm(url, form)
 	if err != nil {
 		return nil, err
 	}
@@ -27,6 +26,7 @@ func httpPost(url string, body []byte) ([]byte, error) {
 
 // 1. 用新账通平台公钥对json字符串进行非对称加密；
 // 2. 对加密后的二进制转 Base64 编码
+// 通过单元测试
 func Encrpt(message []byte, key string) ([]byte, error) {
 	publicKeyBlock, _ := pem.Decode([]byte(key))
 	if publicKeyBlock == nil {
@@ -61,21 +61,4 @@ func Sign(message []byte, privateKeyString string) (string, error) {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(signature), nil
-}
-
-// 使用公钥，进行验签
-func Verify(message []byte, signature []byte, publicKeyString string) error {
-	if publicKeyString == "" {
-		return fmt.Errorf("publicKeyString is empty")
-	}
-	publicKeyBlock, _ := pem.Decode([]byte(publicKeyString))
-	if publicKeyBlock == nil {
-		return fmt.Errorf("publicKeyString is invalid")
-	}
-	publicKey, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes)
-	if err != nil {
-		return err
-	}
-	hashed := sha256.Sum256(message)
-	return rsa.VerifyPKCS1v15(publicKey.(*rsa.PublicKey), crypto.SHA256, hashed[:], signature)
 }
