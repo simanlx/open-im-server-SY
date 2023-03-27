@@ -12,7 +12,7 @@ import (
 func main() {
 	defaultPorts := config.Config.RpcPort.OpenImCloudWalletPort
 	rpcPort := flag.Int("port", defaultPorts[0], "rpc listening port")
-	prometheusPort := flag.Int("prometheus_port", config.Config.Prometheus.CloudWalletPrometheusPort[0], "adminCMSPrometheusPort default listen port")
+	prometheusPort := flag.Int("prometheus_port", config.Config.Prometheus.CloudWalletPrometheusPort[0], "CloudWalletPrometheusPort default listen port")
 	flag.Parse()
 	fmt.Println("start cms rpc server, port: ", *rpcPort, ", OpenIM version: ", constant.CurrentVersion, "\n")
 	rpcServer := cloud_wallet.NewRpcCloudWalletServer(*rpcPort)

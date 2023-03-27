@@ -826,3 +826,4 @@ prometheus:
   cachePrometheusPort: [ 20240 ]
   realTimeCommPrometheusPort: [ 21300 ]
   messageTransferPrometheusPort: [ 21400, 21401, 21402, 21403 ] # 端口数量和 script/path_info.cfg  msg_transfer_service_num保持一致
+  cloudWalletPrometheusPort: [ 21500 ]
