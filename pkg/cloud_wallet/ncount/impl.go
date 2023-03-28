@@ -26,7 +26,7 @@ func (c *counter) NewAccount(req *NewAccountReq) (*NewAccountResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.MsgCipherText)
 	if err != nil {
 		return nil, err
 	}

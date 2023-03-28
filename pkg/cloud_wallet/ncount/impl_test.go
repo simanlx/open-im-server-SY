@@ -3,6 +3,7 @@ package ncount
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestNewCounter(t *testing.T) {
@@ -219,11 +220,52 @@ func Test_counter_NewAccount(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *NewAccountResp
+		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		// 由于信息安全原因，身份证不方便留下，所以这里只能用测试的身份证号码，但是肯定会报错，所以这里只是测试一下请求是否成功
+		{
+			name: "测试非真实用户手机 ： 这个手机号和用户的身份证信息不对应",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &NewAccountReq{
+					OrderID: "dsfsafdsa",
+					MsgCipherText: &NewAccountMsgCipherText{
+						MerUserId: "main_10086",
+						Mobile:    "15282603386",
+						UserName:  "沈晨曦",
+						CertNo:    "5116231185554",
+					},
+				},
+			},
+			want: "4444", // 表示请求结果失败
+		},
+		{
+			name: "真实手机用户 : 这个用户已经存在账号，所以会返回失败",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &NewAccountReq{
+					OrderID: "ds_" + time.Now().Format("20060102150405"),
+					MsgCipherText: &NewAccountMsgCipherText{
+						MerUserId: "main_10086",
+						Mobile:    "18566634004",
+						UserName:  "沈晨曦",
+						CertNo:    "5116231185554",
+					},
+				},
+			},
+			want: "4444", // 表示请求结果失败
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &counter{
@@ -233,11 +275,11 @@ func Test_counter_NewAccount(t *testing.T) {
 			}
 			got, err := c.NewAccount(tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewAccount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewAccount() error = %+v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewAccount() got = %v, want %v", got, tt.want)
+			if got.ResultCode != tt.want {
+				t.Errorf("NewAccount() got = %+v, want %v", got, tt.want)
 			}
 		})
 	}
