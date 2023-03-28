@@ -10,11 +10,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
-	"time"
 )
 
 func TestEncrpt(t *testing.T) {
-	testdata := &NewAccountMsgCipher{
+	testdata := &NewAccountMsgCipherText{
 		MerUserId: "steven_test",
 		Mobile:    "15282603386",
 		UserName:  "沈晨曦",
@@ -36,18 +35,7 @@ func TestEncrpt(t *testing.T) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-
-	body := &NewAccountBaseParam{
-		Version:    "1.0",
-		TranCode:   "R010",
-		MerId:      MER_USER_ID,
-		MerOrderId: "10086",
-		//格 式 ： YYYYMMDDHHMMSS
-		SubmitTime: fmt.Sprintf("%d", time.Now().Unix()),
-		MsgCiphert: string(cipher),
-		SignType:   "1",
-		Charset:    "1",
-	}
+	body := NewNAccountBaseParam("10086", string(cipher))
 	err, str := body.flushSignValue()
 	if err != nil {
 		fmt.Println(err)
@@ -60,26 +48,17 @@ func TestEncrpt(t *testing.T) {
 		return
 	}
 	body.SignValue = sign
-	content, err := json.Marshal(body)
-
+	content := body.Form()
 	result, err := httpPost(NewAccountURL, content)
 	if err != nil {
 		panic(err)
 	}
-	reply := &NewAccountReturnFromPlatform{}
+	reply := &NewAccountResp{}
 	err = json.Unmarshal(result, reply)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(reply)
-}
-
-func TestMain1(t *testing.T) {
-	// 加密数据
-	// 签名
-	plainData := "Hello, world!"
-	c, err := Sign([]byte(plainData), PRIVATE_KEY)
-	fmt.Println("sign:", c, err)
+	fmt.Printf("%+v", reply)
 }
 
 func TestMain2(t *testing.T) {
