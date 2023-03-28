@@ -213,7 +213,7 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/Unbinding_user_bankcard", account.BindUserBankcardConfirm)    //解绑银行卡
 
 		// 账户充值提现
-		cloudWalletGroup.POST("/charge_account", cloud_wallet.ChargeAccount)
+		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
 
 		// 红包管理

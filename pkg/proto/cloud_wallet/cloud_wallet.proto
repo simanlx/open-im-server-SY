@@ -158,16 +158,22 @@ message drawAccountResp {
 // ==============================================红包管理 ===================
 
 // 10. 发红包
-message sendRedPacketReq {
-  string userId = 1; //用户id
+message SendRedPacketReq {
+  int64 userId = 1; //用户id
   int32 PacketType = 2; //红包类型(1个人红包、2群红包)
   int32 IsLucky = 3; //是否为拼手气红包
   int32 IsExclusive = 4; //是否为专属红包(0不是、1是)
-  string PacketTitle = 5; //红包标题
-  float Amount = 6; //红包金额 单位：分
-  int32 Number = 7; //红包个数
+  int32 ExclusiveUserID = 5; //专属红包接收者 和isExclusive
+  string PacketTitle = 6; //红包标题
+  int64 Amount = 7; //红包金额 单位：分
+  int32 Number = 8; //红包个数
+
+  // 通过哪种方式发送红包
+  int32 SendType = 9; //发送方式(1钱包余额、2银行卡)
+  int64 BankCardID = 10 ;//银行卡id
+  string operationID = 11; //链路跟踪id
 }
-message sendRedPacketResp {
+message SendRedPacketResp {
   int32 redPacketID = 1;
   CommonResp commonResp = 2;
 }
@@ -318,6 +324,23 @@ message authPaymentSecretResp {
   CommonResp commonResp = 2;
 }
 
+
+
+// 用户的充值接口
+message UserQuiky{
+  string userId = 1; //用户id
+  string bankCardID = 2; //银行卡id
+  string amount = 3; //充值金额
+  string operationID = 4; //链路跟踪id
+}
+
+
+message UserRechargeResp {
+  string orderNo = 1; //订单号
+  CommonResp commonResp = 2;
+}
+
+
 // 钱包服务
 service CloudWalletService {
   // ==================================云钱包管理 ========
@@ -347,4 +370,7 @@ service CloudWalletService {
 
   //解绑用户银行卡
   rpc UnBindingUserBankcard(UnBindingUserBankcardReq)returns(UnBindingUserBankcardResp);
+
+  // 用户充值接口
+  rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
 }
