@@ -1,7 +1,6 @@
 package im_mysql_model
 
 import (
-	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	"Open_IM/pkg/utils"
@@ -10,29 +9,29 @@ import (
 	"time"
 )
 
-func init() {
-	for k, v := range config.Config.Manager.AppManagerUid {
-		_, err := GetUserByUserID(v)
-		if err != nil {
-		} else {
-			continue
-		}
-		var appMgr db.User
-		appMgr.UserID = v
-		if k == 0 {
-			appMgr.Nickname = config.Config.Manager.AppSysNotificationName
-		} else {
-			appMgr.Nickname = "AppManager" + utils.IntToString(k+1)
-		}
-		appMgr.AppMangerLevel = constant.AppAdmin
-		err = UserRegister(appMgr)
-		if err != nil {
-			fmt.Println("AppManager insert error ", err.Error(), appMgr)
-		} else {
-			fmt.Println("AppManager insert ", appMgr)
-		}
-	}
-}
+//func init() {
+//	for k, v := range config.Config.Manager.AppManagerUid {
+//		_, err := GetUserByUserID(v)
+//		if err != nil {
+//		} else {
+//			continue
+//		}
+//		var appMgr db.User
+//		appMgr.UserID = v
+//		if k == 0 {
+//			appMgr.Nickname = config.Config.Manager.AppSysNotificationName
+//		} else {
+//			appMgr.Nickname = "AppManager" + utils.IntToString(k+1)
+//		}
+//		appMgr.AppMangerLevel = constant.AppAdmin
+//		err = UserRegister(appMgr)
+//		if err != nil {
+//			fmt.Println("AppManager insert error ", err.Error(), appMgr)
+//		} else {
+//			fmt.Println("AppManager insert ", appMgr)
+//		}
+//	}
+//}
 
 func UserRegister(user db.User) error {
 	user.CreateTime = time.Now()

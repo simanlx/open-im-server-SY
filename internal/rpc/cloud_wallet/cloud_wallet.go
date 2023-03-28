@@ -1,6 +1,7 @@
 package cloud_wallet
 
 import (
+	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
@@ -10,9 +11,12 @@ import (
 	"Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/utils"
 	"context"
+	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -120,12 +124,84 @@ func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_
 }
 
 // 身份证实名认证
-func (rpc *CloudWalletServer) IdCardRealNameAuth(ctx context.Context, req *cloud_wallet.IdCardRealNameAuthReq) (*cloud_wallet.IdCardRealNameAuthResp, error) {
+func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_wallet.IdCardRealNameAuthReq) (*cloud_wallet.IdCardRealNameAuthResp, error) {
+	info := &db.FNcountAccount{
+		UserId:      req.UserId,
+		Mobile:      req.Mobile,
+		RealName:    req.RealName,
+		IdCard:      req.IdCard,
+		OpenStep:    1,
+		CreatedTime: time.Now(),
+		UpdatedTime: time.Now(),
+	}
+	//实名数据入库
+	err := imdb.CreateNcountAccount(info)
+	if err != nil {
+		return nil, errors.New("实名认证数据入库失败")
+	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	//开通新生支付主账户
+	go func(wg *sync.WaitGroup, info *db.FNcountAccount) {
+		defer wg.Done()
+
+		id := fmt.Sprintf("main_%d", info.UserId)
+		accountResp, err := ncount.NewCounter().NewAccount(&ncount.NewAccountReq{
+			OrderID: id,
+			MsgCipherText: &ncount.NewAccountMsgCipherText{
+				MerUserId: id,
+				Mobile:    info.Mobile,
+				UserName:  info.RealName,
+				CertNo:    info.IdCard,
+			},
+		})
+
+		fmt.Println("accountResp", accountResp)
+
+		if err != nil {
+			return
+		}
+		info.MainAccountId = accountResp.UserId
+	}(wg, info)
+
+	//开通新生支付钱包账户
+	go func(wg *sync.WaitGroup, info *db.FNcountAccount) {
+		defer wg.Done()
+
+		id := fmt.Sprintf("packet_%d", info.UserId)
+		accountResp, err := ncount.NewCounter().NewAccount(&ncount.NewAccountReq{
+			OrderID: id,
+			MsgCipherText: &ncount.NewAccountMsgCipherText{
+				MerUserId: id,
+				Mobile:    info.Mobile,
+				UserName:  info.RealName,
+				CertNo:    info.IdCard,
+			},
+		})
+
+		fmt.Println("accountResp", accountResp)
+
+		if err != nil {
+			return
+		}
+		info.PacketAccountId = accountResp.UserId
+	}(wg, info)
+
+	wg.Wait()
+
+	//更新新生支付账户id
+	err = imdb.UpdateNcountAccountInfo(info)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("更新数据失败%s", err.Error()))
+	}
+
 	return &cloud_wallet.IdCardRealNameAuthResp{
 		Step: 1,
 		CommonResp: &cloud_wallet.CommonResp{
-			ErrCode: 1,
-			ErrMsg:  "not",
+			ErrCode: 0,
+			ErrMsg:  "",
 		},
 	}, nil
 }

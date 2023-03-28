@@ -168,6 +168,7 @@ type GroupRequest struct {
 // int32 AppMangerLevel = 11;
 // open_im_sdk.User == imdb.User
 type User struct {
+	Id               int32     `gorm:"column:id"`
 	UserID           string    `gorm:"column:user_id;primary_key;size:64"`
 	Nickname         string    `gorm:"column:name;size:255"`
 	FaceURL          string    `gorm:"column:face_url;size:255"`
@@ -176,11 +177,10 @@ type User struct {
 	Birth            time.Time `gorm:"column:birth"`
 	Email            string    `gorm:"column:email;size:64"`
 	Ex               string    `gorm:"column:ex;size:1024"`
-	CreateTime       time.Time `gorm:"column:create_time;index:create_time"`
+	status           int32     `gorm:"column:status"`
 	AppMangerLevel   int32     `gorm:"column:app_manger_level"`
 	GlobalRecvMsgOpt int32     `gorm:"column:global_recv_msg_opt"`
-
-	status int32 `gorm:"column:status"`
+	CreateTime       time.Time `gorm:"column:create_time;index:create_time"`
 }
 
 type UserIpRecord struct {
@@ -356,11 +356,10 @@ func (ClientInitConfig) TableName() string {
 
 type FNcountAccount struct {
 	Id              int       `gorm:"column:id" json:"id"`
-	UserId          string    `gorm:"column:user_id" json:"user_id"`                     //用户id
-	MainAccountId   int       `gorm:"column:main_account_id" json:"main_account_id"`     //主账号id
-	PacketAccountId int       `gorm:"column:packet_account_id" json:"packet_account_id"` //红包账户id
+	UserId          int32     `gorm:"column:user_id" json:"user_id"`                     //用户id
+	MainAccountId   string    `gorm:"column:main_account_id" json:"main_account_id"`     //主账号id
+	PacketAccountId string    `gorm:"column:packet_account_id" json:"packet_account_id"` //红包账户id
 	Mobile          string    `gorm:"column:mobile" json:"mobile"`                       //手机号码
-	RealAuth        int       `gorm:"column:real_auth" json:"real_auth"`                 //是否已实名认证
 	RealName        string    `gorm:"column:realname" json:"realname"`                   //身份证
 	IdCard          string    `gorm:"column:id_card" json:"id_card"`                     //身份证
 	PaySwitch       int       `gorm:"column:pay_switch" json:"pay_switch"`               //支付开关(0关闭、1默认开启)
