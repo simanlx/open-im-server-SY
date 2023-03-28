@@ -59,11 +59,16 @@ func IdCardRealNameAuth(c *gin.Context) {
 		return
 	}
 
-	req := &rpc.IdCardRealNameAuthReq{}
-	utils.CopyStructFields(req, &params)
+	req := &rpc.IdCardRealNameAuthReq{
+		UserId:      params.UserId,
+		Mobile:      params.Mobile,
+		IdCard:      params.IdCard,
+		RealName:    params.RealName,
+		OperationID: params.OperationID,
+	}
 
-	userId, _ := c.Get("userID")
-	req.UserId = userId.(string)
+	//userId, _ := c.Get("userID")
+	//req.UserId = cast.ToInt32(userId)
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {

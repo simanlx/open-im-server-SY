@@ -8,8 +8,9 @@ type AccountReq struct {
 
 // 身份证实名认证
 type IdCardRealNameAuthReq struct {
-	UserId      string `json:"user_id"`
+	UserId      int32  `json:"user_id"`
 	IdCard      string `json:"id_card"  binding:"required"`
+	Mobile      string `json:"mobile"  binding:"required"`
 	RealName    string `json:"real_name"  binding:"required"`
 	OperationID string `json:"operationID"  binding:"required"`
 }

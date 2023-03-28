@@ -14,7 +14,6 @@ import (
 	"Open_IM/internal/api/organization"
 	apiThird "Open_IM/internal/api/third"
 	"Open_IM/internal/api/user"
-	"Open_IM/internal/cms_api/middleware"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/log"
@@ -31,7 +30,7 @@ import (
 
 func NewGinRouter() *gin.Engine {
 	log.NewPrivateLog(constant.LogFileName)
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	f, _ := os.Create("./logs/api.log")
 	gin.DefaultWriter = io.MultiWriter(f)
 	r := gin.New()
@@ -197,7 +196,7 @@ func NewGinRouter() *gin.Engine {
 	// CloudWallet
 	cloudWalletGroup := r.Group("/cloudWalletGroup")
 	{
-		cloudWalletGroup.Use(middleware.JWTAuth())
+		//cloudWalletGroup.Use(middleware.JWTAuth())
 
 		// 用户账户管理
 		cloudWalletGroup.POST("/account", account.Account)                                //获取账户信息
