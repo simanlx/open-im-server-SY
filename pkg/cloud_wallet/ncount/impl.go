@@ -6,6 +6,13 @@ import (
 )
 
 type counter struct {
+	notifyQuickPayConfirmURL string // 快捷支付回调地址
+	notifyRefundURL          string // 退款异步通知接口
+	notifyWithdrawURL        string // 提现异步通知接口
+}
+
+func NewCounter() NCounter {
+	return &counter{}
 }
 
 // ======================================= 账户 =======================================
@@ -516,4 +523,9 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 		return nil, errors.Wrap(err, "json.Unmarshal")
 	}
 	return reply, nil
+}
+
+// 提现接口
+func (c *counter) Withdraw(req *WithdrawReq) (*WithdrawResp, error) {
+	panic(1)
 }
