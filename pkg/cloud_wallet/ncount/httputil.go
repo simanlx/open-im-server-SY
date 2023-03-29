@@ -1,6 +1,7 @@
 package ncount
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -61,4 +62,37 @@ func Sign(message []byte, privateKeyString string) (string, error) {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(signature), nil
+}
+
+// 非对称加密-分段
+func RsaEncryptBlock(message []byte, key string) (bytesEncrypt []byte, err error) {
+	publicKeyBlock, _ := pem.Decode([]byte(key))
+	if publicKeyBlock == nil {
+		return nil, errors.New("Key is invalid")
+	}
+	publicKey, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes)
+	if err != nil {
+		return nil, errors.New("Encrpt ParsePKIXPublicKey :" + err.Error())
+	}
+	keySize, srcSize := publicKey.(*rsa.PublicKey).Size(), len(message)
+	pub := publicKey.(*rsa.PublicKey)
+	//单次加密的长度需要减掉padding的长度，PKCS1为11
+	offSet, once := 0, keySize-11
+	buffer := bytes.Buffer{}
+	for offSet < srcSize {
+		endIndex := offSet + once
+		if endIndex > srcSize {
+			endIndex = srcSize
+		}
+		// 加密一部分
+		bytesOnce, err := rsa.EncryptPKCS1v15(rand.Reader, pub, message[offSet:endIndex])
+		if err != nil {
+			return nil, err
+		}
+		buffer.Write(bytesOnce)
+		offSet = endIndex
+	}
+	bytesEncrypt = buffer.Bytes()
+	encoded := base64.StdEncoding.EncodeToString(bytesEncrypt)
+	return []byte(encoded), nil
 }

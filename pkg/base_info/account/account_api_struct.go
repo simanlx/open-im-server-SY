@@ -18,18 +18,19 @@ type IdCardRealNameAuthReq struct {
 // 设置支付密码
 type SetPaymentSecretReq struct {
 	UserId        int32  `json:"user_id"`
-	PaymentSecret int64  `json:"payment_secret" binding:"required"`
+	PaymentSecret string `json:"payment_secret" binding:"required"`
 	OperationID   string `json:"operationID" binding:"required"`
 }
 
 // 绑定银行卡
 type BindUserBankCardReq struct {
-	UserId         int32  `json:"user_id"`
-	CardOwner      string `json:"card_owner" binding:"required"`
-	BankCardType   int32  `json:"bank_card_type" binding:"required"`
-	BankCardNumber string `json:"bank_card_number" binding:"required"`
-	Mobile         string `json:"mobile" binding:"required"`
-	OperationID    string `json:"operationID" binding:"required"`
+	UserId            int32  `json:"user_id"`
+	CardOwner         string `json:"card_owner" binding:"required"` //持卡人姓名
+	BankCard          string `json:"bank_card" binding:"required"`  //银行卡
+	Mobile            string `json:"mobile" binding:"required"`     //签约手机号码
+	CardAvailableDate string `json:"cardAvailableDate"`             //信用卡有效期
+	Cvv2              string `json:"cvv2"`                          //信用卡cvv2
+	OperationID       string `json:"operationID" binding:"required"`
 }
 
 // 绑定银行卡确认-code

@@ -41,8 +41,6 @@ func GetUserBankCardList(c *gin.Context) {
 
 // 绑定银行卡
 func BindUserBankCard(c *gin.Context) {
-	//userId, _ := c.Get("userID")
-
 	params := account.BindUserBankCardReq{}
 	if err := c.BindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
@@ -50,12 +48,13 @@ func BindUserBankCard(c *gin.Context) {
 	}
 
 	req := &rpc.BindUserBankcardReq{
-		UserId:         123456,
-		CardOwner:      params.CardOwner,
-		BankCardType:   params.BankCardType,
-		BankCardNumber: params.BankCardNumber,
-		Mobile:         params.Mobile,
-		OperationID:    "",
+		UserId:            params.UserId,
+		CardOwner:         params.CardOwner,
+		BankCardNumber:    params.BankCard,
+		Mobile:            params.Mobile,
+		CardAvailableDate: params.CardAvailableDate,
+		Cvv2:              params.Cvv2,
+		OperationID:       params.OperationID,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)

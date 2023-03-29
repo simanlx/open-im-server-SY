@@ -76,16 +76,16 @@ message BankCardList{
 message BindUserBankcardReq{
   int32 userId = 1; //用户id
   string cardOwner = 2; //持卡者
-  int32  bankCardType = 3; //银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
-  string bankCardNumber = 4; //银行卡号
-  string mobile = 5; //手机号码
-  string operationID = 6; //链路跟踪id
+  string bankCardNumber = 3; //银行卡号
+  string mobile = 4; //手机号码
+  string cardAvailableDate = 5; //信用卡有效期
+  string cvv2 = 6; //信用卡cvv2
+  string operationID = 7; //链路跟踪id
 }
 
 message BindUserBankcardResp{
   int32  bankCardId = 1; //银行卡id
-  string  merOrderId = 2; //平台订单号
-  CommonResp commonResp = 3;
+  CommonResp commonResp = 2;
 }
 
 // 绑定用户银行卡确认
@@ -115,11 +115,12 @@ message UnBindingUserBankcardResp{
 // 7.设置用户支付密码
 message SetPaymentSecretReq{
   int32 userId = 1; //用户id
-  int64 paymentSecret = 2; //密码
+  string paymentSecret = 2; //密码
   string operationID = 3; //链路跟踪id
 }
 message SetPaymentSecretResp{
-  CommonResp commonResp = 1;
+  int32 step = 1;
+  CommonResp commonResp = 2;
 }
 
 
