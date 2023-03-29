@@ -3,7 +3,6 @@ package api
 import (
 	apiAuth "Open_IM/internal/api/auth"
 	clientInit "Open_IM/internal/api/client_init"
-	"Open_IM/internal/api/cloud_wallet"
 	"Open_IM/internal/api/cloud_wallet/account"
 	"Open_IM/internal/api/conversation"
 	"Open_IM/internal/api/friend"
@@ -211,8 +210,8 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/bind_user_bankcard/confirm", account.BindUserBankcardConfirm) //确认绑定银行卡-code验证
 		cloudWalletGroup.POST("/Unbinding_user_bankcard", account.BindUserBankcardConfirm)    //解绑银行卡
 
-		// 账户充值提现
-		cloudWalletGroup.POST("/charge_account", cloud_wallet.ChargeAccount)
+		/*// 账户充值提现
+		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
 
 		// 红包管理
@@ -236,7 +235,7 @@ func NewGinRouter() *gin.Engine {
 		// 删除红包记录 : UserID , data range ,RedIds
 		cloudWalletGroup.POST("/del_red_packet_record", cloud_wallet.DelRedPacketRecord)
 		// 删除领钱明细: UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_account_change_record", cloud_wallet.DelAccountChangeRecord)
+		cloudWalletGroup.POST("/del_account_change_record", cloud_wallet.DelAccountChangeRecord)*/
 
 		// ===================== 脚本 ======================
 		// 红包24小时未领取，通知

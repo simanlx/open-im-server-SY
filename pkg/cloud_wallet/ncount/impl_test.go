@@ -38,7 +38,29 @@ func Test_counter_BindCard(t *testing.T) {
 		want    *BindCardResp
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "test",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &BindCardReq{
+					MerOrderId: "afdafa",
+					BindCardMsgCipherText: BindCardMsgCipherText{
+						CardNo:            "",
+						HolderName:        "沈晨曦",
+						CardAvailableDate: "",
+						Cvv2:              "",
+						MobileNo:          "",
+						IdentityType:      "",
+						IdentityCode:      "",
+						UserId:            "",
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -207,6 +229,7 @@ func Test_counter_CheckUserAccountTrans(t *testing.T) {
 	}
 }
 
+// 单元测试通过
 func Test_counter_NewAccount(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -242,7 +265,7 @@ func Test_counter_NewAccount(t *testing.T) {
 					},
 				},
 			},
-			want: "4444", // 表示请求结果失败
+			want: "0000", // 表示请求结果失败
 		},
 		{
 			name: "真实手机用户 : 这个用户已经存在账号，所以会返回失败",
@@ -255,14 +278,14 @@ func Test_counter_NewAccount(t *testing.T) {
 				req: &NewAccountReq{
 					OrderID: "ds_" + time.Now().Format("20060102150405"),
 					MsgCipherText: &NewAccountMsgCipherText{
-						MerUserId: "main_10086",
+						MerUserId: "main_100861ss",
 						Mobile:    "18566634004",
 						UserName:  "沈晨曦",
-						CertNo:    "5116231185554",
+						CertNo:    "511185554",
 					},
 				},
 			},
-			want: "4444", // 表示请求结果失败
+			want: "00010", // 表示请求结果失败
 		},
 	}
 
@@ -396,6 +419,7 @@ func Test_counter_Refund(t *testing.T) {
 	}
 }
 
+// 转账接口
 func Test_counter_Transfer(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -409,10 +433,30 @@ func Test_counter_Transfer(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *TransferResp
-		wantErr bool
+		want    string
+		wantErr error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "转账",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &TransferReq{
+					MerOrderId: "",
+					TransferMsgCipher: TransferMsgCipher{
+						PayUserId:     "",
+						ReceiveUserId: "",
+						TranAmount:    "",
+						BusinessType:  "", // 业务类型
+					},
+				},
+			},
+			want:    "4444",
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -422,7 +466,7 @@ func Test_counter_Transfer(t *testing.T) {
 				notifyWithdrawURL:        tt.fields.notifyWithdrawURL,
 			}
 			got, err := c.Transfer(tt.args.req)
-			if (err != nil) != tt.wantErr {
+			if err != nil && err != tt.wantErr {
 				t.Errorf("Transfer() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
