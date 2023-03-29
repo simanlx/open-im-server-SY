@@ -39,7 +39,7 @@ func (c *counter) NewAccount(req *NewAccountReq) (*NewAccountResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.OrderID, string(cipher))
+	body := NewNAccountBaseParam(req.OrderID, string(cipher), "Q010")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -85,7 +85,7 @@ func (c *counter) CheckUserAccountInfo(req *CheckUserAccountReq) (*CheckUserAcco
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.OrderID, string(cipher))
+	body := NewNAccountBaseParam(req.OrderID, string(cipher), "Q001")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -133,7 +133,7 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "R007")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -179,7 +179,7 @@ func (c *counter) BindCardConfirm(req *BindCardConfirmReq) (*BindCardConfirmResp
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "R008")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -225,7 +225,7 @@ func (c *counter) UnbindCard(req *UnBindCardReq) (*UnBindCardResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "R009")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -271,7 +271,7 @@ func (c *counter) CheckUserAccountDetail(req *CheckUserAccountDetailReq) (*Check
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "Q004")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -317,7 +317,7 @@ func (c *counter) CheckUserAccountTrans(req *CheckUserAccountTransReq) (*CheckUs
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "Q002")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -363,7 +363,7 @@ func (c *counter) QuickPayOrder(req *QuickPayOrderReq) (*QuickPayOrderResp, erro
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.merOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.merOrderId, string(cipher), "T007")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -409,7 +409,7 @@ func (c *counter) QuickPayConfirm(req *QuickPayConfirmReq) (*QuickPayConfirmResp
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.merOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.merOrderId, string(cipher), "T008")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -455,7 +455,7 @@ func (c *counter) Transfer(req *TransferReq) (*TransferResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T003")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -501,7 +501,7 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T005")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")

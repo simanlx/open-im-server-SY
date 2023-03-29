@@ -23,25 +23,27 @@ message CommonResp {
 
 //1. 获取云账户信息
 message UserNcountAccountReq{
-  string userId = 1; //用户id
-}
-message UserNcountAccountResp{
-  uint32 step = 1; //步骤
-  uint32 realAuth = 2; //是否已实名认证
-  string idCard = 3; //身份证
-  string realName = 4; //真实姓名
-  uint32 accountStatus = 5; //账户开通状态
-  CommonResp commonResp = 6;
+  int32 userId = 1; //用户id
+  string operationID = 2; //链路跟踪id
 }
 
-//3. 检查用户的余额
-message UserAccountBalanceReq{
-  string userId = 1; //用户id
+message UserNcountAccountResp{
+  int32 step = 1; //步骤
+  string idCard = 2; //身份证
+  string realName = 3; //真实姓名
+  int32 accountStatus = 4; //账户开通状态
+  string balAmount = 5; //账户余额
+  string availableBalance = 6; //可用余额
+  repeated BindCardsList bindCardsList = 7; //绑定的银行卡列表
+  CommonResp commonResp = 8;
 }
-message UserAccountBalanceResp{
-  int64 mainBalance = 1; //余额
-  CommonResp commonResp = 2;
+
+message BindCardsList{
+  string indCardAgrNo = 1; //简写
+  string bankCode = 2; //银行
+  string cardNo = 3; //卡号
 }
+
 
 //4. 云钱包收支明细
 message CloudWalletRecordListReq{
@@ -52,13 +54,13 @@ message CloudWalletRecordListReq{
   string operationID = 5; //链路跟踪id
 }
 message CloudWalletRecordListResp{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int32  total = 2;
   repeated RecordList recordList = 3;
 }
 
 message RecordList{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int32 type = 2; //类型 1充值 2提现 3消费 4退款 。。。 ？
   float amount = 3; //变动金额
   float afterAmount = 4; //变更后金额
@@ -68,7 +70,7 @@ message RecordList{
 
 //5.获取用户的银行卡列表
 message GetUserBankcardListReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string operationID = 2; //链路跟踪id
 }
 message GetUserBankcardListResp{
@@ -84,7 +86,7 @@ message BankCardList{
 
 // 6.绑定用户银行卡
 message BindUserBankcardReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string cardOwner = 2; //持卡者
   int32  bankCardType = 3; //银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
   string bankCardNumber = 4; //银行卡号
@@ -100,7 +102,7 @@ message BindUserBankcardResp{
 
 // 绑定用户银行卡确认
 message BindUserBankcardConfirmReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int32  bankCardId = 2; //银行卡id
   string  merOrderId = 3; //平台订单号
   int32  smsCode = 4; //验证码
@@ -114,7 +116,7 @@ message BindUserBankcardConfirmResp{
 
 // 解绑绑定用户银行卡
 message UnBindingUserBankcardReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int32  bankCardId = 2; //银行卡id
 }
 
@@ -124,7 +126,7 @@ message UnBindingUserBankcardResp{
 
 // 7.设置用户支付密码
 message SetPaymentSecretReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int64 paymentSecret = 2; //密码
   string operationID = 3; //链路跟踪id
 }
@@ -135,7 +137,7 @@ message SetPaymentSecretResp{
 
 // 8.用户密码认证  部分操作需要用户密码认证
 message userPaymentSecretAuthReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string paymentSecret = 2; //密码
 }
 
@@ -147,7 +149,7 @@ message userPaymentSecretAuthResp{
 
 // 8. 银行卡充值到用户钱包
 message chargeAccountReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string bankCardID = 2; //银行卡id
   int64 amount = 3; //充值金额 单位：分
 }
@@ -158,7 +160,7 @@ message chargeAccountResp {
 
 // 9. 用户钱包提现到银行卡
 message drawAccountReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string bankCardID = 2;//银行卡id
   int64 amount = 3;//提现金额 单位：分
 }
@@ -171,7 +173,7 @@ message drawAccountResp {
 
 // 10. 发红包
 message SendRedPacketReq {
-  int64 userId = 1; //用户id
+  int32 userId = 1; //用户id
   int32 PacketType = 2; //红包类型(1个人红包、2群红包)
   int32 IsLucky = 3; //是否为拼手气红包
   int32 IsExclusive = 4; //是否为专属红包(0不是、1是)
@@ -192,7 +194,7 @@ message SendRedPacketResp {
 
 // 新红包通知结构体
 message RedPackageNotify {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int64 RedPacketID = 2; //红包id
   int64 SendTime = 3; //红包发送时间
   string PacketTitle = 4; //红包标题
@@ -226,11 +228,11 @@ message ClickRedPacketResp {
 
 // 12. 获取红包信息
 message getRedPacketInfoReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string redPacketID = 2;
 }
 message getRedPacketInfoResp {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   int32 packetType = 2; //红包类型(1个人红包、2群红包)
   int32 is_lucky = 3; //是否为拼手气红包
   int32 is_exclusive = 4; //是否为专属红包(0不是、1是)
@@ -245,12 +247,12 @@ message getRedPacketInfoResp {
 
 // 13. 红包领取明细
 message redPacketClickDetailReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string redPacketID = 2;
 }
 
 message redPacketClickDetail {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string nickname = 2; //领取人名称
   string avater = 3; //领取人头像
   uint32 redPacketID = 4; //红包id
@@ -265,13 +267,13 @@ message redPacketClickDetailResp {
 // 14. 根据日期查询用户的红包记录 ： userid- red.list
 
 message listRedPacketRecordReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string date = 2;
 }
 
 
 message listRedPacketRecordResp {
-  string userId = 1; //领取人id
+  int32 userId = 1; //领取人id
   string nickname = 2; //领取人名称
   string avater = 3; //领取人头像
   uint32 redPacketID = 4; //红包id
@@ -282,7 +284,7 @@ message listRedPacketRecordResp {
 
 // 15. 确认发送红包的code
 message confirmSendRedPacketCodeReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string redPacketID = 2;
   string code = 3;
 }
@@ -293,7 +295,7 @@ message confirmSendRedPacketCodeResp {
 // ==============================================回调 ===================
 // 16. 用户从银行卡充值到红包、充值到主账户都需要进行回调
 message chargeNotifyReq {
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string bankCardID = 2;
   string amount = 3;
 }
@@ -329,7 +331,7 @@ message IdCardRealNameAuthResp {
 }
 
 message  authPaymentSecretReq{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string payment_secret = 2; //支付密码
 }
 
@@ -342,7 +344,7 @@ message authPaymentSecretResp {
 
 // 用户的充值接口
 message UserQuiky{
-  string userId = 1; //用户id
+  int32 userId = 1; //用户id
   string bankCardID = 2; //银行卡id
   string amount = 3; //充值金额
   string operationID = 4; //链路跟踪id
@@ -367,9 +369,6 @@ service CloudWalletService {
   // 设置用户支付密码
   rpc SetPaymentSecret(SetPaymentSecretReq)returns(SetPaymentSecretResp);
 
-  // 获取用户余额
-  rpc UserAccountBalance(UserAccountBalanceReq)returns(UserAccountBalanceResp);
-
   // 云钱包收支明细
   rpc CloudWalletRecordList(CloudWalletRecordListReq)returns(CloudWalletRecordListResp);
 
@@ -385,9 +384,11 @@ service CloudWalletService {
   //解绑用户银行卡
   rpc UnBindingUserBankcard(UnBindingUserBankcardReq)returns(UnBindingUserBankcardResp);
 
+
   // 发送红包接口
   rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
 
   // 抢红包接口
   rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
+
 }

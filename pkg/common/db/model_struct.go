@@ -355,18 +355,18 @@ func (ClientInitConfig) TableName() string {
 }
 
 type FNcountAccount struct {
-	Id              int       `gorm:"column:id" json:"id"`
+	Id              int32     `gorm:"column:id" json:"id"`
 	UserId          int32     `gorm:"column:user_id" json:"user_id"`                     //用户id
 	MainAccountId   string    `gorm:"column:main_account_id" json:"main_account_id"`     //主账号id
 	PacketAccountId string    `gorm:"column:packet_account_id" json:"packet_account_id"` //红包账户id
 	Mobile          string    `gorm:"column:mobile" json:"mobile"`                       //手机号码
 	RealName        string    `gorm:"column:realname" json:"realname"`                   //身份证
 	IdCard          string    `gorm:"column:id_card" json:"id_card"`                     //身份证
-	PaySwitch       int       `gorm:"column:pay_switch" json:"pay_switch"`               //支付开关(0关闭、1默认开启)
-	BodPaySwitch    int       `gorm:"column:bod_pay_switch" json:"bod_pay_switch"`       //指纹支付/人脸支付开关(0默认关闭、1开启)
+	PaySwitch       int32     `gorm:"column:pay_switch" json:"pay_switch"`               //支付开关(0关闭、1默认开启)
+	BodPaySwitch    int32     `gorm:"column:bod_pay_switch" json:"bod_pay_switch"`       //指纹支付/人脸支付开关(0默认关闭、1开启)
 	PaymentPassword string    `gorm:"column:payment_password" json:"payment_password"`   //支付密码(md5加密)
-	OpenStatus      int       `gorm:"column:open_status" json:"open_status"`             //开通状态
-	OpenStep        int       `gorm:"column:open_step" json:"open_step"`                 //开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)
+	OpenStatus      int32     `gorm:"column:open_status" json:"open_status"`             //开通状态
+	OpenStep        int32     `gorm:"column:open_step" json:"open_step"`                 //开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)
 	CreatedTime     time.Time `gorm:"column:created_time" json:"created_time"`           //
 	UpdatedTime     time.Time `gorm:"column:updated_time" json:"updated_time"`           //
 }
@@ -378,7 +378,7 @@ func (FNcountAccount) TableName() string {
 // 用户银行卡绑定表
 type FNcountBankCard struct {
 	Id             int32     `gorm:"column:id" json:"id"`
-	UserId         string    `gorm:"column:user_id" json:"user_id"`                   //用户id
+	UserId         int32     `gorm:"column:user_id" json:"user_id"`                   //用户id
 	MerOrderId     string    `gorm:"column:mer_order_id" json:"mer_order_id"`         //平台订单号
 	NcountOrderId  string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`   //第三方签约订单号
 	BindCardAgrNo  string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"` //第三方绑卡协议号

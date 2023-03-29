@@ -193,7 +193,7 @@ func NewGinRouter() *gin.Engine {
 	}
 
 	// CloudWallet
-	cloudWalletGroup := r.Group("/cloudWalletGroup")
+	cloudWalletGroup := r.Group("/cloudWallet")
 	{
 		//cloudWalletGroup.Use(middleware.JWTAuth())
 

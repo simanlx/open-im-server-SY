@@ -29,7 +29,7 @@ CREATE TABLE `f_packet` (
 type FPacket struct {
 	ID              int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID        string `gorm:"column:packet_id;not null" json:"packet_id"`
-	UserID          int64  `gorm:"column:user_id;not null" json:"user_id"`
+	UserID          int32  `gorm:"column:user_id;not null" json:"user_id"`
 	PacketType      int32  `gorm:"column:packet_type;not null" json:"packet_type"`
 	IsLucky         int32  `gorm:"column:is_lucky;not null" json:"is_lucky"`
 	ExclusiveUserID int64  `gorm:"column:exclusive_user_id;not null" json:"exclusive_user_id"`

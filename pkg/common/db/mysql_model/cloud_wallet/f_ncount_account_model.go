@@ -54,8 +54,8 @@ func FNcountAccountGetUserAccountID(userId int64) (*FNcountAccount, error) {
 }
 
 // 获取用户账户信息
-func GetNcountAccountByUserId(userID string) (info *db.FNcountAccount, err error) {
-	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", userID).First(info).Error
+func GetNcountAccountByUserId(userID int32) (info *db.FNcountAccount, err error) {
+	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", userID).First(&info).Error
 	if err != nil {
 		return nil, err
 	}

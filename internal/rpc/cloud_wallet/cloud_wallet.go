@@ -11,16 +11,22 @@ import (
 	"Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/utils"
 	"context"
+	"errors"
 	"fmt"
+	"golang.org/x/sync/errgroup"
 	"net"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"Open_IM/pkg/common/config"
 	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
+)
+
+const (
+	UserMainAccountPrefix   = "main_"   //主账户前缀 完整账户id + 用户id
+	UserPacketAccountPrefix = "packet_" //红包账户前缀 完整账户id + 用户id
 )
 
 type CloudWalletServer struct {
@@ -105,21 +111,49 @@ func (rpc *CloudWalletServer) Run() {
 	log.NewInfo(operationID, "rpc auth ok")
 }
 
-// 获取用户余额
-func (rpc *CloudWalletServer) UserAccountBalance(ctx context.Context, req *cloud_wallet.UserAccountBalanceReq) (*cloud_wallet.UserAccountBalanceResp, error) {
-	return &cloud_wallet.UserAccountBalanceResp{
-		MainBalance: 100,
-	}, nil
-}
-
 // 获取云账户信息
 func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
+	//获取用户实名信息
+	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
+	if err != nil || accountInfo.Id <= 0 {
+		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %d,error:%s", req.UserId, err.Error()))
+	}
+
+	operationID := utils.OperationIDGenerator()
+	log.Info(operationID, "accountInfo", accountInfo, err)
+	fmt.Println("accountInfo Println", accountInfo, err)
+
+	accountResp, err := ncount.NewCounter().CheckUserAccountInfo(&ncount.CheckUserAccountReq{
+		OrderID: operationID,
+		UserID:  accountInfo.MainAccountId,
+	})
+
+	log.Info(operationID, "accountResp", &accountResp, err)
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil || accountResp.ResultCode != "0000" {
+		return nil, errors.New(fmt.Sprintf("查询账户信息失败,code:"))
+	}
+
+	//绑定的银行卡列表
+	bindCardsList := make([]*cloud_wallet.BindCardsList, 0)
+	if len(accountResp.BindCards) > 0 {
+		for _, v := range accountResp.BindCards {
+			bindCardsList = append(bindCardsList, &cloud_wallet.BindCardsList{
+				IndCardAgrNo: v.IndCardAgrNo,
+				BankCode:     v.BankCode,
+				CardNo:       v.CardNo,
+			})
+		}
+	}
+
 	return &cloud_wallet.UserNcountAccountResp{
-		Step:          2,
-		RealAuth:      1,
-		IdCard:        "456453",
-		RealName:      "名字",
-		AccountStatus: 0,
+		Step:             accountInfo.OpenStep,
+		IdCard:           accountInfo.IdCard,
+		RealName:         accountInfo.RealName,
+		AccountStatus:    accountInfo.OpenStatus,
+		BalAmount:        accountResp.BalAmount,
+		AvailableBalance: accountResp.AvailableBalance,
+		BindCardsList:    bindCardsList,
 	}, nil
 }
 
@@ -137,77 +171,60 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	//实名数据入库
 	err := imdb.CreateNcountAccount(info)
 	if err != nil {
-		return &cloud_wallet.IdCardRealNameAuthResp{
-			Step: 0,
-			CommonResp: &cloud_wallet.CommonResp{
-				ErrCode: 1,
-				ErrMsg:  fmt.Sprintf("数据入库失败:%s", err.Error()),
-			},
-		}, nil
+		return nil, errors.New(fmt.Sprintf("数据入库失败:%s", err.Error()))
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	errGroup := new(errgroup.Group)
+	accountIds := []string{
+		fmt.Sprintf("%s%d", UserMainAccountPrefix, info.UserId),
+		fmt.Sprintf("%s%d", UserPacketAccountPrefix, info.UserId),
+	}
+	for _, account := range accountIds {
+		id := account
+		errGroup.Go(func() error {
+			accountResp, err := ncount.NewCounter().NewAccount(&ncount.NewAccountReq{
+				OrderID: id,
+				MsgCipherText: &ncount.NewAccountMsgCipherText{
+					MerUserId: id,
+					Mobile:    info.Mobile,
+					UserName:  info.RealName,
+					CertNo:    info.IdCard,
+				},
+			})
 
-	//开通新生支付主账户
-	go func(wg *sync.WaitGroup, info *db.FNcountAccount) {
-		defer wg.Done()
+			fmt.Println("accountResp", id, accountResp)
 
-		id := fmt.Sprintf("main_%d", info.UserId)
-		accountResp, err := ncount.NewCounter().NewAccount(&ncount.NewAccountReq{
-			OrderID: id,
-			MsgCipherText: &ncount.NewAccountMsgCipherText{
-				MerUserId: id,
-				Mobile:    info.Mobile,
-				UserName:  info.RealName,
-				CertNo:    info.IdCard,
-			},
+			if err != nil || accountResp.ResultCode != "0000" {
+				return errors.New(fmt.Sprintf("认证失败,code:%s ,msg :%s", accountResp))
+			}
+			//主账户
+			if id == fmt.Sprintf("%s%d", UserMainAccountPrefix, info.UserId) {
+				info.MainAccountId = accountResp.UserId
+			} else {
+				info.PacketAccountId = accountResp.UserId
+			}
+
+			return nil
 		})
+	}
+	// Wait for all HTTP fetches to complete.
+	if err := errGroup.Wait(); err != nil {
+		fmt.Println("errGroup.Wait", err.Error())
 
-		fmt.Println("accountResp", accountResp)
-
-		if err != nil {
-			return
-		}
-		info.MainAccountId = accountResp.UserId
-	}(wg, info)
-
-	//开通新生支付钱包账户
-	go func(wg *sync.WaitGroup, info *db.FNcountAccount) {
-		defer wg.Done()
-
-		id := fmt.Sprintf("packet_%d", info.UserId)
-		accountResp, err := ncount.NewCounter().NewAccount(&ncount.NewAccountReq{
-			OrderID: id,
-			MsgCipherText: &ncount.NewAccountMsgCipherText{
-				MerUserId: id,
-				Mobile:    info.Mobile,
-				UserName:  info.RealName,
-				CertNo:    info.IdCard,
-			},
-		})
-
-		fmt.Println("accountResp", accountResp)
-
-		if err != nil {
-			return
-		}
-		info.PacketAccountId = accountResp.UserId
-	}(wg, info)
-
-	wg.Wait()
+		//return &cloud_wallet.IdCardRealNameAuthResp{
+		//	Step: 0,
+		//	CommonResp: &cloud_wallet.CommonResp{
+		//		ErrCode: 1,
+		//		ErrMsg:  err.Error(),
+		//	},
+		//}, nil
+	}
 
 	//更新新生支付账户id
 	if len(info.MainAccountId) > 0 || len(info.PacketAccountId) > 0 {
 		err = imdb.UpdateNcountAccountInfo(info)
 		if err != nil {
-			return &cloud_wallet.IdCardRealNameAuthResp{
-				Step: 0,
-				CommonResp: &cloud_wallet.CommonResp{
-					ErrCode: 1,
-					ErrMsg:  fmt.Sprintf("更新数据失败:%s", err.Error()),
-				},
-			}, nil
+			return nil, errors.New(fmt.Sprintf("更新数据失败:%s", err.Error()))
 		}
 	}
 

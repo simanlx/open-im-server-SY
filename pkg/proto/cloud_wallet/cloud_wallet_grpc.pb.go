@@ -22,7 +22,6 @@ const (
 	CloudWalletService_UserNcountAccount_FullMethodName       = "/cloud_wallet.CloudWalletService/UserNcountAccount"
 	CloudWalletService_IdCardRealNameAuth_FullMethodName      = "/cloud_wallet.CloudWalletService/IdCardRealNameAuth"
 	CloudWalletService_SetPaymentSecret_FullMethodName        = "/cloud_wallet.CloudWalletService/SetPaymentSecret"
-	CloudWalletService_UserAccountBalance_FullMethodName      = "/cloud_wallet.CloudWalletService/UserAccountBalance"
 	CloudWalletService_CloudWalletRecordList_FullMethodName   = "/cloud_wallet.CloudWalletService/CloudWalletRecordList"
 	CloudWalletService_GetUserBankcardList_FullMethodName     = "/cloud_wallet.CloudWalletService/GetUserBankcardList"
 	CloudWalletService_BindUserBankcard_FullMethodName        = "/cloud_wallet.CloudWalletService/BindUserBankcard"
@@ -43,8 +42,6 @@ type CloudWalletServiceClient interface {
 	IdCardRealNameAuth(ctx context.Context, in *IdCardRealNameAuthReq, opts ...grpc.CallOption) (*IdCardRealNameAuthResp, error)
 	// 设置用户支付密码
 	SetPaymentSecret(ctx context.Context, in *SetPaymentSecretReq, opts ...grpc.CallOption) (*SetPaymentSecretResp, error)
-	// 获取用户余额
-	UserAccountBalance(ctx context.Context, in *UserAccountBalanceReq, opts ...grpc.CallOption) (*UserAccountBalanceResp, error)
 	// 云钱包收支明细
 	CloudWalletRecordList(ctx context.Context, in *CloudWalletRecordListReq, opts ...grpc.CallOption) (*CloudWalletRecordListResp, error)
 	// 获取用户银行卡列表
@@ -90,15 +87,6 @@ func (c *cloudWalletServiceClient) IdCardRealNameAuth(ctx context.Context, in *I
 func (c *cloudWalletServiceClient) SetPaymentSecret(ctx context.Context, in *SetPaymentSecretReq, opts ...grpc.CallOption) (*SetPaymentSecretResp, error) {
 	out := new(SetPaymentSecretResp)
 	err := c.cc.Invoke(ctx, CloudWalletService_SetPaymentSecret_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *cloudWalletServiceClient) UserAccountBalance(ctx context.Context, in *UserAccountBalanceReq, opts ...grpc.CallOption) (*UserAccountBalanceResp, error) {
-	out := new(UserAccountBalanceResp)
-	err := c.cc.Invoke(ctx, CloudWalletService_UserAccountBalance_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,8 +167,6 @@ type CloudWalletServiceServer interface {
 	IdCardRealNameAuth(context.Context, *IdCardRealNameAuthReq) (*IdCardRealNameAuthResp, error)
 	// 设置用户支付密码
 	SetPaymentSecret(context.Context, *SetPaymentSecretReq) (*SetPaymentSecretResp, error)
-	// 获取用户余额
-	UserAccountBalance(context.Context, *UserAccountBalanceReq) (*UserAccountBalanceResp, error)
 	// 云钱包收支明细
 	CloudWalletRecordList(context.Context, *CloudWalletRecordListReq) (*CloudWalletRecordListResp, error)
 	// 获取用户银行卡列表
@@ -210,9 +196,6 @@ func (UnimplementedCloudWalletServiceServer) IdCardRealNameAuth(context.Context,
 }
 func (UnimplementedCloudWalletServiceServer) SetPaymentSecret(context.Context, *SetPaymentSecretReq) (*SetPaymentSecretResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPaymentSecret not implemented")
-}
-func (UnimplementedCloudWalletServiceServer) UserAccountBalance(context.Context, *UserAccountBalanceReq) (*UserAccountBalanceResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UserAccountBalance not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) CloudWalletRecordList(context.Context, *CloudWalletRecordListReq) (*CloudWalletRecordListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloudWalletRecordList not implemented")
@@ -298,24 +281,6 @@ func _CloudWalletService_SetPaymentSecret_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CloudWalletServiceServer).SetPaymentSecret(ctx, req.(*SetPaymentSecretReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CloudWalletService_UserAccountBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UserAccountBalanceReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CloudWalletServiceServer).UserAccountBalance(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CloudWalletService_UserAccountBalance_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CloudWalletServiceServer).UserAccountBalance(ctx, req.(*UserAccountBalanceReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -464,10 +429,6 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPaymentSecret",
 			Handler:    _CloudWalletService_SetPaymentSecret_Handler,
-		},
-		{
-			MethodName: "UserAccountBalance",
-			Handler:    _CloudWalletService_UserAccountBalance_Handler,
 		},
 		{
 			MethodName: "CloudWalletRecordList",
