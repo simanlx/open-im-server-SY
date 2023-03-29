@@ -11,7 +11,6 @@ import (
 	"Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/utils"
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -137,7 +136,13 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	//实名数据入库
 	err := imdb.CreateNcountAccount(info)
 	if err != nil {
-		return nil, errors.New("实名认证数据入库失败")
+		return &cloud_wallet.IdCardRealNameAuthResp{
+			Step: 0,
+			CommonResp: &cloud_wallet.CommonResp{
+				ErrCode: 1,
+				ErrMsg:  fmt.Sprintf("数据入库失败:%s", err.Error()),
+			},
+		}, nil
 	}
 
 	wg := &sync.WaitGroup{}
@@ -192,9 +197,17 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	wg.Wait()
 
 	//更新新生支付账户id
-	err = imdb.UpdateNcountAccountInfo(info)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("更新数据失败%s", err.Error()))
+	if len(info.MainAccountId) > 0 || len(info.PacketAccountId) > 0 {
+		err = imdb.UpdateNcountAccountInfo(info)
+		if err != nil {
+			return &cloud_wallet.IdCardRealNameAuthResp{
+				Step: 0,
+				CommonResp: &cloud_wallet.CommonResp{
+					ErrCode: 1,
+					ErrMsg:  fmt.Sprintf("更新数据失败:%s", err.Error()),
+				},
+			}, nil
+		}
 	}
 
 	return &cloud_wallet.IdCardRealNameAuthResp{
