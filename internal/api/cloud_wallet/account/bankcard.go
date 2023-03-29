@@ -14,9 +14,9 @@ import (
 
 // 获取用户银行卡列表
 func GetUserBankCardList(c *gin.Context) {
-	userId, _ := c.Get("userID")
+	//userId, _ := c.Get("userID")
 	req := &rpc.GetUserBankcardListReq{
-		UserId:      userId.(string),
+		UserId:      123456,
 		OperationID: "",
 	}
 
@@ -41,7 +41,7 @@ func GetUserBankCardList(c *gin.Context) {
 
 // 绑定银行卡
 func BindUserBankCard(c *gin.Context) {
-	userId, _ := c.Get("userID")
+	//userId, _ := c.Get("userID")
 
 	params := account.BindUserBankCardReq{}
 	if err := c.BindJSON(&params); err != nil {
@@ -50,7 +50,7 @@ func BindUserBankCard(c *gin.Context) {
 	}
 
 	req := &rpc.BindUserBankcardReq{
-		UserId:         userId.(string),
+		UserId:         123456,
 		CardOwner:      params.CardOwner,
 		BankCardType:   params.BankCardType,
 		BankCardNumber: params.BankCardNumber,
@@ -79,7 +79,7 @@ func BindUserBankCard(c *gin.Context) {
 
 // 绑定银行卡code确认
 func BindUserBankcardConfirm(c *gin.Context) {
-	userId, _ := c.Get("userID")
+	//userId, _ := c.Get("userID")
 
 	params := account.BindUserBankcardConfirmReq{}
 	if err := c.BindJSON(&params); err != nil {
@@ -88,7 +88,7 @@ func BindUserBankcardConfirm(c *gin.Context) {
 	}
 
 	req := &rpc.BindUserBankcardConfirmReq{
-		UserId:      userId.(string),
+		UserId:      123456,
 		BankCardId:  params.BankCardId,
 		MerOrderId:  "",
 		SmsCode:     params.Code,

@@ -7,7 +7,7 @@ import (
 )
 
 // ============================================================请求头部参数===========================
-//商户请求参数列表（POST）
+// 商户请求参数列表（POST）
 type NAccountBaseParam struct {
 	Version    string `json:"version" binding:"required"`
 	TranCode   string `json:"tranCode" binding:"required"`
@@ -20,12 +20,12 @@ type NAccountBaseParam struct {
 	Charset    string `json:"charset" binding:"required"`
 }
 
-func NewNAccountBaseParam(merOrderID, msgCipher string) *NAccountBaseParam {
+func NewNAccountBaseParam(merOrderID, msgCipher, tranCode string) *NAccountBaseParam {
 	tim := time.Now()
 	times := tim.Format("20060102150405")
 	return &NAccountBaseParam{
 		Version:    "1.0",
-		TranCode:   "R010",
+		TranCode:   tranCode,
 		SignType:   "1",
 		Charset:    "1",
 		SubmitTime: times,
@@ -154,4 +154,3 @@ type NQuickPayCallBack struct {
 	ErrorMsg      string `json:"errorMsg"`
 	NcountOrderId string `json:"ncountOrderId"`
 }
-

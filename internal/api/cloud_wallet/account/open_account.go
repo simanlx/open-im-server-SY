@@ -16,23 +16,27 @@ import (
 
 // 获取账户信息
 func Account(c *gin.Context) {
-	operationID := utils.OperationIDGenerator()
+	params := account.AccountReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
 
-	userId, _ := c.Get("userID")
-	req := &rpc.UserNcountAccountReq{UserId: userId.(string)}
+	//userId, _ := c.Get("userID")
+	req := &rpc.UserNcountAccountReq{UserId: params.UserId}
 
-	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, operationID)
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
 	if etcdConn == nil {
-		errMsg := operationID + "getcdv3.GetDefaultConn == nil"
-		log.NewError(operationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		errMsg := params.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserNcountAccount(context.Background(), req)
 	if err != nil {
-		log.NewError(operationID, "IdCardRealNameAuth failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		log.NewError(params.OperationID, "UserNcountAccount failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -101,8 +105,8 @@ func SetPaymentSecret(c *gin.Context) {
 	utils.CopyStructFields(req, &params)
 
 	//获取token用户id
-	userId, _ := c.Get("userID")
-	req.UserId = userId.(string)
+	//userId, _ := c.Get("userID")
+	req.UserId = 1326
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
