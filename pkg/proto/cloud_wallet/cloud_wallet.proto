@@ -3,9 +3,21 @@ option go_package = ".;cloud_wallet";
 package cloud_wallet;
 
 
-// 通用消息回复组件
+enum CloudWalletErrCode {
+  ESC =0 ;
+  ServerError = 9999 ; // 9999 服务器错误
+  // 1000- 1999 云钱包相关错误
+  PacketStatusIsCreate  = 1000; // 红包状态是创建
+  PacketStatusIsFinish  = 1001; // 红包状态是完成
+  PacketStatusIsExpire  = 1002; // 红包状态是过期
+  PacketStatusIsExclusive  = 1003; // 红包状态是独占
+  PacketStatusIsReceived  = 1004; // 红包状态是取消
+}
+
+
+  // 通用消息回复组件
 message CommonResp {
-  int32  errCode = 1; //非0既有异常
+  CloudWalletErrCode  errCode = 1; //非0既有异常
   string errMsg = 2;
 }
 
@@ -174,7 +186,7 @@ message SendRedPacketReq {
   string operationID = 11; //链路跟踪id
 }
 message SendRedPacketResp {
-  int32 redPacketID = 1;
+  string redPacketID = 1;
   CommonResp commonResp = 2;
 }
 
@@ -191,7 +203,7 @@ message RedPackageNotify {
 
 // 红包被领取通知发送红包者 的结构体
 message RedPackageClickedNotify{
-  int64 PacketID = 1; //红包id
+  string PacketID = 1; //红包id
   string UserName = 2; //领取者id，同时通知发送者 和接收者，但是两者的消息展示不同
   string remark = 3; //备注
 }
@@ -199,11 +211,12 @@ message RedPackageClickedNotify{
 
 
 // 11. 抢红包
-message clickRedPacketReq {
-  string userId = 1; //用户id
-  int32 redPacketID = 2;
+message ClickRedPacketReq {
+  int64  userId = 1; //用户id
+  string redPacketID = 2; //红包id
+  string operationID = 3; //链路跟踪id
 }
-message clickRedPacketResp {
+message ClickRedPacketResp {
   string userId = 1; //用户id
   string redPacketID = 2; //红包id
   string amount = 3; //领取到的红包金额  单位：分
@@ -372,6 +385,9 @@ service CloudWalletService {
   //解绑用户银行卡
   rpc UnBindingUserBankcard(UnBindingUserBankcardReq)returns(UnBindingUserBankcardResp);
 
-  // 用户充值接口
+  // 发送红包接口
   rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
+
+  // 抢红包接口
+  rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
 }
