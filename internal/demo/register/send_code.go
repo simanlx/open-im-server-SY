@@ -50,6 +50,7 @@ func SendVerificationCode(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": constant.FormattingError, "errMsg": err.Error()})
 		return
 	}
+
 	operationID := params.OperationID
 	if operationID == "" {
 		operationID = utils.OperationIDGenerator()
@@ -100,7 +101,8 @@ func SendVerificationCode(c *gin.Context) {
 		}
 	}
 	rand.Seed(time.Now().UnixNano())
-	code := 100000 + rand.Intn(900000)
+	// code := 100000 + rand.Intn(900000)
+	code := 123456
 	log.NewInfo(params.OperationID, params.UsedFor, "begin store redis", accountKey, code)
 	err := db.DB.SetAccountCode(accountKey, code, config.Config.Demo.CodeTTL)
 	if err != nil {

@@ -28,7 +28,7 @@ func main() {
 	if config.Config.Prometheus.Enable {
 		r.GET("/metrics", promePkg.PrometheusHandler())
 	}
-	authRouterGroup := r.Group("/demo")
+	authRouterGroup := r.Group("/account")
 	{
 		authRouterGroup.POST("/code", register.SendVerificationCode)
 		authRouterGroup.POST("/verify", register.Verify)

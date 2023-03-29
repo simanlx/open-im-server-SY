@@ -18,10 +18,8 @@ import (
 	"sync"
 	"time"
 
-	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-
 	"Open_IM/pkg/common/config"
-
+	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 )
 
@@ -31,6 +29,9 @@ type CloudWalletServer struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	// 依赖钱包服务
+	count ncount.NCounter
 }
 
 func (rpc *CloudWalletServer) mustEmbedUnimplementedCloudWalletServer() {

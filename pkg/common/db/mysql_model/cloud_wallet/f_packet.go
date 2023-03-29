@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	"Open_IM/pkg/common/db"
+	"github.com/pkg/errors"
 )
 
 /*
@@ -38,15 +39,44 @@ type FPacket struct {
 	ExpireTime      int64  `gorm:"column:expire_time;not null" json:"expire_time"`
 	CreatedTime     int64  `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime     int64  `gorm:"column:updated_time;not null" json:"updated_time"`
-	Status          int32  `gorm:"column:status;not null" json:"status"`
+	Status          int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
 	IsExclusive     int32  `gorm:"column:is_exclusive;not null" json:"is_exclusive"`
 }
+
+const (
+	RedPacketStatusCreate   = iota // 0 创建未生效
+	RedPacketStatusNormal          // 1 为红包正在领取中
+	RedPacketStatusFinished        // 2为红包领取完毕
+	RedPacketStatusExpired         // 3为红包过期
+)
 
 // 保存到红包到数据库
 func RedPacketCreateData(req *FPacket) error {
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Create(req)
 	if result.Error != nil {
-		return result.Error
+		return errors.Wrap(result.Error, "创建红包失败")
 	}
 	return nil
+}
+
+// 修改红包状态
+func UpdateRedPacketStatus(packetID string, status int64) error {
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Update("status", status)
+	if result.Error != nil {
+		return errors.Wrap(result.Error, "修改红包状态失败")
+	}
+	return nil
+}
+
+func GetRedPacketInfo(packetID string) (*FPacket, error) {
+	var fPacket FPacket
+	result := db.DB.MysqlDB.DefaultGormDB().
+		Table("f_packet").
+		Select([]string{"is_lucky", "IsExclusive", "exclusive_user_id", "expire_time"}).
+		Where("packet_id = ?", packetID).
+		First(&fPacket)
+	if result.Error != nil {
+		return nil, errors.Wrap(result.Error, "获取红包信息失败")
+	}
+	return &fPacket, nil
 }

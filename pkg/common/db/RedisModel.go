@@ -43,7 +43,22 @@ const (
 
 	//temp
 	superGroupUserNotRecvOfflineMsgOptTemp = "SG_RECV_MSG_OPT_TEMP:"
+
+	// 业务相关
+	redPacket = "RED_PACKET:" // 红包
 )
+
+// 设置群红包
+func (d *DataBases) SetRedPacket(packetID string, value int) error {
+	key := redPacket + packetID
+	return d.RDB.SAdd(context.Background(), key, value, 0).Err()
+}
+
+// 获取群红包
+func (d *DataBases) GetRedPacket(redPacketID string) (int, error) {
+	key := redPacket + redPacketID
+	return d.RDB.SPop(context.Background(), key).Int()
+}
 
 func (d *DataBases) JudgeAccountEXISTS(account string) (bool, error) {
 	key := accountTempCode + account
