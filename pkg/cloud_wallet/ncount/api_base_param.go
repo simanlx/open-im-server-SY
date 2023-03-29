@@ -2,7 +2,9 @@ package ncount
 
 import (
 	"errors"
+	"math/rand"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -153,4 +155,15 @@ type NQuickPayCallBack struct {
 	ErrorCode     string `json:"errorCode"`
 	ErrorMsg      string `json:"errorMsg"`
 	NcountOrderId string `json:"ncountOrderId"`
+}
+
+func GetMerOrderID() string {
+	// 生成一串随机数
+	// 时间戳 + 6位随机数
+	tim := time.Now()
+	times := tim.Format("20060102150405")
+	rand.Seed(time.Now().UnixNano())
+	randNum := rand.Intn(999999)
+	merOrderID := times + strconv.Itoa(randNum)
+	return merOrderID
 }

@@ -44,3 +44,11 @@ const (
 	// 提现接口
 	withdrawURL = "https://ncount.hnapay.com/api/t002.htm"
 )
+
+const (
+	ResultCodeSuccess   = "0000" // 交易成功
+	ResultCodeFail      = "4444" // 交易失败
+	ResultCodeInProcess = "9999" //交易进行中
+	ResultCodeNoEffect  = "7777" //交易无效
+
+)
