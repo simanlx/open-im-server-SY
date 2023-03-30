@@ -13,6 +13,7 @@ import (
 	"Open_IM/pkg/utils"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ import (
 )
 
 func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq) (*pbAuth.UserRegisterResp, error) {
+	fmt.Println("UserRegister")
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), " rpc args ", req.String())
 	var user db.User
 	utils.CopyStructFields(&user, req.UserInfo)

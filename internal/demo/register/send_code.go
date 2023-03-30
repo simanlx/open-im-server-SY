@@ -44,7 +44,7 @@ type paramsVerificationCode struct {
 
 func SendVerificationCode(c *gin.Context) {
 	params := paramsVerificationCode{}
-
+	fmt.Println("走到了这里来了")
 	if err := c.BindJSON(&params); err != nil {
 		log.NewError("", "BindJSON failed", "err:", err.Error(), "phoneNumber", params.PhoneNumber, "email", params.Email)
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": constant.FormattingError, "errMsg": err.Error()})

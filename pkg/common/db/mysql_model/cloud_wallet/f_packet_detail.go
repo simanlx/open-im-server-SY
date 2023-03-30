@@ -38,10 +38,10 @@ func RedPacketDetailCreateData(req *FPacketDetail) error {
 	return nil
 }
 
-// 获取红包记录
+// 查询用户的发送红包记录
 func FPacketDetailGetByPacketID(packetID string, userID int64) (*FPacketDetail, error) {
 	var res *FPacketDetail
-	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Where("packet_id = ?", packetID).Find(res)
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Where("packet_id = ? and user_id", packetID, userID).Find(res)
 	if result.Error != nil {
 		return nil, result.Error
 	}

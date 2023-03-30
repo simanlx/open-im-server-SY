@@ -177,7 +177,7 @@ func (in *handlerSendRedPacket) walletTransfer(redPacketID string) (*pb.CommonRe
 	// 1. 构造转账接口参数
 	// 2. 调用转账接口
 	// 3. 开启事务 ： 1. 更新红包的状态 2. 更新用户的状态
-	fncount, err := imdb.FNcountAccountGetUserAccountID(in.UserId)
+	fncount, err := imdb.FNcountAccountGetUserAccountID(int64(in.UserId))
 	if err != nil {
 		return nil, errors.Wrap(err, "get user FNcountAccountGetUserAccountID by id error")
 	}
@@ -228,7 +228,7 @@ func (in *handlerSendRedPacket) walletTransfer(redPacketID string) (*pb.CommonRe
 
 	// 记录用户的消费记录
 	err = imdb.FNcountTradeCreateData(&imdb.FNcountTrade{
-		UserID:          in.UserId,
+		UserID:          int64(in.UserId),
 		PaymentPlatform: 1,                          // 云钱包
 		Type:            imdb.TradeTypeRedPacketOut, // 红包转出
 		Amount:          in.Amount,

@@ -68,6 +68,7 @@ func UpdateRedPacketStatus(packetID string, status int64) error {
 	return nil
 }
 
+// 根据红包ID获取红包信息
 func GetRedPacketInfo(packetID string) (*FPacket, error) {
 	var fPacket FPacket
 	result := db.DB.MysqlDB.DefaultGormDB().
@@ -79,4 +80,33 @@ func GetRedPacketInfo(packetID string) (*FPacket, error) {
 		return nil, errors.Wrap(result.Error, "获取红包信息失败")
 	}
 	return &fPacket, nil
+}
+
+// 通过红包ID获取红包发送者的红包账户
+func SelectRedPacketSenderRedPacketAccountByPacketID(packetID string) (string, error) {
+	// 查询到发送红包的信息
+	var fPacket FPacket
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).First(&fPacket)
+	if result.Error != nil {
+		return "", errors.Wrap(result.Error, "获取红包信息失败")
+	}
+	sendUserID := fPacket.UserID
+
+	// 查询用户的红包账户 : 查找用户的ID
+	var fAccount FNcountAccount
+	result = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", sendUserID).First(&fAccount)
+	if result.Error != nil {
+		return "", errors.Wrap(result.Error, "获取红包信息失败")
+	}
+	return fAccount.PacketAccountId, nil
+}
+
+// 通过红包ID查询到 发送者的用户ID
+func SelectUserMainAccountByUserID(userID int) (string, error) {
+	var fAccount FNcountAccount
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", userID).First(&fAccount)
+	if result.Error != nil {
+		return "", errors.Wrap(result.Error, "获取红包信息失败")
+	}
+	return fAccount.MainAccountId, nil
 }

@@ -84,7 +84,6 @@ func SendRedPacket(c *gin.Context) {
 		return
 	}
 	resp.ErrMsg = respPb.CommonResp.ErrMsg
-	resp.ErrCode = respPb.CommonResp.ErrCode
 	if err := utils.CopyStructFields(&resp, respPb); err != nil {
 		log.NewDebug(req.OperationID, utils.GetSelfFuncName(), "CopyStructFields failed, ", err.Error())
 	}
