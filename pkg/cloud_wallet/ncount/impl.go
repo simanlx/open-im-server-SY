@@ -175,7 +175,7 @@ func (c *counter) BindCardConfirm(req *BindCardConfirmReq) (*BindCardConfirmResp
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}

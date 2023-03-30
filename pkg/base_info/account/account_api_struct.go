@@ -37,6 +37,6 @@ type BindUserBankCardReq struct {
 type BindUserBankcardConfirmReq struct {
 	UserId      int32  `json:"user_id"`
 	BankCardId  int32  `json:"bank_card_id" binding:"required"`
-	Code        int32  `json:"code" binding:"required"`
+	Code        string `json:"code" binding:"required"`
 	OperationID string `json:"operationID" binding:"required"`
 }

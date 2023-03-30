@@ -91,6 +91,7 @@ func BindUserBankcardConfirm(c *gin.Context) {
 		BankCardId:  params.BankCardId,
 		MerOrderId:  "",
 		SmsCode:     params.Code,
+		MerUserIp:   c.ClientIP(),
 		OperationID: "",
 	}
 

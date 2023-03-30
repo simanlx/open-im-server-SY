@@ -125,7 +125,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_
 	fmt.Println("accountInfo Println", accountInfo, err)
 
 	accountResp, err := ncount.NewCounter().CheckUserAccountInfo(&ncount.CheckUserAccountReq{
-		OrderID: operationID,
+		OrderID: ncount.GetMerOrderID(),
 		UserID:  accountInfo.MainAccountId,
 	})
 
@@ -160,6 +160,12 @@ func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_
 
 // 身份证实名认证
 func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_wallet.IdCardRealNameAuthReq) (*cloud_wallet.IdCardRealNameAuthResp, error) {
+	//获取用户账户信息
+	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
+	if accountInfo.Id > 0 {
+		return nil, errors.New("已实名认证,请勿重复操作")
+	}
+
 	info := &db.FNcountAccount{
 		UserId:      req.UserId,
 		Mobile:      req.Mobile,
@@ -170,7 +176,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 		UpdatedTime: time.Now(),
 	}
 	//实名数据入库
-	err := imdb.CreateNcountAccount(info)
+	err = imdb.CreateNcountAccount(info)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("数据入库失败:%s", err.Error()))
 	}
@@ -293,9 +299,10 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %d,error:%s", req.UserId, err.Error()))
 	}
 
-	merOrderId := ncount.GetMerOrderID()
+	//merOrderId := ncount.GetMerOrderID()
+	merOrderId := time.Now().Format("0102150405")
 	accountResp, err := ncount.NewCounter().BindCard(&ncount.BindCardReq{
-		MerOrderId: ncount.GetMerOrderID(),
+		MerOrderId: merOrderId,
 		BindCardMsgCipherText: ncount.BindCardMsgCipherText{
 			CardNo:       req.BankCardNumber,
 			HolderName:   req.CardOwner,
@@ -306,7 +313,17 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 		},
 	})
 
-	log.Info(merOrderId, "accountResp", &accountResp, err)
+	log.Info(merOrderId, "accountResp", &accountResp, err, ncount.BindCardReq{
+		MerOrderId: merOrderId,
+		BindCardMsgCipherText: ncount.BindCardMsgCipherText{
+			CardNo:       req.BankCardNumber,
+			HolderName:   req.CardOwner,
+			MobileNo:     req.Mobile,
+			IdentityType: "1",
+			IdentityCode: accountInfo.IdCard,
+			UserId:       accountInfo.MainAccountId,
+		},
+	})
 	fmt.Println("accountResp Println", accountResp, err, ncount.BindCardMsgCipherText{
 		CardNo:       req.BankCardNumber,
 		HolderName:   req.CardOwner,
@@ -343,12 +360,38 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 
 // 绑定用户银行卡确认code
 func (rpc *CloudWalletServer) BindUserBankcardConfirm(ctx context.Context, req *cloud_wallet.BindUserBankcardConfirmReq) (*cloud_wallet.BindUserBankcardConfirmResp, error) {
+	//获取绑定的银行卡信息
+	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId)
+	if err != nil || bankCardInfo.Id <= 0 {
+		return nil, errors.New(fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error()))
+	}
+
+	//已绑定
+	if bankCardInfo.IsBind == 1 {
+		return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
+	}
+
 	//新生支付确定接口
+	//merOrderId := ncount.GetMerOrderID()
+	merOrderId := time.Now().Format("0102150405")
+	accountResp, err := ncount.NewCounter().BindCardConfirm(&ncount.BindCardConfirmReq{
+		MerOrderId: merOrderId,
+		BindCardConfirmMsgCipherText: ncount.BindCardConfirmMsgCipherText{
+			NcountOrderId: bankCardInfo.NcountOrderId,
+			SmsCode:       req.SmsCode,
+			MerUserIp:     req.MerUserIp,
+		},
+	})
+
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil || accountResp.ResultCode != "0000" {
+		return nil, errors.New(fmt.Sprintf("绑定用户银行卡确认,code:"))
+	}
 
 	//更新数据
-	err := imdb.BindUserBankcardConfirm(req.BankCardId, req.UserId, "")
+	_ = imdb.UpdateNcountBankCardField(bankCardInfo.Id, map[string]interface{}{"bind_card_agr_no": accountResp.BindCardAgrNo, "is_bind": 1})
 
-	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: req.BankCardId}, err
+	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
 }
 
 // 解绑用户银行卡

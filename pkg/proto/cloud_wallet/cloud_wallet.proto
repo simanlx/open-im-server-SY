@@ -93,8 +93,9 @@ message BindUserBankcardConfirmReq{
   int32 userId = 1; //用户id
   int32  bankCardId = 2; //银行卡id
   string  merOrderId = 3; //平台订单号
-  int32  smsCode = 4; //验证码
-  string operationID = 5; //链路跟踪id
+  string  smsCode = 4; //验证码
+  string  merUserIp = 5; //用户ip
+  string operationID = 6; //链路跟踪id
 }
 
 message BindUserBankcardConfirmResp{
