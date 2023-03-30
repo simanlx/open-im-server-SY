@@ -326,7 +326,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 	})
 	fmt.Println("accountResp Println", accountResp, err)
 	if err != nil || accountResp.ResultCode != "0000" {
-		return nil, errors.New(fmt.Sprintf("绑定银行卡失败,code:"))
+		return nil, errors.New(fmt.Sprintf("绑定银行卡失败"))
 	}
 
 	info := &db.FNcountBankCard{
@@ -354,7 +354,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 // 绑定用户银行卡确认code
 func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cloud_wallet.BindUserBankcardConfirmReq) (*cloud_wallet.BindUserBankcardConfirmResp, error) {
 	//获取绑定的银行卡信息
-	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId)
+	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId, req.UserId)
 	if err != nil || bankCardInfo.Id <= 0 {
 		return nil, errors.New(fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error()))
 	}
@@ -380,7 +380,7 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cl
 	}
 
 	//更新数据
-	_ = imdb.UpdateNcountBankCardField(bankCardInfo.Id, map[string]interface{}{"bind_card_agr_no": accountResp.BindCardAgrNo, "is_bind": 1, "bank_code": accountResp.BankCode})
+	_ = imdb.BindUserBankcardConfirm(bankCardInfo.Id, req.UserId, accountResp.BindCardAgrNo, accountResp.BankCode)
 
 	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
 }
@@ -388,7 +388,7 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cl
 // 解绑用户银行卡
 func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *cloud_wallet.UnBindingUserBankcardReq) (*cloud_wallet.UnBindingUserBankcardResp, error) {
 	//获取绑定的银行卡信息
-	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId)
+	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId, req.UserId)
 	if err != nil || bankCardInfo.Id <= 0 {
 		return nil, errors.New(fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error()))
 	}
@@ -402,7 +402,7 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 		},
 	})
 
-	fmt.Println("accountResp Println", accountResp, err)
+	fmt.Println("accountResp Println", accountResp, err, bankCardInfo.BindCardAgrNo, bankCardInfo.NcountUserId)
 	if err != nil || accountResp.ResultCode != "0000" {
 		return nil, errors.New(fmt.Sprintf("解绑银行卡失败"))
 	}

@@ -24,9 +24,9 @@ func BindUserBankcard(info *db.FNcountBankCard) error {
 }
 
 // 绑定用户银行卡确认
-func BindUserBankcardConfirm(bankcardId int32, userId string, ncountOrderId string) error {
+func BindUserBankcardConfirm(bankcardId int32, userId, bindCardAgrNo, bankCode string) error {
 	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("id = ? and user_id = ?", bankcardId, userId).Updates(map[string]interface{}{
-		"ncount_order_id": ncountOrderId, "is_bind": 1, "updated_time": time.Now(),
+		"bind_card_agr_no": bindCardAgrNo, "bank_code": bankCode, "is_bind": 1, "updated_time": time.Now(),
 	}).Error
 	if err != nil {
 		return err
@@ -43,4 +43,13 @@ func UnBindUserBankcard(bankcardId int32, userId string) error {
 		return err
 	}
 	return nil
+}
+
+// 获取绑定的银行卡信息
+func GetNcountBankCardById(id int32, userId string) (info *db.FNcountBankCard, err error) {
+	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("id = ? and user_id = ?", id, userId).First(&info).Error
+	if err != nil {
+		return nil, err
+	}
+	return
 }

@@ -146,7 +146,6 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Sign")
 	}
-	fmt.Println("NewNAccountBaseParam", body, str, sign)
 
 	body.SignValue = sign
 	content := body.Form()
