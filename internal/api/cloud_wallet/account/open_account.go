@@ -101,12 +101,13 @@ func SetPaymentSecret(c *gin.Context) {
 		return
 	}
 
-	req := &rpc.SetPaymentSecretReq{}
-	utils.CopyStructFields(req, &params)
+	//6位数密码
 
-	//获取token用户id
-	//userId, _ := c.Get("userID")
-	req.UserId = 1326
+	req := &rpc.SetPaymentSecretReq{
+		UserId:        params.UserId,
+		PaymentSecret: params.PaymentSecret,
+		OperationID:   params.OperationID,
+	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
@@ -118,25 +119,12 @@ func SetPaymentSecret(c *gin.Context) {
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.SetPaymentSecret(context.Background(), req)
 	if err != nil {
-		log.NewError(req.OperationID, "IdCardRealNameAuth failed ", err.Error(), req.String())
+		log.NewError(req.OperationID, "SetPaymentSecret failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, RpcResp)
-	return
-}
-
-// 获取账户余额
-func UserAccountBalance(c *gin.Context) {
-	operationID := utils.OperationIDGenerator()
-
-	//获取token用户id
-	userId, _ := c.Get("userID")
-
-	//调新生支付接口获取用户余额
-
-	c.JSON(http.StatusOK, map[string]interface{}{"balance": 99, "user_id": userId, "operationID": operationID})
 	return
 }
 
