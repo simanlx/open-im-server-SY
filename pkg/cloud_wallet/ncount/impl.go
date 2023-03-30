@@ -121,7 +121,8 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.BindCardMsgCipherText)
+	fmt.Println(string(data))
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}

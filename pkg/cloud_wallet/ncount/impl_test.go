@@ -35,7 +35,7 @@ func Test_counter_BindCard(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *BindCardResp
+		want    string
 		wantErr bool
 	}{
 		{
@@ -49,17 +49,18 @@ func Test_counter_BindCard(t *testing.T) {
 				req: &BindCardReq{
 					MerOrderId: "afdafa",
 					BindCardMsgCipherText: BindCardMsgCipherText{
-						CardNo:            "",
-						HolderName:        "沈晨曦",
+						CardNo:            "6216612000010725279",
+						HolderName:        "邹荣亮",
 						CardAvailableDate: "",
 						Cvv2:              "",
-						MobileNo:          "",
-						IdentityType:      "",
-						IdentityCode:      "",
-						UserId:            "",
+						MobileNo:          "13530210115",
+						IdentityType:      "1",
+						IdentityCode:      "430426199102086615",
+						UserId:            "100046072029",
 					},
 				},
 			},
+			want: "4444",
 		},
 	}
 	for _, tt := range tests {
@@ -265,7 +266,7 @@ func Test_counter_NewAccount(t *testing.T) {
 					},
 				},
 			},
-			want: "0000", // 表示请求结果失败
+			want: "4444", // 表示请求结果失败
 		},
 		{
 			name: "真实手机用户 : 这个用户已经存在账号，所以会返回失败",
@@ -285,7 +286,7 @@ func Test_counter_NewAccount(t *testing.T) {
 					},
 				},
 			},
-			want: "00010", // 表示请求结果失败
+			want: "4444", // 表示请求结果失败
 		},
 	}
 
