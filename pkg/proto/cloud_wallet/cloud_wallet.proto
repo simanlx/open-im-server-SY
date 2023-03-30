@@ -119,6 +119,7 @@ message BindUserBankcardConfirmResp{
 message UnBindingUserBankcardReq{
   string userId = 1; //用户id
   int32  bankCardId = 2; //银行卡id
+  string operationID = 3; //链路跟踪id
 }
 
 message UnBindingUserBankcardResp{

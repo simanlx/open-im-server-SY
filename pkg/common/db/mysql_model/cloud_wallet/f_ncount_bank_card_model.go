@@ -7,7 +7,7 @@ import (
 
 // 获取银行卡列表
 func GetUserBankcardByUserId(userID string) (list []*db.FNcountBankCard, err error) {
-	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("user_id = ? and is_delete = ?", userID, 0).Find(list).Error
+	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("user_id = ? and is_bind = ?", userID, 1).Find(&list).Error
 	if err != nil {
 		return nil, err
 	}

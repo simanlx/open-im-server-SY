@@ -40,3 +40,16 @@ type BindUserBankcardConfirmReq struct {
 	Code        string `json:"code" binding:"required"`
 	OperationID string `json:"operationID" binding:"required"`
 }
+
+// 解绑银行卡
+type UnBindUserBankcardReq struct {
+	UserId      string `json:"user_id"`
+	BankCardId  int32  `json:"bank_card_id" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+// 银行卡列表
+type BankcardListReq struct {
+	UserId      string `json:"user_id"`
+	OperationID string `json:"operationID" binding:"required"`
+}

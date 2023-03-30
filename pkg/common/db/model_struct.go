@@ -378,6 +378,7 @@ func (FNcountAccount) TableName() string {
 type FNcountBankCard struct {
 	Id                int32     `gorm:"column:id" json:"id"`
 	UserId            string    `gorm:"column:user_id" json:"user_id"`                         //用户id
+	NcountUserId      string    `gorm:"column:ncount_user_id" json:"ncount_user_id"`           //新生支付用户id
 	MerOrderId        string    `gorm:"column:mer_order_id" json:"mer_order_id"`               //平台订单号
 	NcountOrderId     string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`         //第三方签约订单号
 	BindCardAgrNo     string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"`       //第三方绑卡协议号
@@ -386,6 +387,7 @@ type FNcountBankCard struct {
 	BankCardNumber    string    `gorm:"column:bank_card_number" json:"bank_card_number"`       //银行卡号
 	CardAvailableDate string    `gorm:"column:card_available_date" json:"card_available_date"` //信用卡有效期
 	Cvv2              string    `gorm:"column:cvv2" json:"cvv2"`                               //cvv2
+	BankCode          string    `gorm:"column:bank_code" json:"bank_code"`                     //银行简写
 	IsBind            int       `gorm:"column:is_bind" json:"is_bind"`                         //是否绑定成功(0预提交、1绑定成功)
 	IsDelete          int       `gorm:"column:is_delete" json:"is_delete"`                     //是否删除(0未删除，1已删除)
 	CreatedTime       time.Time `gorm:"column:created_time" json:"created_time"`               //

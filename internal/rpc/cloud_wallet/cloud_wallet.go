@@ -297,7 +297,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %d,error:%s", req.UserId, err.Error()))
+		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error()))
 	}
 
 	merOrderId := ncount.GetMerOrderID()
@@ -333,6 +333,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 		UserId:            req.UserId,
 		MerOrderId:        merOrderId,
 		NcountOrderId:     accountResp.NcountOrderId,
+		NcountUserId:      accountInfo.MainAccountId,
 		Mobile:            req.Mobile,
 		CardOwner:         req.CardOwner,
 		BankCardNumber:    req.BankCardNumber,
@@ -351,7 +352,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(ctx context.Context, req *cloud_w
 }
 
 // 绑定用户银行卡确认code
-func (rpc *CloudWalletServer) BindUserBankcardConfirm(ctx context.Context, req *cloud_wallet.BindUserBankcardConfirmReq) (*cloud_wallet.BindUserBankcardConfirmResp, error) {
+func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cloud_wallet.BindUserBankcardConfirmReq) (*cloud_wallet.BindUserBankcardConfirmResp, error) {
 	//获取绑定的银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId)
 	if err != nil || bankCardInfo.Id <= 0 {
@@ -379,17 +380,35 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(ctx context.Context, req *
 	}
 
 	//更新数据
-	_ = imdb.UpdateNcountBankCardField(bankCardInfo.Id, map[string]interface{}{"bind_card_agr_no": accountResp.BindCardAgrNo, "is_bind": 1})
+	_ = imdb.UpdateNcountBankCardField(bankCardInfo.Id, map[string]interface{}{"bind_card_agr_no": accountResp.BindCardAgrNo, "is_bind": 1, "bank_code": accountResp.BankCode})
 
 	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
 }
 
 // 解绑用户银行卡
-func (rpc *CloudWalletServer) UnBindingUserBankcard(ctx context.Context, req *cloud_wallet.UnBindingUserBankcardReq) (*cloud_wallet.UnBindingUserBankcardResp, error) {
-	//新生支付解绑接口
+func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *cloud_wallet.UnBindingUserBankcardReq) (*cloud_wallet.UnBindingUserBankcardResp, error) {
+	//获取绑定的银行卡信息
+	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId)
+	if err != nil || bankCardInfo.Id <= 0 {
+		return nil, errors.New(fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error()))
+	}
+
+	//新生支付确定接口
+	accountResp, err := ncount.NewCounter().UnbindCard(&ncount.UnBindCardReq{
+		MerOrderId: ncount.GetMerOrderID(),
+		UnBindCardMsgCipher: ncount.UnBindCardMsgCipher{
+			OriBindCardAgrN: bankCardInfo.BindCardAgrNo,
+			UserId:          bankCardInfo.NcountUserId,
+		},
+	})
+
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil || accountResp.ResultCode != "0000" {
+		return nil, errors.New(fmt.Sprintf("解绑银行卡失败"))
+	}
 
 	//更新数据库
-	err := imdb.UnBindUserBankcard(req.BankCardId, req.UserId)
+	_ = imdb.UnBindUserBankcard(req.BankCardId, req.UserId)
 
 	return &cloud_wallet.UnBindingUserBankcardResp{}, err
 }
