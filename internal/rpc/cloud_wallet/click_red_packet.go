@@ -7,6 +7,7 @@ import (
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"strconv"
 )
 
@@ -67,7 +68,7 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 		return res, nil
 	}
 
-	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != req.UserId {
+	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != cast.ToInt64(req.UserId) {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExclusive
 		common.ErrMsg = "红包是专属红包"
 		return res, nil
@@ -101,7 +102,7 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 		return res, nil
 	} else {
 		// 个人红包 ,发起转账
-		NcountReq, err := req.getRedPacketByUser(int(req.UserId), req.RedPacketID)
+		NcountReq, err := req.getRedPacketByUser(req.UserId, req.RedPacketID)
 		if err != nil {
 			common.ErrCode = pb.CloudWalletErrCode_ServerError
 			common.ErrMsg = "服务器错误"
@@ -157,7 +158,7 @@ func (req *handlerClickRedPacket) getRedPacketByGroup() (int, error) {
 
 // UserID 是抢红包的人
 // 通过红包ID 倒查红包发送者的红包账户
-func (req *handlerClickRedPacket) getRedPacketByUser(UserID int, packetID string) (*ncount.TransferReq, error) {
+func (req *handlerClickRedPacket) getRedPacketByUser(UserID, packetID string) (*ncount.TransferReq, error) {
 	//  获取到发红包的用户ID
 	senderAccount, err := imdb.SelectRedPacketSenderRedPacketAccountByPacketID(packetID)
 	if err != nil {

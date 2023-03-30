@@ -16,7 +16,7 @@ import (
 func GetUserBankCardList(c *gin.Context) {
 	//userId, _ := c.Get("userID")
 	req := &rpc.GetUserBankcardListReq{
-		UserId:      123456,
+		UserId:      "123456",
 		OperationID: "",
 	}
 
@@ -87,7 +87,7 @@ func BindUserBankcardConfirm(c *gin.Context) {
 	}
 
 	req := &rpc.BindUserBankcardConfirmReq{
-		UserId:      123456,
+		UserId:      "123456",
 		BankCardId:  params.BankCardId,
 		MerOrderId:  "",
 		SmsCode:     params.Code,

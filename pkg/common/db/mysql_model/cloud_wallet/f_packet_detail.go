@@ -22,7 +22,7 @@ CREATE TABLE `f_packet_detail` (
 type FPacketDetail struct {
 	ID          int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID    string `gorm:"column:packet_id;not null" json:"packet_id"`
-	UserID      int64  `gorm:"column:user_id;not null" json:"user_id"`
+	UserID      string `gorm:"column:user_id;not null" json:"user_id"`
 	Amount      int64  `gorm:"column:amount;not null" json:"amount"`
 	ReceiveTime int64  `gorm:"column:receive_time;not null" json:"receive_time"`
 	CreatedTime int64  `gorm:"column:created_time;not null" json:"created_time"`
@@ -39,7 +39,7 @@ func RedPacketDetailCreateData(req *FPacketDetail) error {
 }
 
 // 查询用户的发送红包记录
-func FPacketDetailGetByPacketID(packetID string, userID int64) (*FPacketDetail, error) {
+func FPacketDetailGetByPacketID(packetID, userID string) (*FPacketDetail, error) {
 	var res *FPacketDetail
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Where("packet_id = ? and user_id", packetID, userID).Find(res)
 	if result.Error != nil {

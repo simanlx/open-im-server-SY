@@ -28,7 +28,7 @@ CREATE TABLE `f_ncount_account` (
 
 type FNcountAccount struct {
 	Id              int32  `gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment;comment:'主键'" json:"id"`
-	UserId          int32  `gorm:"column:user_id;type:int(10);not null;comment:'用户id'" json:"userId"`
+	UserId          int32  `gorm:"column:user_id;type:varchar(64);not null;comment:'用户id'" json:"userId"`
 	MainAccountId   string `gorm:"column:main_account_id;type:varchar(20);default:null;comment:'新生支付主账号id'" json:"mainAccountId"`
 	PacketAccountId string `gorm:"column:packet_account_id;type:varchar(20);default:null;comment:'新生支付红包账户id'" json:"packetAccountId"`
 	Mobile          string `gorm:"column:mobile;type:varchar(15);not null;comment:'手机号码'" json:"mobile"`
@@ -43,7 +43,7 @@ type FNcountAccount struct {
 	UpdatedTime     string `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
 }
 
-func FNcountAccountGetUserAccountID(userId int64) (*FNcountAccount, error) {
+func FNcountAccountGetUserAccountID(userId string) (*FNcountAccount, error) {
 	var account *FNcountAccount
 	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").
 		Select("main_account_id", "packet_account_id").Where("user_id = ?", userId).First(account).Error
@@ -54,7 +54,7 @@ func FNcountAccountGetUserAccountID(userId int64) (*FNcountAccount, error) {
 }
 
 // 获取用户账户信息
-func GetNcountAccountByUserId(userID int32) (info *db.FNcountAccount, err error) {
+func GetNcountAccountByUserId(userID string) (info *db.FNcountAccount, err error) {
 	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", userID).First(&info).Error
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func CreateNcountAccount(info *db.FNcountAccount) error {
 }
 
 // 更新账户信息
-func UpdateNcountAccountField(userId int32, m map[string]interface{}) error {
+func UpdateNcountAccountField(userId string, m map[string]interface{}) error {
 	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", userId).Updates(m).Error
 	return err
 }

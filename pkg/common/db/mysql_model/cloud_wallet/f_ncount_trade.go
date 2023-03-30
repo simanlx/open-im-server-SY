@@ -36,7 +36,7 @@ const (
 
 type FNcountTrade struct {
 	ID              int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
-	UserID          int64  `gorm:"column:user_id;not null" json:"user_id"`
+	UserID          string `gorm:"column:user_id;not null" json:"user_id"`
 	PaymentPlatform int32  `gorm:"column:payment_platform;not null" json:"payment_platform"`
 	Type            int32  `gorm:"column:type;not null" json:"type"`
 	Amount          int64  `gorm:"column:amount;not null" json:"amount"`
