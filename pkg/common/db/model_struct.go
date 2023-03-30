@@ -356,7 +356,7 @@ func (ClientInitConfig) TableName() string {
 
 type FNcountAccount struct {
 	Id              int32     `gorm:"column:id" json:"id"`
-	UserId          int32     `gorm:"column:user_id" json:"user_id"`                     //用户id
+	UserId          string    `gorm:"column:user_id" json:"user_id"`                     //用户id
 	MainAccountId   string    `gorm:"column:main_account_id" json:"main_account_id"`     //主账号id
 	PacketAccountId string    `gorm:"column:packet_account_id" json:"packet_account_id"` //红包账户id
 	Mobile          string    `gorm:"column:mobile" json:"mobile"`                       //手机号码
@@ -378,7 +378,7 @@ func (FNcountAccount) TableName() string {
 // 用户银行卡绑定表
 type FNcountBankCard struct {
 	Id                int32     `gorm:"column:id" json:"id"`
-	UserId            int32     `gorm:"column:user_id" json:"user_id"`                         //用户id
+	UserId            string    `gorm:"column:user_id" json:"user_id"`                         //用户id
 	MerOrderId        string    `gorm:"column:mer_order_id" json:"mer_order_id"`               //平台订单号
 	NcountOrderId     string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`         //第三方签约订单号
 	BindCardAgrNo     string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"`       //第三方绑卡协议号
