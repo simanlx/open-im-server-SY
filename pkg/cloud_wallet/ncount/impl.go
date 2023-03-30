@@ -2,6 +2,7 @@ package ncount
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -125,7 +126,7 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
@@ -138,11 +139,14 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
 	}
+
 	// 4. 使用RSA进行私钥签名
 	sign, err := Sign([]byte(str), PRIVATE_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Sign")
 	}
+	fmt.Println("NewNAccountBaseParam", body, str, sign)
+
 	body.SignValue = sign
 	content := body.Form()
 	result, err := httpPost(bindCardURL, content)
@@ -171,7 +175,7 @@ func (c *counter) BindCardConfirm(req *BindCardConfirmReq) (*BindCardConfirmResp
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}

@@ -15,6 +15,7 @@ service_filename=(
   open_im_group
   open_im_auth
   open_im_admin_cms
+  open_im_cloud_wallet
   ${msg_name}
   open_im_office
   open_im_organization
@@ -38,6 +39,7 @@ service_port_name=(
   openImOrganizationPort
   openImConversationPort
   openImCachePort
+  openImCloudWalletPort
 )
 
 service_prometheus_port_name=(
@@ -55,6 +57,7 @@ service_prometheus_port_name=(
   organizationPrometheusPort
   conversationPrometheusPort
   cachePrometheusPort
+  cloudWalletPrometheusPort
 )
 
 for ((i = 0; i < ${#service_filename[*]}; i++)); do

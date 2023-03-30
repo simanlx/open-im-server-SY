@@ -17,14 +17,14 @@ merUserIp 商户用户 IP 0-128 商户 用户签 约 时所 在的机 器 IP 地
 */
 
 type BindCardMsgCipherText struct {
-	CardNo            string `json:"cardNo" binding:"required"`
-	HolderName        string `json:"holderName" binding:"required"`
-	CardAvailableDate string `json:"cardAvailableDate" binding:"required"`
-	Cvv2              string `json:"cvv2" binding:"required"`
-	MobileNo          string `json:"mobileNo" binding:"required"`
-	IdentityType      string `json:"identityType" binding:"required"`
-	IdentityCode      string `json:"identityCode" binding:"required"`
-	UserId            string `json:"userId" binding:"required"`
+	CardNo     string `json:"cardNo" binding:"required"`
+	HolderName string `json:"holderName" binding:"required"`
+	//CardAvailableDate string `json:"cardAvailableDate" binding:"required"`
+	//Cvv2              string `json:"cvv2" binding:"required"`
+	MobileNo     string `json:"mobileNo" binding:"required"`
+	IdentityType string `json:"identityType" binding:"required"`
+	IdentityCode string `json:"identityCode" binding:"required"`
+	UserId       string `json:"userId" binding:"required"`
 }
 
 func (b *BindCardMsgCipherText) Valid() error {
@@ -34,12 +34,12 @@ func (b *BindCardMsgCipherText) Valid() error {
 	if b.HolderName == "" {
 		return errors.New("holderName is empty")
 	}
-	if b.CardAvailableDate == "" {
-		return errors.New("cardAvailableDate is empty")
-	}
-	if b.Cvv2 == "" {
-		return errors.New("cvv2 is empty")
-	}
+	//if b.CardAvailableDate == "" {
+	//	return errors.New("cardAvailableDate is empty")
+	//}
+	//if b.Cvv2 == "" {
+	//	return errors.New("cvv2 is empty")
+	//}
 	if b.MobileNo == "" {
 		return errors.New("mobileNo is empty")
 	}
