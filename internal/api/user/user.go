@@ -14,7 +14,6 @@ import (
 	rpc "Open_IM/pkg/proto/user"
 	"Open_IM/pkg/utils"
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -324,7 +323,6 @@ func SetGlobalRecvMessageOpt(c *gin.Context) {
 // @Failure 400 {object} api.Swagger400Resp "errCode为400 一般为参数输入错误, token未带上等"
 // @Router /user/get_self_user_info [post]
 func GetSelfUserInfo(c *gin.Context) {
-	fmt.Println("GetSelfUserInfo")
 	params := api.GetSelfUserInfoReq{}
 	if err := c.BindJSON(&params); err != nil {
 		errMsg := " BindJSON failed " + err.Error()
@@ -333,9 +331,8 @@ func GetSelfUserInfo(c *gin.Context) {
 		return
 	}
 	req := &rpc.GetUserInfoReq{}
-
 	utils.CopyStructFields(req, &params)
-
+	log.Info(params.OperationID, "GetSelfUserInfo args ", req.String())
 	var ok bool
 	var errInfo string
 	ok, req.OpUserID, errInfo = token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), req.OperationID)

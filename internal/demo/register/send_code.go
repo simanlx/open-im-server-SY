@@ -44,7 +44,8 @@ type paramsVerificationCode struct {
 
 func SendVerificationCode(c *gin.Context) {
 	params := paramsVerificationCode{}
-	fmt.Println("走到了这里来了")
+
+	// 验证参数
 	if err := c.BindJSON(&params); err != nil {
 		log.NewError("", "BindJSON failed", "err:", err.Error(), "phoneNumber", params.PhoneNumber, "email", params.Email)
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": constant.FormattingError, "errMsg": err.Error()})
@@ -103,7 +104,7 @@ func SendVerificationCode(c *gin.Context) {
 	rand.Seed(time.Now().UnixNano())
 	// code := 100000 + rand.Intn(900000)
 	code := 123456
-	log.NewInfo(params.OperationID, params.UsedFor, "begin store redis", accountKey, code)
+	log.NewInfo(params.OperationID, params.UsedFor, "begin store redis", accountKey, code, "过期时间", config.Config.Demo.CodeTTL)
 	err := db.DB.SetAccountCode(accountKey, code, config.Config.Demo.CodeTTL)
 	if err != nil {
 		log.NewError(params.OperationID, "set redis error", accountKey, "err", err.Error())

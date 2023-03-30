@@ -640,6 +640,7 @@ func unmarshalConfig(config interface{}, configName string) {
 	} else if configName == "usualConfig.yaml" {
 		env = "USUAL_CONFIG_NAME"
 	}
+
 	cfgName := os.Getenv(env)
 	if len(cfgName) != 0 {
 		bytes, err := ioutil.ReadFile(filepath.Join(cfgName, "config", configName))

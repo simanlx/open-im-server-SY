@@ -3,6 +3,7 @@ package main
 import (
 	"Open_IM/internal/cms_api"
 	"Open_IM/pkg/common/constant"
+	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/utils"
 	"flag"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 
 func main() {
 	gin.SetMode(gin.ReleaseMode)
+	log.NewPrivateLog("im_cms_api")
+	log.Info("0", "启动im_cms_api 服务 ", constant.CurrentVersion)
 	router := cms_api.NewGinRouter()
 	router.Use(utils.CorsHandler())
 	defaultPorts := config.Config.CmsApi.GinPort
