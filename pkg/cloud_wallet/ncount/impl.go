@@ -40,7 +40,7 @@ func (c *counter) NewAccount(req *NewAccountReq) (*NewAccountResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.OrderID, string(cipher), "Q010")
+	body := NewNAccountBaseParam(req.OrderID, string(cipher), "R010")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")

@@ -168,7 +168,6 @@ type GroupRequest struct {
 // int32 AppMangerLevel = 11;
 // open_im_sdk.User == imdb.User
 type User struct {
-	Id               int32     `gorm:"column:id"`
 	UserID           string    `gorm:"column:user_id;primary_key;size:64"`
 	Nickname         string    `gorm:"column:name;size:255"`
 	FaceURL          string    `gorm:"column:face_url;size:255"`
