@@ -40,7 +40,7 @@ func (c *counter) NewAccount(req *NewAccountReq) (*NewAccountResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.OrderID, string(cipher), "Q010")
+	body := NewNAccountBaseParam(req.OrderID, string(cipher), "R010")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -146,7 +146,6 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Sign")
 	}
-	fmt.Println("NewNAccountBaseParam", body, str, sign)
 
 	body.SignValue = sign
 	content := body.Form()
@@ -171,7 +170,7 @@ func (c *counter) BindCardConfirm(req *BindCardConfirmReq) (*BindCardConfirmResp
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.BindCardConfirmMsgCipherText)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -217,7 +216,7 @@ func (c *counter) UnbindCard(req *UnBindCardReq) (*UnBindCardResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.UnBindCardMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -263,7 +262,7 @@ func (c *counter) CheckUserAccountDetail(req *CheckUserAccountDetailReq) (*Check
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.CheckUserAccountDetailMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -309,7 +308,7 @@ func (c *counter) CheckUserAccountTrans(req *CheckUserAccountTransReq) (*CheckUs
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.CheckUserAccountTransMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -355,7 +354,7 @@ func (c *counter) QuickPayOrder(req *QuickPayOrderReq) (*QuickPayOrderResp, erro
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.QuickPayMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -401,7 +400,7 @@ func (c *counter) QuickPayConfirm(req *QuickPayConfirmReq) (*QuickPayConfirmResp
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.QuickPayConfirmMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -447,7 +446,7 @@ func (c *counter) Transfer(req *TransferReq) (*TransferResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.TransferMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -493,7 +492,7 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.RefundMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}

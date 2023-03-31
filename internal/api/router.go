@@ -204,10 +204,9 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
 
 		//用户银行卡管理
-		cloudWalletGroup.POST("/get_user_bankcard_list", account.GetUserBankCardList)         //获取用户银行卡列表
 		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)
 		cloudWalletGroup.POST("/bind_user_bankcard/confirm", account.BindUserBankcardConfirm) //确认绑定银行卡-code验证
-		cloudWalletGroup.POST("/Unbinding_user_bankcard", account.BindUserBankcardConfirm)    //解绑银行卡
+		cloudWalletGroup.POST("/unbinding/user_bankcard", account.UnBindUserBankcard)         //解绑银行卡
 
 		/*// 账户充值提现
 		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)

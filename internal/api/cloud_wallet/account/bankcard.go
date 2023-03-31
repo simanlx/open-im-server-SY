@@ -12,33 +12,6 @@ import (
 	"strings"
 )
 
-// 获取用户银行卡列表
-func GetUserBankCardList(c *gin.Context) {
-	//userId, _ := c.Get("userID")
-	req := &rpc.GetUserBankcardListReq{
-		UserId:      "123456",
-		OperationID: "",
-	}
-
-	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
-	if etcdConn == nil {
-		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
-		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
-		return
-	}
-	client := rpc.NewCloudWalletServiceClient(etcdConn)
-	RpcResp, err := client.GetUserBankcardList(context.Background(), req)
-	if err != nil {
-		log.NewError(req.OperationID, "GetUserBankcardList failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, RpcResp)
-	return
-}
-
 // 绑定银行卡
 func BindUserBankCard(c *gin.Context) {
 	params := account.BindUserBankCardReq{}
@@ -72,14 +45,12 @@ func BindUserBankCard(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RpcResp)
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
 
 // 绑定银行卡code确认
 func BindUserBankcardConfirm(c *gin.Context) {
-	//userId, _ := c.Get("userID")
-
 	params := account.BindUserBankcardConfirmReq{}
 	if err := c.BindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
@@ -87,12 +58,11 @@ func BindUserBankcardConfirm(c *gin.Context) {
 	}
 
 	req := &rpc.BindUserBankcardConfirmReq{
-		UserId:      "123456",
+		UserId:      params.UserId,
 		BankCardId:  params.BankCardId,
-		MerOrderId:  "",
 		SmsCode:     params.Code,
 		MerUserIp:   c.ClientIP(),
-		OperationID: "",
+		OperationID: params.OperationID,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
@@ -110,7 +80,39 @@ func BindUserBankcardConfirm(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RpcResp)
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
+}
 
+// 解绑银行卡
+func UnBindUserBankcard(c *gin.Context) {
+	params := account.UnBindUserBankcardReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	req := &rpc.UnBindingUserBankcardReq{
+		UserId:        params.UserId,
+		BindCardAgrNo: params.BindCardAgrNo,
+		OperationID:   params.OperationID,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.UnBindingUserBankcard(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, "UnBindingUserBankcard failed ", err.Error(), req.String())
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
 }
