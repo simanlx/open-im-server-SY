@@ -41,7 +41,7 @@ message UserNcountAccountResp{
 }
 
 message BindCardsList{
-  string indCardAgrNo = 1; //简写
+  string bindCardAgrNo = 1; //协议号
   string bankCode = 2; //银行
   string cardNo = 3; //卡号
 }
@@ -68,22 +68,6 @@ message RecordList{
   float afterAmount = 4; //变更后金额
   int64 createdTime = 5; //变更时间
   string remark = 6; //备注
-}
-
-//5.获取用户的银行卡列表
-message GetUserBankcardListReq{
-  string userId = 1; //用户id
-  string operationID = 2; //链路跟踪id
-}
-message GetUserBankcardListResp{
-  repeated BankCardList bankCardList = 1;
-}
-message BankCardList{
-  int32  bankCardID = 1; //银行卡id
-  string cardOwner = 2; //持卡者
-  int32  bankCardType = 3; // 银行类型 （枚举值：和前端使用统一的新生支付支持银行卡类型）
-  string bankCardNumber = 4; //银行卡号 ****
-  string createdTime = 5; //绑定时间
 }
 
 // 6.绑定用户银行卡
@@ -120,7 +104,8 @@ message BindUserBankcardConfirmResp{
 // 解绑绑定用户银行卡
 message UnBindingUserBankcardReq{
   string userId = 1; //用户id
-  int32  bankCardId = 2; //银行卡id
+  string bindCardAgrNo = 2; //绑卡协议号
+  string operationID = 3; //链路跟踪id
 }
 
 message UnBindingUserBankcardResp{
@@ -376,9 +361,6 @@ service CloudWalletService {
 
   // 云钱包收支明细
   rpc CloudWalletRecordList(CloudWalletRecordListReq)returns(CloudWalletRecordListResp);
-
-  // 获取用户银行卡列表
-  rpc GetUserBankcardList(GetUserBankcardListReq)returns(GetUserBankcardListResp);
 
   //绑定用户银行卡
   rpc BindUserBankcard(BindUserBankcardReq)returns(BindUserBankcardResp);

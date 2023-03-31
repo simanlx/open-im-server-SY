@@ -95,9 +95,9 @@ func (n *NAccountBaseParam) Form() url.Values {
 */
 
 type NAccountBankCard struct {
-	IndCardAgrNo string `json:"indCardAgrNo" binding:"required"`
-	BankCode     string `json:"bankCode" binding:"required"`
-	CardNo       string `json:"cardNo" binding:"required"`
+	BindCardAgrNo string `json:"bindCardAgrNo" binding:"required"`
+	BankCode      string `json:"bankCode" binding:"required"`
+	CardNo        string `json:"cardNo" binding:"required"`
 }
 
 // ============================================================返回头部参数===========================
