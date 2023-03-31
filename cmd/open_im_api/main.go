@@ -25,7 +25,7 @@ import (
 // @BasePath /
 func main() {
 	router := api.NewGinRouter()
-
+	log.NewPrivateLog("im_api")
 	go getcdv3.RegisterConf()
 	go apiThird.MinioInit()
 	defaultPorts := config.Config.Api.GinPort

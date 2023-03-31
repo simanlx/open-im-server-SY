@@ -22,17 +22,17 @@ import (
 	notifyUrl 商户异步 通知地址 1-255 后台通知地址 不可 例 如 ： https:/ /www.x
 */
 type QuickPayMsgCipher struct {
-	TranAmount        string `json:"tranAmount" binding:"required"`
-	PayType           string `json:"payType" binding:"required"`
-	CardNo            string `json:"cardNo" binding:"required"`
-	HolderName        string `json:"holderName" binding:"required"`
-	CardAvailableDate string `json:"cardAvailableDate" binding:"required"`
-	Cvv2              string `json:"cvv2" binding:"required"`
-	MobileNo          string `json:"mobileNo" binding:"required"`
-	IdentityType      string `json:"identityType" binding:"required"`
-	IdentityCode      string `json:"identityCode" binding:"required"`
-	BindCardAgrNo     string `json:"bindCardAgrNo" binding:"required"`
-	NotifyUrl         string `json:"notifyUrl" binding:"required"`
+	TranAmount        string `json:"tranAmount" binding:"required"`        // 支付金额
+	PayType           string `json:"payType" binding:"required"`           // 支付方式
+	CardNo            string `json:"cardNo" binding:"required"`            // 支付银行卡卡号
+	HolderName        string `json:"holderName" binding:"required"`        // 持卡人姓名
+	CardAvailableDate string `json:"cardAvailableDate" binding:"required"` // 信用卡有效期
+	Cvv2              string `json:"cvv2" binding:"required"`              // 信用卡cvv2
+	MobileNo          string `json:"mobileNo" binding:"required"`          // 银行签约手机号
+	IdentityType      string `json:"identityType" binding:"required"`      // 证件类型
+	IdentityCode      string `json:"identityCode" binding:"required"`      // 证件号码
+	BindCardAgrNo     string `json:"bindCardAgrNo" binding:"required"`     // 绑卡协议号
+	NotifyUrl         string `json:"notifyUrl" binding:"required"`         // 商户异步通知地址
 
 	/*
 		orderExpireTime 订单过期 时长 0-1440 订单过期时长（单位：分 钟） 可空

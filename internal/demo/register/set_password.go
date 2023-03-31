@@ -39,17 +39,20 @@ type ParamsSetPassword struct {
 
 func SetPassword(c *gin.Context) {
 	params := ParamsSetPassword{}
+	// 绑定参数
 	if err := c.BindJSON(&params); err != nil {
 		log.NewError(params.OperationID, utils.GetSelfFuncName(), "bind json failed", err.Error())
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": constant.FormattingError, "errMsg": err.Error()})
 		return
 	}
+	// 设置访问头
 	ip := c.Request.Header.Get("X-Forward-For")
 	if ip == "" {
 		ip = c.ClientIP()
 	}
 	log.NewDebug(params.OperationID, utils.GetSelfFuncName(), "ip:", ip)
 
+	// 验证token
 	ok, opUserID, _ := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
 	if !ok || !utils.IsContain(opUserID, config.Config.Manager.AppManagerUid) {
 		Limited, LimitError := imdb.IsLimitRegisterIp(ip)
@@ -64,6 +67,8 @@ func SetPassword(c *gin.Context) {
 			return
 		}
 	}
+
+	// 验证参数
 	openIMRegisterReq := api.UserRegisterReq{}
 	var account string
 	if params.Email != "" {
@@ -78,6 +83,8 @@ func SetPassword(c *gin.Context) {
 	if params.Nickname == "" {
 		params.Nickname = account
 	}
+
+	//
 	if params.UserID == "" {
 		if (config.Config.Demo.UseSuperCode && params.VerificationCode != config.Config.Demo.SuperCode) || !config.Config.Demo.UseSuperCode {
 			accountKey := params.AreaCode + account + "_" + constant.VerificationCodeForRegisterSuffix
@@ -178,7 +185,7 @@ func SetPassword(c *gin.Context) {
 	case ChImportFriend <- &pbFriend.ImportFriendReq{
 		OperationID: params.OperationID,
 		FromUserID:  userID,
-		//OpUserID:    config.Config.Manager.AppManagerUid[0],
+		OpUserID:    config.Config.Manager.AppManagerUid[0],
 	}:
 	case <-time.After(time.Second * 2):
 		log.NewWarn(params.OperationID, utils.GetSelfFuncName(), "to ChImportFriend timeOut")
