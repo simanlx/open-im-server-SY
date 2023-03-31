@@ -53,3 +53,12 @@ func GetNcountBankCardById(id int32, userId string) (info *db.FNcountBankCard, e
 	}
 	return
 }
+
+// 获取绑定的银行卡信息
+func GetNcountBankCardByBindCardAgrNo(bindCardAgrNo, userId string) (info *db.FNcountBankCard, err error) {
+	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("bind_card_agr_no = ? and user_id = ?", bindCardAgrNo, userId).First(&info).Error
+	if err != nil {
+		return nil, err
+	}
+	return
+}

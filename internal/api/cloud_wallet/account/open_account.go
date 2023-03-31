@@ -40,7 +40,7 @@ func Account(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RpcResp)
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
 
@@ -89,7 +89,7 @@ func IdCardRealNameAuth(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RpcResp)
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
 
@@ -124,7 +124,7 @@ func SetPaymentSecret(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RpcResp)
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
 
@@ -158,6 +158,6 @@ func CloudWalletRecordList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, RpcResp)
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }

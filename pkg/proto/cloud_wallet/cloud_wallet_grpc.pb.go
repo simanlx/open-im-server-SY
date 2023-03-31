@@ -23,7 +23,6 @@ const (
 	CloudWalletService_IdCardRealNameAuth_FullMethodName      = "/cloud_wallet.CloudWalletService/IdCardRealNameAuth"
 	CloudWalletService_SetPaymentSecret_FullMethodName        = "/cloud_wallet.CloudWalletService/SetPaymentSecret"
 	CloudWalletService_CloudWalletRecordList_FullMethodName   = "/cloud_wallet.CloudWalletService/CloudWalletRecordList"
-	CloudWalletService_GetUserBankcardList_FullMethodName     = "/cloud_wallet.CloudWalletService/GetUserBankcardList"
 	CloudWalletService_BindUserBankcard_FullMethodName        = "/cloud_wallet.CloudWalletService/BindUserBankcard"
 	CloudWalletService_BindUserBankcardConfirm_FullMethodName = "/cloud_wallet.CloudWalletService/BindUserBankcardConfirm"
 	CloudWalletService_UnBindingUserBankcard_FullMethodName   = "/cloud_wallet.CloudWalletService/UnBindingUserBankcard"
@@ -42,8 +41,6 @@ type CloudWalletServiceClient interface {
 	SetPaymentSecret(ctx context.Context, in *SetPaymentSecretReq, opts ...grpc.CallOption) (*SetPaymentSecretResp, error)
 	// 云钱包收支明细
 	CloudWalletRecordList(ctx context.Context, in *CloudWalletRecordListReq, opts ...grpc.CallOption) (*CloudWalletRecordListResp, error)
-	// 获取用户银行卡列表
-	GetUserBankcardList(ctx context.Context, in *GetUserBankcardListReq, opts ...grpc.CallOption) (*GetUserBankcardListResp, error)
 	// 绑定用户银行卡
 	BindUserBankcard(ctx context.Context, in *BindUserBankcardReq, opts ...grpc.CallOption) (*BindUserBankcardResp, error)
 	// 绑定用户银行卡确认code
@@ -96,15 +93,6 @@ func (c *cloudWalletServiceClient) CloudWalletRecordList(ctx context.Context, in
 	return out, nil
 }
 
-func (c *cloudWalletServiceClient) GetUserBankcardList(ctx context.Context, in *GetUserBankcardListReq, opts ...grpc.CallOption) (*GetUserBankcardListResp, error) {
-	out := new(GetUserBankcardListResp)
-	err := c.cc.Invoke(ctx, CloudWalletService_GetUserBankcardList_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *cloudWalletServiceClient) BindUserBankcard(ctx context.Context, in *BindUserBankcardReq, opts ...grpc.CallOption) (*BindUserBankcardResp, error) {
 	out := new(BindUserBankcardResp)
 	err := c.cc.Invoke(ctx, CloudWalletService_BindUserBankcard_FullMethodName, in, out, opts...)
@@ -145,8 +133,6 @@ type CloudWalletServiceServer interface {
 	SetPaymentSecret(context.Context, *SetPaymentSecretReq) (*SetPaymentSecretResp, error)
 	// 云钱包收支明细
 	CloudWalletRecordList(context.Context, *CloudWalletRecordListReq) (*CloudWalletRecordListResp, error)
-	// 获取用户银行卡列表
-	GetUserBankcardList(context.Context, *GetUserBankcardListReq) (*GetUserBankcardListResp, error)
 	// 绑定用户银行卡
 	BindUserBankcard(context.Context, *BindUserBankcardReq) (*BindUserBankcardResp, error)
 	// 绑定用户银行卡确认code
@@ -171,9 +157,6 @@ func (UnimplementedCloudWalletServiceServer) SetPaymentSecret(context.Context, *
 }
 func (UnimplementedCloudWalletServiceServer) CloudWalletRecordList(context.Context, *CloudWalletRecordListReq) (*CloudWalletRecordListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloudWalletRecordList not implemented")
-}
-func (UnimplementedCloudWalletServiceServer) GetUserBankcardList(context.Context, *GetUserBankcardListReq) (*GetUserBankcardListResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserBankcardList not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) BindUserBankcard(context.Context, *BindUserBankcardReq) (*BindUserBankcardResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BindUserBankcard not implemented")
@@ -269,24 +252,6 @@ func _CloudWalletService_CloudWalletRecordList_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CloudWalletService_GetUserBankcardList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserBankcardListReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CloudWalletServiceServer).GetUserBankcardList(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CloudWalletService_GetUserBankcardList_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CloudWalletServiceServer).GetUserBankcardList(ctx, req.(*GetUserBankcardListReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CloudWalletService_BindUserBankcard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BindUserBankcardReq)
 	if err := dec(in); err != nil {
@@ -363,10 +328,6 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CloudWalletRecordList",
 			Handler:    _CloudWalletService_CloudWalletRecordList_Handler,
-		},
-		{
-			MethodName: "GetUserBankcardList",
-			Handler:    _CloudWalletService_GetUserBankcardList_Handler,
 		},
 		{
 			MethodName: "BindUserBankcard",

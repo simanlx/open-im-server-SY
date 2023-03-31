@@ -43,9 +43,9 @@ type BindUserBankcardConfirmReq struct {
 
 // 解绑银行卡
 type UnBindUserBankcardReq struct {
-	UserId      string `json:"user_id"`
-	BankCardId  int32  `json:"bank_card_id" binding:"required"`
-	OperationID string `json:"operationID" binding:"required"`
+	UserId        string `json:"user_id"`
+	BindCardAgrNo string `json:"bindCardAgrNo" binding:"required"`
+	OperationID   string `json:"operationID" binding:"required"`
 }
 
 // 银行卡列表
