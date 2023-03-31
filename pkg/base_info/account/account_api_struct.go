@@ -48,8 +48,8 @@ type UnBindUserBankcardReq struct {
 	OperationID   string `json:"operationID" binding:"required"`
 }
 
-// 银行卡列表
-type BankcardListReq struct {
+// 充值
+type UserRechargeReq struct {
 	UserId      string `json:"user_id"`
 	OperationID string `json:"operationID" binding:"required"`
 }
