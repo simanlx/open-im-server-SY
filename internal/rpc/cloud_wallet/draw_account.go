@@ -25,14 +25,14 @@ type userWithdrawal struct {
 	count  ncount.NCounter
 }
 
-func NewUserWithdrawal(count ncount.NCounter, notify string) (*userRechargeServer, error) {
+func NewUserWithdrawal(count ncount.NCounter, notify string) (*userWithdrawal, error) {
 	// 验证notify是不是合格的url
 	_, err := url.ParseRequestURI(notify)
 	if err != nil {
 		return nil, err
 	}
 
-	return &userRechargeServer{
+	return &userWithdrawal{
 		count:  count,
 		notify: notify,
 	}, nil
