@@ -6,6 +6,8 @@ package cloud_wallet;
 enum CloudWalletErrCode {
   ESC =0 ;
   ServerError = 9999 ; // 9999 服务器错误
+  ServerNcountError = 8888 ;// 新生支付错误
+
   // 1000- 1999 云钱包相关错误
   PacketStatusIsCreate  = 1000; // 红包状态是创建
   PacketStatusIsFinish  = 1001; // 红包状态是完成
@@ -165,6 +167,7 @@ message drawAccountReq {
   string userId = 1; //用户id
   string bankCardID = 2;//银行卡id
   int64 amount = 3;//提现金额 单位：分
+  string OperationID = 4; //链路跟踪id
 }
 message drawAccountResp {
   int64 amount = 1; //提现后余额 单位：分
@@ -345,7 +348,7 @@ message authPaymentSecretResp {
 
 
 // 用户的充值接口
-message UserQuiky{
+message UserRechargeReq{
   string userId = 1; //用户id
   string bankCardID = 2; //银行卡id
   string amount = 3; //充值金额
@@ -386,6 +389,11 @@ service CloudWalletService {
   //解绑用户银行卡
   rpc UnBindingUserBankcard(UnBindingUserBankcardReq)returns(UnBindingUserBankcardResp);
 
+  // 银行卡充值
+  rpc UserRecharge(UserRechargeReq)returns(UserRechargeResp);
+
+  // 银行卡提现
+  rpc UserWithdrawal(drawAccountReq)returns(drawAccountResp);
 
 //  // 发送红包接口
 //  rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);

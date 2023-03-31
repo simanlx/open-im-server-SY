@@ -71,6 +71,15 @@ kafka:
     msgToMySql: mysql
     msgToPush: push
     msgToModify: modify
+#------------------定制化的内容 start---------------------------#
+ncount :
+    publicKey: "" #公钥
+    privateKey: "" #私钥
+    merchantId: "" #商户号
+    notify:
+      rechargeNotifyUrl: "" #充值回调地址
+      withdrawNotifyUrl: "" #提现回调地址
+
 
 
 #---------------Internal service configuration---------------------#

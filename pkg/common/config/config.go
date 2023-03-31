@@ -27,6 +27,27 @@ type callBackConfig struct {
 }
 
 type config struct {
+
+	/*
+		ncount :
+		    publicKey: "" #公钥
+		    privateKey: "" #私钥
+		    merchantId: "" #商户号
+		    notify:
+		      rechargeNotifyUrl: "" #充值回调地址
+		      withdrawNotifyUrl: "" #提现回调地址
+	*/
+	// 定制化内容 ：
+	Ncount struct {
+		PublicKey  string `yaml:"publicKey"`
+		PrivateKey string `yaml:"privateKey"`
+		MerchantId string `yaml:"merchantId"`
+		Notify     struct {
+			RechargeNotifyUrl string `yaml:"rechargeNotifyUrl"`
+			WithdrawNotifyUrl string `yaml:"withdrawNotifyUrl"`
+		}
+	}
+
 	ServerIP string `yaml:"serverip"`
 
 	RpcRegisterIP string `yaml:"rpcRegisterIP"`
@@ -642,6 +663,7 @@ func unmarshalConfig(config interface{}, configName string) {
 	}
 
 	cfgName := os.Getenv(env)
+
 	if len(cfgName) != 0 {
 		bytes, err := ioutil.ReadFile(filepath.Join(cfgName, "config", configName))
 		if err != nil {

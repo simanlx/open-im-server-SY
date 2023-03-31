@@ -4,6 +4,7 @@ import (
 	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/pkg/errors"
@@ -11,7 +12,7 @@ import (
 	"strconv"
 )
 
-// 抢红包接口
+// 抢红包
 func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickRedPacketReq) (*pb.ClickRedPacketResp, error) {
 	// 参数校验 ：红包是否过期、 红包状态判断、红包的类型
 	// 判断抢红包是否实名认证过，如果没实名认证过就不能抢红包
@@ -28,8 +29,12 @@ func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickR
 		OperateID:         req.OperationID,
 		count:             rpc.count,
 	}
-	return handler.ClickRedPacket()
-
+	resp, err := handler.ClickRedPacket()
+	CompleteRespMsg(resp.CommonResp)
+	if err != nil {
+		log.Error(req.OperationID, "ClickRedPacket", err.Error(), req)
+	}
+	return resp, err
 }
 
 type handlerClickRedPacket struct {
@@ -49,28 +54,23 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
 	if err != nil {
 		common.ErrCode = pb.CloudWalletErrCode_ServerError
-		common.ErrMsg = "服务器错误"
-		return res, errors.Wrap(err, "获取红包信息失败")
+		return res, errors.Wrap(err, "查询数据库失败")
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusCreate {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsCreate
-		common.ErrMsg = "红包还未创建"
 		return res, nil
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusFinished {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsFinish
-		common.ErrMsg = "红包已经抢完"
 		return res, nil
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusExpired {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExpire
-		common.ErrMsg = "红包过期"
 		return res, nil
 	}
 
 	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != cast.ToInt64(req.UserId) {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExclusive
-		common.ErrMsg = "红包是专属红包"
 		return res, nil
 	}
 
@@ -78,13 +78,11 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 	fp, err := imdb.FPacketDetailGetByPacketID(req.RedPacketID, req.UserId)
 	if err != nil {
 		common.ErrCode = pb.CloudWalletErrCode_ServerError
-		common.ErrMsg = "服务器错误"
 		return res, errors.Wrap(err, "获取红包领取记录失败")
 	}
 
 	if fp.ID != 0 {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsReceived
-		common.ErrMsg = "红包已经领取"
 		return res, nil
 	}
 	// 3. 检查用户是否实名认证 todo
@@ -96,7 +94,6 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 		_, err := req.getRedPacketByGroup()
 		if err != nil {
 			common.ErrCode = pb.CloudWalletErrCode_ServerError
-			common.ErrMsg = "服务器错误"
 			return res, errors.Wrap(err, "获取红包失败")
 		}
 		return res, nil
@@ -105,7 +102,6 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 		NcountReq, err := req.getRedPacketByUser(req.UserId, req.RedPacketID)
 		if err != nil {
 			common.ErrCode = pb.CloudWalletErrCode_ServerError
-			common.ErrMsg = "服务器错误"
 			return res, errors.Wrap(err, "获取红包失败")
 		}
 		/*

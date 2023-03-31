@@ -368,7 +368,7 @@ func (c *counter) QuickPayOrder(req *QuickPayOrderReq) (*QuickPayOrderResp, erro
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.merOrderId, string(cipher), "T007")
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T007")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -532,5 +532,8 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 
 // 提现接口
 func (c *counter) Withdraw(req *WithdrawReq) (*WithdrawResp, error) {
+	if req == nil {
+		return nil, errors.New("req is nil")
+	}
 	panic(1)
 }

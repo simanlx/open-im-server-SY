@@ -375,6 +375,7 @@ func (FNcountAccount) TableName() string {
 	return "f_ncount_account"
 }
 
+/*  `ncount_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '账户类型(1主账户，2红包账户)',*/
 // 用户银行卡绑定表
 type FNcountBankCard struct {
 	Id                int32     `gorm:"column:id" json:"id"`
@@ -382,6 +383,7 @@ type FNcountBankCard struct {
 	MerOrderId        string    `gorm:"column:mer_order_id" json:"mer_order_id"`               //平台订单号
 	NcountOrderId     string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`         //第三方签约订单号
 	BindCardAgrNo     string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"`       //第三方绑卡协议号
+	NcountType        int       `gorm:"column:ncount_type" json:"ncount_type"`                 //账户类型(1主账户，2红包账户)
 	Mobile            string    `gorm:"column:mobile" json:"mobile"`                           //手机号码
 	CardOwner         string    `gorm:"column:card_owner" json:"card_owner"`                   //持卡者名字
 	BankCardNumber    string    `gorm:"column:bank_card_number" json:"bank_card_number"`       //银行卡号
