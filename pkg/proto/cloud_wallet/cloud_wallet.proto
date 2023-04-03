@@ -86,6 +86,17 @@ message BindUserBankcardResp{
   CommonResp commonResp = 2;
 }
 
+message UserRechargeConfirmReq{
+  string userId = 1; //用户id
+  string  merOrderId = 2; //订单号
+  string  smsCode = 3; //验证码
+  string operationID = 4; //链路跟踪id
+}
+
+message UserRechargeConfirmResp{
+  CommonResp commonResp = 1;
+}
+
 // 绑定用户银行卡确认
 message BindUserBankcardConfirmReq{
   string userId = 1; //用户id
@@ -407,12 +418,10 @@ message authPaymentSecretResp {
   CommonResp commonResp = 2;
 }
 
-
-
 // 用户的充值接口
 message UserRechargeReq{
   string userId = 1; //用户id
-  string bankCardID = 2; //银行卡id
+  string bindCardAgrNo = 2; //绑卡协议号
   string amount = 3; //充值金额
   string operationID = 4; //链路跟踪id
 }
@@ -451,6 +460,9 @@ service CloudWalletService {
   // 银行卡充值
   rpc UserRecharge(UserRechargeReq)returns(UserRechargeResp);
 
+  // 银行卡充值code 确认
+  rpc UserRechargeConfirm(UserRechargeConfirmReq)returns(UserRechargeConfirmResp);
+
   // 银行卡提现
   rpc UserWithdrawal(drawAccountReq)returns(drawAccountResp);
 
@@ -460,10 +472,10 @@ service CloudWalletService {
   // 提现回调接口
   rpc WithDrawNotify(drawNotifyReq)returns(drawNotifyResp);
 
-//  // 发送红包接口
-//  rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
-//
-//  // 抢红包接口
-//  rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
+  // 发送红包接口
+  rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
+
+  // 抢红包接口
+  rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
 
 }

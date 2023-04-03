@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/spf13/cast"
 	"golang.org/x/sync/errgroup"
 	"net"
 	"strconv"
@@ -115,11 +116,11 @@ func (rpc *CloudWalletServer) Run() {
 }
 
 // 获取云账户信息
-func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
+func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %d,error:%s", req.UserId, err.Error()))
+		return &cloud_wallet.UserNcountAccountResp{Step: 0}, nil
 	}
 
 	operationID := utils.OperationIDGenerator()
@@ -261,7 +262,7 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 	md5Data := m5.Sum([]byte(""))
 	secret := hex.EncodeToString(md5Data)
 
-	err = imdb.UpdateNcountAccountField(req.UserId, map[string]interface{}{"payment_password": secret})
+	err = imdb.UpdateNcountAccountField(req.UserId, map[string]interface{}{"payment_password": secret, "open_step": 2})
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("保存数据失败,err:%s", err.Error()))
 	}
@@ -391,8 +392,8 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 	accountResp, err := ncount.NewCounter().UnbindCard(&ncount.UnBindCardReq{
 		MerOrderId: ncount.GetMerOrderID(),
 		UnBindCardMsgCipher: ncount.UnBindCardMsgCipher{
-			OriBindCardAgrN: bankCardInfo.BindCardAgrNo,
-			UserId:          bankCardInfo.NcountUserId,
+			OriBindCardAgrNo: bankCardInfo.BindCardAgrNo,
+			UserId:           bankCardInfo.NcountUserId,
 		},
 	})
 	fmt.Println("accountResp Println", accountResp, err, bankCardInfo.BindCardAgrNo, bankCardInfo.NcountUserId)
@@ -408,4 +409,85 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 	_ = imdb.UnBindUserBankcard(bankCardInfo.Id, req.UserId)
 
 	return &cloud_wallet.UnBindingUserBankcardResp{}, err
+}
+
+// 银行卡充值
+func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.UserRechargeReq) (*cloud_wallet.UserRechargeResp, error) {
+	// 获取银行卡信息
+	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("获取银行卡信息失败%s", err.Error()))
+	}
+
+	//充值支付
+	accountResp, err := ncount.NewCounter().QuickPayOrder(&ncount.QuickPayOrderReq{
+		MerOrderId: ncount.GetMerOrderID(),
+		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
+			PayType:       "3", //绑卡协议号充值
+			TranAmount:    "1",
+			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
+			BindCardAgrNo: bankCardInfo.BindCardAgrNo,
+			ReceiveUserId: bankCardInfo.NcountUserId,
+			UserId:        bankCardInfo.NcountUserId,
+			SubMerchantId: "3", // 充值
+		}})
+
+	fmt.Println("accountResp Println", accountResp, err, bankCardInfo.BindCardAgrNo, bankCardInfo.NcountUserId)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("充值失败(%s)", err.Error()))
+	} else {
+		if accountResp.ResultCode != "0000" {
+			return nil, errors.New(fmt.Sprintf("充值失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		}
+	}
+
+	info := &db.FNcountTrade{
+		UserID:          bankCardInfo.UserId,
+		PaymentPlatform: 1,
+		Type:            imdb.TradeTypeCharge,
+		Amount:          cast.ToInt64(req.Amount),
+		BeferAmount:     0,
+		AfterAmount:     0,
+		ThirdOrderNo:    accountResp.NcountOrderId,
+		CreatedTime:     time.Now(),
+		UpdatedTime:     time.Now(),
+	}
+
+	//数据入库
+	_ = imdb.FNcountTradeCreateData(info)
+	return &cloud_wallet.UserRechargeResp{
+		OrderNo: accountResp.NcountOrderId,
+	}, nil
+}
+
+// 账户充值code 确认
+func (c *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wallet.UserRechargeConfirmReq) (*cloud_wallet.UserRechargeConfirmResp, error) {
+	// 获取记录信息
+	tradeInfo, err := imdb.GetFNcountTradeByOrderNo(req.MerOrderId, req.UserId)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("获取充值记录信息失败%s", err.Error()))
+	}
+
+	//新生支付确认接口
+	accountResp, err := ncount.NewCounter().QuickPayConfirm(&ncount.QuickPayConfirmReq{
+		MerOrderId: ncount.GetMerOrderID(),
+		QuickPayConfirmMsgCipher: ncount.QuickPayConfirmMsgCipher{
+			NcountOrderId:        tradeInfo.ThirdOrderNo,
+			SmsCode:              req.SmsCode,
+			PaymentTerminalInfo:  "01|10001",
+			ReceiverTerminalInfo: "01|00001|CN|110000",
+			DeviceInfo:           "192.168.0.1|E1E2E3E4E5E6|123456789012345|20000|12345678901234567890|H1H2H3H4H5H6|A.BCDEFG,- H.IJKLMN",
+		},
+	})
+
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("充值确认失败(%s)", err.Error()))
+	} else {
+		if accountResp.ResultCode != "0000" {
+			return nil, errors.New(fmt.Sprintf("充值确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		}
+	}
+
+	return &cloud_wallet.UserRechargeConfirmResp{}, nil
 }

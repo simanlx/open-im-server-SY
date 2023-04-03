@@ -209,6 +209,10 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/bind_user_bankcard/confirm", account.BindUserBankcardConfirm) //确认绑定银行卡-code验证
 		cloudWalletGroup.POST("/unbinding/user_bankcard", account.UnBindUserBankcard)         //解绑银行卡
 
+		//账户
+		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)                //账户充值
+		cloudWalletGroup.POST("/charge_account/confirm", account.ChargeAccountConfirm) //账户充值code确认
+
 		// 回调接口
 		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify)
 		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)

@@ -383,7 +383,6 @@ type FNcountBankCard struct {
 	MerOrderId        string    `gorm:"column:mer_order_id" json:"mer_order_id"`               //平台订单号
 	NcountOrderId     string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`         //第三方签约订单号
 	BindCardAgrNo     string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"`       //第三方绑卡协议号
-	NcountType        int       `gorm:"column:ncount_type" json:"ncount_type"`                 //账户类型(1主账户，2红包账户)
 	Mobile            string    `gorm:"column:mobile" json:"mobile"`                           //手机号码
 	CardOwner         string    `gorm:"column:card_owner" json:"card_owner"`                   //持卡者名字
 	BankCardNumber    string    `gorm:"column:bank_card_number" json:"bank_card_number"`       //银行卡号
@@ -398,4 +397,21 @@ type FNcountBankCard struct {
 
 func (FNcountBankCard) TableName() string {
 	return "f_ncount_bank_card"
+}
+
+type FNcountTrade struct {
+	ID              int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserID          string    `gorm:"column:user_id;not null" json:"user_id"`
+	PaymentPlatform int32     `gorm:"column:payment_platform;not null" json:"payment_platform"`
+	Type            int32     `gorm:"column:type;not null" json:"type"`
+	Amount          int64     `gorm:"column:amount;not null" json:"amount"`
+	BeferAmount     int64     `gorm:"column:befer_amount;not null" json:"befer_amount"`
+	AfterAmount     int64     `gorm:"column:after_amount;not null" json:"after_amount"`
+	ThirdOrderNo    string    `gorm:"column:third_order_no;not null" json:"third_order_no"`
+	CreatedTime     time.Time `gorm:"column:created_time;not null" json:"created_time"`
+	UpdatedTime     time.Time `gorm:"column:updated_time;not null" json:"updated_time"`
+}
+
+func (FNcountTrade) TableName() string {
+	return "f_ncount_trade"
 }
