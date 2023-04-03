@@ -7,25 +7,25 @@ import (
 // 提现接口
 
 /*
-
-	tranAmount 支付金额 1-10 格式：数字（以元为单位） 不可 例如：100.21
-	userId 提现用户 编号 12 商户用户在新账通平台 的唯一标识 不可 例 如 ： 1
-	bindCardAgrNo 绑卡协 议号 30 当业务类型为 08 时，必 填，业务类型为 09 时为 空 可空
-	notifyUrl 异步通知 地址 1-255 交易完成后，异步通知商 户地址
-	paymentTerminal Info 付款方终 端信息 0-100 付款方交易终端设备类 型、编码等 注：包含两个子域（终端 设备类型，终端设备编 码），子域值间用“|”隔 开，格式如下：子域值 1|子域值 2 详情参见 6.9.1 终端及设 备信息说明 不可
-	deviceInfo 设备信息 0-200 绑卡设备信息，如：IP、 MAC 、 IMEI 、 IMSI 、 ICCID、WifiMAC、GPS 注：包含七个子域（交易 设 备 IP 、 交 易 设 备 MAC、交易设备 IMEI、 交易设备 IMSI、交易设 备 ICCD 、 交 易 设 备 WIFI MAC、交易设备 GPS），子域值间用“|” 隔开，格式如下：子域 值 1|子域值 2|子域值 3| 子域值 4|子域值 5|子域 值 6|子域值 7 详情参见 6.9.3 设备信息 不可
+tranAmount 支付金额 1-10 格式：数字（以元为单位） 不可 例如：100.21
+userId 提现用户 编号 12 商户用户在新账通平台 的唯一标识 不可 例 如 ： 1
+bindCardAgrNo 绑卡协 议号 30 当业务类型为 08 时，必 填，业务类型为 09 时为 空 可空
+notifyUrl 异步通知 地址 1-255 交易完成后，异步通知商 户地址
+paymentTerminal Info 付款方终 端信息 0-100 付款方交易终端设备类 型、编码等 注：包含两个子域（终端 设备类型，终端设备编 码），子域值间用“|”隔 开，格式如下：子域值 1|子域值 2 详情参见 6.9.1 终端及设 备信息说明 不可
+deviceInfo 设备信息 0-200 绑卡设备信息，如：IP、 MAC 、 IMEI 、 IMSI 、 ICCID、WifiMAC、GPS 注：包含七个子域（交易 设 备 IP 、 交 易 设 备 MAC、交易设备 IMEI、 交易设备 IMSI、交易设 备 ICCD 、 交 易 设 备 WIFI MAC、交易设备 GPS），子域值间用“|” 隔开，格式如下：子域 值 1|子域值 2|子域值 3| 子域值 4|子域值 5|子域 值 6|子域值 7 详情参见 6.9.3 设备信息 不可
 */
 type WithdrawMsgCipher struct {
-	TranAmount      string `json:"tranAmount" binding:"required"`      // 支付金额
-	UserId          string `json:"userId" binding:"required"`          // 提现用户编号
-	BindCardAgrNo   string `json:"bindCardAgrNo" binding:"required"`   // 绑卡协议号
-	NotifyUrl       string `json:"notifyUrl" binding:"required"`       // 异步通知地址
-	PaymentTerminal string `json:"paymentTerminal" binding:"required"` // 付款方终端信息
-	DeviceInfo      string `json:"deviceInfo" binding:"required"`      // 设备信息
+	BusinessType    string  `json:"businessType" binding:"required"`    // 业务类型
+	TranAmount      float32 `json:"tranAmount" binding:"required"`      // 支付金额
+	UserId          string  `json:"userId" binding:"required"`          // 提现用户编号
+	BindCardAgrNo   string  `json:"bindCardAgrNo" binding:"required"`   // 绑卡协议号
+	NotifyUrl       string  `json:"notifyUrl" binding:"required"`       // 异步通知地址
+	PaymentTerminal string  `json:"paymentTerminal" binding:"required"` // 付款方终端信息
+	DeviceInfo      string  `json:"deviceInfo" binding:"required"`      // 设备信息
 }
 
 func (w *WithdrawMsgCipher) Valid() error {
-	if w.TranAmount == "" {
+	if w.TranAmount <= 0 {
 		return errors.New("支付金额不能为空")
 	}
 	if w.UserId == "" {
@@ -59,7 +59,6 @@ func (w *WithdrawReq) Valid() error {
 }
 
 /*
-
 resultCode 处理结果码 4 附录二 resultCode 9999
 errorCode 异常代码 1-10 附录一 errorCode
 errorMsg 异常描述 1-200 中文、字母、数字
@@ -77,4 +76,3 @@ type WithdrawResp struct {
 	SignValue     string `json:"signValue"`     // 签名字符串
 	ServiceAmount string `json:"serviceAmount"` // 服务费
 }
-

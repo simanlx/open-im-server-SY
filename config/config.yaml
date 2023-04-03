@@ -6,7 +6,7 @@ serverversion: 2.3.1
 #---------------Infrastructure configuration---------------------#
 etcd:
   etcdSchema: openim  #默认即可
-  etcdAddr: [127.0.0.1:12379 ] #单机部署时，默认即可
+  etcdAddr: [127.0.0.1:2379 ] #单机部署时，默认即可
   userName:
   password:
   secret:
@@ -76,8 +76,8 @@ ncount :
     privateKey: "" #私钥
     merchantId: "" #商户号
     notify:
-      rechargeNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/charge_account/notify" #充值回调地址
-      withdrawNotifyUrl: "" #提现回调地址
+      rechargeNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/charge_account_callback" #充值回调地址
+      withdrawNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/draw_account_callback" #提现回调地址
 
 
 

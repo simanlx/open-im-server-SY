@@ -212,13 +212,13 @@ func NewGinRouter() *gin.Engine {
 		//账户
 		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)                //账户充值
 		cloudWalletGroup.POST("/charge_account/confirm", account.ChargeAccountConfirm) //账户充值code确认
+		cloudWalletGroup.POST("/draw_account", account.DrawAccount)                    //提现
 
 		// 回调接口
 		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify)
 		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)
 
 		/*// 账户充值提现
-		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
 
 		// 红包管理

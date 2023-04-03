@@ -220,21 +220,21 @@ func (in *handlerSendRedPacket) walletTransfer(redPacketID string) (*pb.CommonRe
 
 	}
 
-	payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
-	if err != nil {
-		log.Error(in.OperateID, zap.Error(err))
-		payAcctAmount = 0
-	}
+	//payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
+	//if err != nil {
+	//	log.Error(in.OperateID, zap.Error(err))
+	//	payAcctAmount = 0
+	//}
 
 	// 记录用户的消费记录
 	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
 		UserID:          in.UserId,
 		PaymentPlatform: 1,                          // 云钱包
 		Type:            imdb.TradeTypeRedPacketOut, // 红包转出
-		Amount:          in.Amount,
-		BeferAmount:     int64(payAcctAmount) - in.Amount, // 转账前的金额
-		AfterAmount:     int64(payAcctAmount),             // 转账后的金额
-		ThirdOrderNo:    transferResult.MerOrderId,        // 第三方的订单号
+		//Amount:          in.Amount,
+		//BeferAmount:     int64(payAcctAmount) - in.Amount, // 转账前的金额
+		//AfterAmount:     int64(payAcctAmount),             // 转账后的金额
+		ThirdOrderNo: transferResult.MerOrderId, // 第三方的订单号
 	})
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是记录用户的消费记录失败，需要人工介入

@@ -404,11 +404,13 @@ type FNcountTrade struct {
 	UserID          string    `gorm:"column:user_id;not null" json:"user_id"`
 	PaymentPlatform int32     `gorm:"column:payment_platform;not null" json:"payment_platform"`
 	Type            int32     `gorm:"column:type;not null" json:"type"`
-	Amount          int64     `gorm:"column:amount;not null" json:"amount"`
-	BeferAmount     int64     `gorm:"column:befer_amount;not null" json:"befer_amount"`
-	AfterAmount     int64     `gorm:"column:after_amount;not null" json:"after_amount"`
+	Amount          float64   `gorm:"column:amount;not null" json:"amount"`
+	BeferAmount     float64   `gorm:"column:befer_amount;not null" json:"befer_amount"`
+	AfterAmount     float64   `gorm:"column:after_amount;not null" json:"after_amount"`
 	ThirdOrderNo    string    `gorm:"column:third_order_no;not null" json:"third_order_no"`
 	NcountStatus    int64     `gorm:"column:ncount_status;not null" json:"ncount_status"`
+	IsConfirm       int64     `gorm:"column:is_confirm;not null" json:"is_confirm"`
+	ServiceAmount   float64   `gorm:"column:service_amount;not null" json:"service_amount"`
 	CreatedTime     time.Time `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime     time.Time `gorm:"column:updated_time;not null" json:"updated_time"`
 }
