@@ -7,7 +7,6 @@ import (
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 	"net/url"
 )
 
@@ -15,7 +14,7 @@ import (
 
 // Path: internal/rpc/cloud_wallet/draw_account.go
 
-func (c *CloudWalletServer) UserWithdrawal(ctx context.Context, in *pb.DrawAccountReq, opts ...grpc.CallOption) (*pb.DrawAccountResp, error) {
+func (w *CloudWalletServer) UserWithdrawal(ctx context.Context, req *pb.DrawAccountReq) (*pb.DrawAccountResp, error) {
 
 	return nil, nil
 }

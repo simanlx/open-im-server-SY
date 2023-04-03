@@ -50,6 +50,8 @@ type UnBindUserBankcardReq struct {
 
 // 充值
 type UserRechargeReq struct {
-	UserId      string `json:"user_id"`
-	OperationID string `json:"operationID" binding:"required"`
+	UserId        string `json:"user_id"`
+	OperationID   string `json:"operationID" binding:"required"`
+	Amount        int64  `json:"amount" binding:"required"`
+	BindCardAgrNo string `json:"bindCardAgrNo" binding:"required"`
 }

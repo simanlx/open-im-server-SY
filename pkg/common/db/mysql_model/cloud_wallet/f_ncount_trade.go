@@ -17,11 +17,13 @@ CREATE TABLE `f_ncount_trade` (
   `befer_amount` int(11) DEFAULT NULL COMMENT '变更前金额',
   `after_amount` int(11) DEFAULT NULL COMMENT '变更后金额',
   `third_order_no` varchar(100) DEFAULT NULL COMMENT '第三方订单号',
+  `ncount_status` int(11) DEFAULT NULL COMMENT '第三方的回调状态（0 ：未生效，1 生效）',
   `created_time` int(11) DEFAULT NULL,
   `updated_time` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户账户变更表';
+
 */
 
 const (
@@ -43,6 +45,7 @@ type FNcountTrade struct {
 	BeferAmount     int64  `gorm:"column:befer_amount;not null" json:"befer_amount"`
 	AfterAmount     int64  `gorm:"column:after_amount;not null" json:"after_amount"`
 	ThirdOrderNo    string `gorm:"column:third_order_no;not null" json:"third_order_no"`
+	NcountStatus    int32  `gorm:"column:ncount_status;not null" json:"ncount_status"`
 	CreatedTime     int64  `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime     int64  `gorm:"column:updated_time;not null" json:"updated_time"`
 }
@@ -53,6 +56,15 @@ func FNcountTradeCreateData(req *FNcountTrade) error {
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Create(req)
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "创建红包交易记录失败")
+	}
+	return nil
+}
+
+// 修改交易的状态
+func FNcountTradeUpdateStatusbyThirdOrderNo(req *FNcountTrade) error {
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where("third_order_no = ?", req.ThirdOrderNo).Update("ncount_status", req.NcountStatus)
+	if result.Error != nil {
+		return errors.Wrap(result.Error, "修改交易的状态失败")
 	}
 	return nil
 }

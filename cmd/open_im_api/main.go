@@ -26,7 +26,9 @@ import (
 func main() {
 	router := api.NewGinRouter()
 	log.NewPrivateLog("im_api")
+	// 注册配置中心
 	go getcdv3.RegisterConf()
+	// 第三方
 	go apiThird.MinioInit()
 	defaultPorts := config.Config.Api.GinPort
 	ginPort := flag.Int("port", defaultPorts[0], "get ginServerPort from cmd,default 10002 as port")

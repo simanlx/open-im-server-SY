@@ -4,6 +4,7 @@ import (
 	apiAuth "Open_IM/internal/api/auth"
 	clientInit "Open_IM/internal/api/client_init"
 	"Open_IM/internal/api/cloud_wallet/account"
+	"Open_IM/internal/api/cloud_wallet/notify"
 	"Open_IM/internal/api/conversation"
 	"Open_IM/internal/api/friend"
 	"Open_IM/internal/api/group"
@@ -207,6 +208,10 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)
 		cloudWalletGroup.POST("/bind_user_bankcard/confirm", account.BindUserBankcardConfirm) //确认绑定银行卡-code验证
 		cloudWalletGroup.POST("/unbinding/user_bankcard", account.UnBindUserBankcard)         //解绑银行卡
+
+		// 回调接口
+		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify)
+		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)
 
 		/*// 账户充值提现
 		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)

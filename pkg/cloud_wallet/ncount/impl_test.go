@@ -610,3 +610,8 @@ func Test_counter_Withdraw(t *testing.T) {
 		})
 	}
 }
+
+// 发送自定义红包消息
+func Test_counter_SendRedPack(t *testing.T) {
+
+}

@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -26,10 +27,10 @@ func ChargeAccount(c *gin.Context) {
 	//}
 
 	req := &rpc.UserRechargeReq{
-		UserId:        params.UserId,
-		BindCardAgrNo: params.BindCardAgrNo,
-		Amount:        params.Amount,
-		OperationID:   params.OperationID,
+		UserId:      params.UserId,
+		BankCardID:  params.BindCardAgrNo,
+		Amount:      strconv.Itoa(int(params.Amount)),
+		OperationID: params.OperationID,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)

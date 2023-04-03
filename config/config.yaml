@@ -12,9 +12,9 @@ etcd:
   secret:
 
 mysql:
-  dbMysqlAddress: [ 10.20.0.183:3306 ] #mysql地址 目前仅支持单机，默认即可
+  dbMysqlAddress: [ 10.20.0.183:13306 ] #mysql地址 目前仅支持单机，默认即可
   dbMysqlUserName:  root #mysql用户名，建议修改
-  dbMysqlPassword:  Mysql@rootpassword123 # mysql密码，建议修改
+  dbMysqlPassword:  openIM123 # mysql密码，建议修改
   dbMysqlDatabaseName: openIM_v2 #默认即可
   dbTableName: eMsg #默认即可
   dbMsgTableNum: 1
@@ -23,11 +23,10 @@ mysql:
   dbMaxLifeTime: 5
   logLevel: 1 #1=slient 2=error 3=warn 4=info
   slowThreshold: 500
-
 mongo:
   dbUri: ""#当dbUri值不为空则直接使用该值
   #dbAddress: 127.0.0.1:37017  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
-  dbAddress: [10.20.0.183:27017]  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
+  dbAddress: [10.20.0.183:37017]  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
   dbDirect: false
   dbTimeout: 60
   dbDatabase: openIM  #mongo db 默认即可

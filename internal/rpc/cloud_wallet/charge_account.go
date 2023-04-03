@@ -8,11 +8,10 @@ import (
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 	"net/url"
 )
 
-func (c *CloudWalletServer) UserRecharge(ctx context.Context, in *pb.UserRechargeReq, opts ...grpc.CallOption) (*pb.UserRechargeResp, error) {
+func (c *CloudWalletServer) UserRecharge(ctx context.Context, in *pb.UserRechargeReq) (*pb.UserRechargeResp, error) {
 	impl, err := NewUserRechargeServer(c.count, config.Config.Ncount.Notify.RechargeNotifyUrl)
 	if err != nil {
 		log.Error(in.OperationID, "NewUserRechargeServer", config.Config.Ncount.Notify.RechargeNotifyUrl, err, in)
