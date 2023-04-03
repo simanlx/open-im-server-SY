@@ -2,7 +2,6 @@ package cloud_wallet
 
 import (
 	"Open_IM/pkg/cloud_wallet/ncount"
-	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
@@ -82,13 +81,14 @@ func (u *userWithdrawal) userWithdrawal(userid, bankcardID, amount, OperateId st
 // 根据userid 查询第三方的用户ID 和 绑卡协议号
 func (u *userWithdrawal) getUserIDAndBindCardAgrNo(userid string) (string /*NcountUserID*/, string /*BindCardAgrNo*/, error) {
 	// todo 根据userid 查询第三方的用户ID 和 绑卡协议号
-	result, err := imdb.GetNcountBankCardByUserIdAndType(userid, 1) // 查询用户的主钱包
-	if err != nil {
-		return "", "", errors.Wrap(err, "获取用户第三方信息")
-	}
-	if result != nil {
-		return "", "", errors.New("用户未绑定银行卡")
-	}
-
-	return result.NcountOrderId, result.BindCardAgrNo, nil
+	//result, err := imdb.GetNcountBankCardByUserIdAndType(userid, 1) // 查询用户的主钱包
+	//if err != nil {
+	//	return "", "", errors.Wrap(err, "获取用户第三方信息")
+	//}
+	//if result != nil {
+	//	return "", "", errors.New("用户未绑定银行卡")
+	//}
+	//
+	//return result.NcountOrderId, result.BindCardAgrNo, nil
+	return "", "", nil
 }

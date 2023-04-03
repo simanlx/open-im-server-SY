@@ -1,6 +1,7 @@
 package cloud_wallet
 
 import (
+	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -33,7 +34,7 @@ func (s *CloudWalletServer) ChargeNotify(ctx context.Context, req *pb.ChargeNoti
 		// 需要发送code到所有群用户
 	}
 
-	f := &imdb.FNcountTrade{
+	f := &db.FNcountTrade{
 		ThirdOrderNo: req.MerOrderId,
 		NcountStatus: 1, // 表示修改成功
 	}
@@ -71,7 +72,7 @@ func (s *CloudWalletServer) WithDrawNotify(ctx context.Context, req *pb.DrawNoti
 		// 需要发送code到所有群用户
 	}
 
-	f := &imdb.FNcountTrade{
+	f := &db.FNcountTrade{
 		ThirdOrderNo: req.MerOrderId,
 		NcountStatus: 1, // 表示修改成功
 	}
