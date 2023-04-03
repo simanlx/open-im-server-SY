@@ -139,11 +139,11 @@ message userPaymentSecretAuthResp{
 // 8. 银行卡充值到用户钱包
 message chargeAccountReq {
   string userId = 1; //用户id
-  string bankCardID = 2; //银行卡id
-  int64 amount = 3; //充值金额 单位：分
+  string bindCardAgrNo = 2; //绑卡协议号
+  string amount = 3; //充值金额 单位：元
 }
 message chargeAccountResp {
-  int64 amount = 1; //充值后余额 单位：分
+  int64 amount = 1; //充值后余额
   CommonResp commonResp = 2;
 }
 
