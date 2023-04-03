@@ -43,8 +43,8 @@ type FNcountAccount struct {
 	UpdatedTime     string `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
 }
 
-func FNcountAccountGetUserAccountID(userId string) (*FNcountAccount, error) {
-	var account *FNcountAccount
+func FNcountAccountGetUserAccountID(userId string) (*db.FNcountAccount, error) {
+	var account *db.FNcountAccount
 	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").
 		Select("main_account_id", "packet_account_id").Where("user_id = ?", userId).First(account).Error
 	if err != nil {

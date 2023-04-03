@@ -7,15 +7,14 @@ import (
 /*
 oriBindCardAgrN o 原 绑 卡 协议号 30 商户绑卡确认后获得的 绑卡协议号 不可 例 如 ： 11000000111
 userId 用户 ID 1-32 格式：数字，字母，下 划线，竖划线，中划线 不可 例如：102121
-
 */
 type UnBindCardMsgCipher struct {
-	OriBindCardAgrN string `json:"oriBindCardAgrN" binding:"required"`
-	UserId          string `json:"userId" binding:"required"`
+	OriBindCardAgrNo string `json:"oriBindCardAgrNo" binding:"required"`
+	UserId           string `json:"userId" binding:"required"`
 }
 
 func (u *UnBindCardMsgCipher) Valid() error {
-	if u.OriBindCardAgrN == "" {
+	if u.OriBindCardAgrNo == "" {
 		return errors.New("oriBindCardAgrN is empty")
 	}
 	if u.UserId == "" {

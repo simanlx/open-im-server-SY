@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	ncount "Open_IM/pkg/cloud_wallet/ncount"
+	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -9,14 +10,13 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
 	"math/rand"
 	"strconv"
 	"time"
 )
 
 // 发送红包接口
-func (rpc *CloudWalletServer) SendRedPacket(ctx context.Context, in *pb.SendRedPacketReq, opts ...grpc.CallOption) (*pb.SendRedPacketResp, error) {
+func (rpc *CloudWalletServer) SendRedPacket(ctx context.Context, in *pb.SendRedPacketReq) (*pb.SendRedPacketResp, error) {
 	handler := &handlerSendRedPacket{
 		SendRedPacketReq: in,
 		OperateID:        in.OperationID,
@@ -227,7 +227,7 @@ func (in *handlerSendRedPacket) walletTransfer(redPacketID string) (*pb.CommonRe
 	}
 
 	// 记录用户的消费记录
-	err = imdb.FNcountTradeCreateData(&imdb.FNcountTrade{
+	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
 		UserID:          in.UserId,
 		PaymentPlatform: 1,                          // 云钱包
 		Type:            imdb.TradeTypeRedPacketOut, // 红包转出
