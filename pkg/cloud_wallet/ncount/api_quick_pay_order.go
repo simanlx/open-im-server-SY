@@ -28,7 +28,7 @@ type QuickPayMsgCipher struct {
 	BindCardAgrNo string `json:"bindCardAgrNo" binding:"required"` // 绑卡协议号
 	UserId        string `json:"userId" binding:"required"`        // 用户编号
 	ReceiveUserId string `json:"receiveUserId" binding:"required"` // 收款方ID
-	SubMerchantId string `json:"subMerchantId" binding:"required"` // 商户渠道进件ID 1. 红包 2. 转账 3. 充值
+	SubMerchantId string `json:"subMerchantId" binding:"required"` // 商户渠道进件ID
 }
 
 func (q *QuickPayMsgCipher) Valid() error {
