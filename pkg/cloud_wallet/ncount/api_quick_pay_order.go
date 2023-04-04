@@ -26,6 +26,7 @@ type QuickPayMsgCipher struct {
 	PayType       string `json:"payType" binding:"required"`       // 支付方式
 	NotifyUrl     string `json:"notifyUrl" binding:"required"`     // 商户异步通知地址
 	BindCardAgrNo string `json:"bindCardAgrNo" binding:"required"` // 绑卡协议号
+	UserId        string `json:"userId" binding:"required"`        // 用户编号
 	ReceiveUserId string `json:"receiveUserId" binding:"required"` // 收款方ID
 	SubMerchantId string `json:"subMerchantId" binding:"required"` // 商户渠道进件ID 1. 红包 2. 转账 3. 充值
 }
@@ -67,13 +68,13 @@ func (q *QuickPayOrderReq) Valid() error {
 }
 
 /*
-	resultCode 处理结果码 4 详情参见附录二 resultCode 9999
-	errorCode 异常代码 1-10 详情参见附录一 errorCode
-	errorMsg 异常描述 1-200 中文、字母、数字
-	ncountOrderId 新账通订单 号 32 新账通平台交易订单号
-	submitTime 商户请求时 间 同上送
-	signValue 签名字符串 将报文信息用
-	signType 域设 置的方式签名后生成的字符 串
+resultCode 处理结果码 4 详情参见附录二 resultCode 9999
+errorCode 异常代码 1-10 详情参见附录一 errorCode
+errorMsg 异常描述 1-200 中文、字母、数字
+ncountOrderId 新账通订单 号 32 新账通平台交易订单号
+submitTime 商户请求时 间 同上送
+signValue 签名字符串 将报文信息用
+signType 域设 置的方式签名后生成的字符 串
 */
 type QuickPayOrderResp struct {
 	BaseReturnParam

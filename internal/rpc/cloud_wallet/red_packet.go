@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	ncount "Open_IM/pkg/cloud_wallet/ncount"
+	"Open_IM/pkg/common/db"
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
@@ -24,7 +25,7 @@ import (
 // 发送红包接口
 func (rpc *CloudWalletServer) SendRedPacket(ctx context.Context, in *pb.SendRedPacketReq) (*pb.SendRedPacketResp, error) {
 	handler := &handlerSendRedPacket{
-		OperateID: in.OperationID,
+		OperateID: in.GetOperationID(),
 		count:     rpc.count,
 	}
 	return handler.SendRedPacket(in)
@@ -211,7 +212,7 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 	}
 
 	// 记录用户的消费记录
-	err = imdb.FNcountTradeCreateData(&imdb.FNcountTrade{
+	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
 		UserID:          in.UserId,
 		PaymentPlatform: 1,                          // 云钱包
 		Type:            imdb.TradeTypeRedPacketOut, // 红包转出

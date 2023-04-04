@@ -15,7 +15,6 @@ paymentTermin alInfo 付款方终 端信息 0-100 付款方交易终端设备类
 type QuickPayConfirmMsgCipher struct {
 	NcountOrderId        string `json:"ncountOrderId" binding:"required"`
 	SmsCode              string `json:"smsCode" `
-	MerUserIp            string `json:"merUserIp" `
 	PaymentTerminalInfo  string `json:"paymentTerminalInfo" binding:"required"`
 	ReceiverTerminalInfo string `json:"receiverTerminalInfo" binding:"required"`
 	/*
@@ -25,11 +24,11 @@ type QuickPayConfirmMsgCipher struct {
 		divideAcctDtl 分账明细 用户 ID，金额列表。可空。 若业务类型 04 时，必填。 用户 id，不大于 12 位， 分账金额算上小数点不大 于 10 位，金额小数点后 2 位，单位元 可空 例如： [{\"ledgerUserId \": \"22000000139 0\",\"amount\": \"50\"}, {\"ledgerUserId\ ": \"22000000140 8\",\"amount\": \"50\"}]
 		feeAmountUser 手续费承 担方 id 12
 	*/
-	DeviceInfo    string `json:"deviceInfo" binding:"required"`
-	BusinessType  string `json:"businessType" `
-	FeeType       string `json:"feeType" `
-	DivideAcctDtl string `json:"divideAcctDtl" `
-	FeeAmountUser string `json:"feeAmountUser" `
+	DeviceInfo string `json:"deviceInfo" binding:"required"`
+	//BusinessType  string `json:"businessType" `
+	//FeeType       string `json:"feeType" `
+	//DivideAcctDtl string `json:"divideAcctDtl" `
+	//FeeAmountUser string `json:"feeAmountUser" `
 }
 
 func (q *QuickPayConfirmMsgCipher) Valid() error {
@@ -49,12 +48,12 @@ func (q *QuickPayConfirmMsgCipher) Valid() error {
 }
 
 type QuickPayConfirmReq struct {
-	merOrderId               string `json:"merOrderId" binding:"required"`
-	QuickPayConfirmMsgCipher QuickPayMsgCipher
+	MerOrderId               string `json:"merOrderId" binding:"required"`
+	QuickPayConfirmMsgCipher QuickPayConfirmMsgCipher
 }
 
 func (q *QuickPayConfirmReq) Valid() error {
-	if q.merOrderId == "" {
+	if q.MerOrderId == "" {
 		return errors.New("merOrderId is required")
 	}
 	return q.QuickPayConfirmMsgCipher.Valid()
@@ -76,7 +75,7 @@ type QuickPayConfirmResp struct {
 	ErrorCode      string `json:"errorCode" `
 	ErrorMsg       string `json:"errorMsg" `
 	NcountOrderId  string `json:"ncountOrderId" binding:"required"`
-	TranAmount     string `json:"tranAmount" binding:"required"`
+	TranAmount     int    `json:"tranAmount" binding:"required"`
 	CheckDate      string `json:"checkDate" binding:"required"`
 	SubmitTime     string `json:"submitTime" binding:"required"`
 	TranFinishTime string `json:"tranFinishTime" binding:"required"`

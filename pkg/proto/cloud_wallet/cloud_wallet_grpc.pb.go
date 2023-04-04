@@ -27,6 +27,7 @@ const (
 	CloudWalletService_BindUserBankcardConfirm_FullMethodName = "/cloud_wallet.CloudWalletService/BindUserBankcardConfirm"
 	CloudWalletService_UnBindingUserBankcard_FullMethodName   = "/cloud_wallet.CloudWalletService/UnBindingUserBankcard"
 	CloudWalletService_UserRecharge_FullMethodName            = "/cloud_wallet.CloudWalletService/UserRecharge"
+	CloudWalletService_UserRechargeConfirm_FullMethodName     = "/cloud_wallet.CloudWalletService/UserRechargeConfirm"
 	CloudWalletService_UserWithdrawal_FullMethodName          = "/cloud_wallet.CloudWalletService/UserWithdrawal"
 	CloudWalletService_ChargeNotify_FullMethodName            = "/cloud_wallet.CloudWalletService/ChargeNotify"
 	CloudWalletService_WithDrawNotify_FullMethodName          = "/cloud_wallet.CloudWalletService/WithDrawNotify"
@@ -55,6 +56,8 @@ type CloudWalletServiceClient interface {
 	UnBindingUserBankcard(ctx context.Context, in *UnBindingUserBankcardReq, opts ...grpc.CallOption) (*UnBindingUserBankcardResp, error)
 	// 银行卡充值
 	UserRecharge(ctx context.Context, in *UserRechargeReq, opts ...grpc.CallOption) (*UserRechargeResp, error)
+	// 银行卡充值code 确认
+	UserRechargeConfirm(ctx context.Context, in *UserRechargeConfirmReq, opts ...grpc.CallOption) (*UserRechargeConfirmResp, error)
 	// 银行卡提现
 	UserWithdrawal(ctx context.Context, in *DrawAccountReq, opts ...grpc.CallOption) (*DrawAccountResp, error)
 	// 充值回调接口
@@ -147,6 +150,15 @@ func (c *cloudWalletServiceClient) UserRecharge(ctx context.Context, in *UserRec
 	return out, nil
 }
 
+func (c *cloudWalletServiceClient) UserRechargeConfirm(ctx context.Context, in *UserRechargeConfirmReq, opts ...grpc.CallOption) (*UserRechargeConfirmResp, error) {
+	out := new(UserRechargeConfirmResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_UserRechargeConfirm_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *cloudWalletServiceClient) UserWithdrawal(ctx context.Context, in *DrawAccountReq, opts ...grpc.CallOption) (*DrawAccountResp, error) {
 	out := new(DrawAccountResp)
 	err := c.cc.Invoke(ctx, CloudWalletService_UserWithdrawal_FullMethodName, in, out, opts...)
@@ -213,6 +225,8 @@ type CloudWalletServiceServer interface {
 	UnBindingUserBankcard(context.Context, *UnBindingUserBankcardReq) (*UnBindingUserBankcardResp, error)
 	// 银行卡充值
 	UserRecharge(context.Context, *UserRechargeReq) (*UserRechargeResp, error)
+	// 银行卡充值code 确认
+	UserRechargeConfirm(context.Context, *UserRechargeConfirmReq) (*UserRechargeConfirmResp, error)
 	// 银行卡提现
 	UserWithdrawal(context.Context, *DrawAccountReq) (*DrawAccountResp, error)
 	// 充值回调接口
@@ -253,6 +267,9 @@ func (UnimplementedCloudWalletServiceServer) UnBindingUserBankcard(context.Conte
 }
 func (UnimplementedCloudWalletServiceServer) UserRecharge(context.Context, *UserRechargeReq) (*UserRechargeResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserRecharge not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) UserRechargeConfirm(context.Context, *UserRechargeConfirmReq) (*UserRechargeConfirmResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UserRechargeConfirm not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) UserWithdrawal(context.Context, *DrawAccountReq) (*DrawAccountResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UserWithdrawal not implemented")
@@ -426,6 +443,24 @@ func _CloudWalletService_UserRecharge_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudWalletService_UserRechargeConfirm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserRechargeConfirmReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).UserRechargeConfirm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_UserRechargeConfirm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).UserRechargeConfirm(ctx, req.(*UserRechargeConfirmReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CloudWalletService_UserWithdrawal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DrawAccountReq)
 	if err := dec(in); err != nil {
@@ -554,6 +589,10 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UserRecharge",
 			Handler:    _CloudWalletService_UserRecharge_Handler,
+		},
+		{
+			MethodName: "UserRechargeConfirm",
+			Handler:    _CloudWalletService_UserRechargeConfirm_Handler,
 		},
 		{
 			MethodName: "UserWithdrawal",
