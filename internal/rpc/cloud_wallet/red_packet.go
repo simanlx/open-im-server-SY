@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	ncount "Open_IM/pkg/cloud_wallet/ncount"
+	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/db"
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
@@ -14,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"math/rand"
@@ -55,6 +57,10 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 		RedPacketID: redpacketID,
 	}
 
+	if req.SendType == 1 {
+		// 银行卡支付
+		// 协议号
+	}
 	// 钱包转账,是同步的
 	commonResp, err := h.walletTransfer(redpacketID, req)
 	if err != nil {
@@ -388,4 +394,49 @@ func NewPostMessage(f *imdb.FPacket) *paramsUserSendMsg {
 	return p
 }
 
+// 银行卡充值到红包账户
+func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount, packetID int32) error {
+	//获取用户账户信息
+	accountInfo, err := imdb.GetNcountAccountByUserId(userId)
+	if err != nil || accountInfo.Id <= 0 {
+		return errors.New("账户信息不存在")
+	}
 
+	//充值支付
+	accountResp, err := ncount.NewCounter().QuickPayOrder(&ncount.QuickPayOrderReq{
+		MerOrderId: ncount.GetMerOrderID(),
+		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
+			PayType:       "3", //绑卡协议号充值
+			TranAmount:    cast.ToString(amount),
+			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
+			BindCardAgrNo: bindCardAgrNo,
+			ReceiveUserId: accountInfo.PacketAccountId, //收款账户
+			UserId:        accountInfo.MainAccountId,
+			SubMerchantId: "2206301126073014978", // 子商户编号
+		}})
+
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil {
+		return errors.New(fmt.Sprintf("充值失败(%s)", err.Error()))
+	} else {
+		if accountResp.ResultCode != "0000" {
+			return errors.New(fmt.Sprintf("充值失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		}
+	}
+
+	//记录账户日志
+	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
+		UserID:          userId,
+		PaymentPlatform: 4,
+		Type:            imdb.TradeTypeRedPacketOut,
+		Amount:          amount * 100, //分
+		BeferAmount:     0,
+		AfterAmount:     0,
+		ThirdOrderNo:    accountResp.NcountOrderId,
+		PacketId:        packetID,
+	})
+	if err != nil {
+		return errors.New(fmt.Sprintf("记录账户日志失败(%s)", err.Error()))
+	}
+	return nil
+}
