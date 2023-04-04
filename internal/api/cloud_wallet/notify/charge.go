@@ -21,6 +21,7 @@ func ChargeNotify(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
+
 	// 复制结构体
 	req := &rpc.ChargeNotifyReq{}
 	utils.CopyStructFields(req, &params)

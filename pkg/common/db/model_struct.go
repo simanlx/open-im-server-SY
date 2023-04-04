@@ -403,16 +403,14 @@ type FNcountTrade struct {
 	ID              int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	UserID          string    `gorm:"column:user_id;not null" json:"user_id"`
 	PaymentPlatform int32     `gorm:"column:payment_platform;not null" json:"payment_platform"`
-	Type            int32     `gorm:"column:type;not null" json:"type"`
-	Amount          float64   `gorm:"column:amount;not null" json:"amount"`
-	BeferAmount     float64   `gorm:"column:befer_amount;not null" json:"befer_amount"`
-	AfterAmount     float64   `gorm:"column:after_amount;not null" json:"after_amount"`
-	ThirdOrderNo    string    `gorm:"column:third_order_no;not null" json:"third_order_no"`
-	NcountStatus    int64     `gorm:"column:ncount_status;not null" json:"ncount_status"`
-	IsConfirm       int64     `gorm:"column:is_confirm;not null" json:"is_confirm"`
-	ServiceAmount   float64   `gorm:"column:service_amount;not null" json:"service_amount"`
-	CreatedTime     time.Time `gorm:"column:created_time;not null" json:"created_time"`
-	UpdatedTime     time.Time `gorm:"column:updated_time;not null" json:"updated_time"`
+	Type            int32     `gorm:"column:type" json:"type"`
+	Amount          int32     `gorm:"column:amount;not null" json:"amount"`
+	BeferAmount     int32     `gorm:"column:befer_amount" json:"befer_amount"`
+	AfterAmount     int32     `gorm:"column:after_amount" json:"after_amount"`
+	ThirdOrderNo    string    `gorm:"column:third_order_no" json:"third_order_no"`
+	NcountStatus    int64     `gorm:"column:ncount_status" json:"ncount_status"`
+	CreatedTime     time.Time `gorm:"column:created_time" json:"created_time"`
+	UpdatedTime     time.Time `gorm:"column:updated_time" json:"updated_time"`
 }
 
 func (FNcountTrade) TableName() string {

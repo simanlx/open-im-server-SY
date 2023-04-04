@@ -166,7 +166,7 @@ message drawAccountReq {
   string OperationID = 4; //链路跟踪id
 }
 message drawAccountResp {
-  int64 amount = 1; //提现后余额 单位：元
+  string orderNo = 1; //订单号
   CommonResp commonResp = 2;
 }
 
