@@ -213,6 +213,7 @@ func NewGinRouter() *gin.Engine {
 		//账户
 		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)                //账户充值
 		cloudWalletGroup.POST("/charge_account/confirm", account.ChargeAccountConfirm) //账户充值code确认
+		cloudWalletGroup.POST("/draw_account", account.DrawAccount)                    //提现
 
 		// 回调接口
 		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify)
@@ -223,7 +224,6 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)
 
 		/*// 账户充值提现
-		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
 
 		//通过红包id查红包状态

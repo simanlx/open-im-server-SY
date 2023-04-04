@@ -161,12 +161,12 @@ message chargeAccountResp {
 // 9. 用户钱包提现到银行卡
 message drawAccountReq {
   string userId = 1; //用户id
-  string bankCardID = 2;//银行卡id
-  int64 amount = 3;//提现金额 单位：分
+  string bindCardAgrNo = 2;//绑卡协议号
+  float amount = 3;//提现金额 单位：元
   string OperationID = 4; //链路跟踪id
 }
 message drawAccountResp {
-  int64 amount = 1; //提现后余额 单位：分
+  string orderNo = 1; //订单号
   CommonResp commonResp = 2;
 }
 
@@ -422,7 +422,7 @@ message authPaymentSecretResp {
 message UserRechargeReq{
   string userId = 1; //用户id
   string bindCardAgrNo = 2; //绑卡协议号
-  string amount = 3; //充值金额
+  int32 amount = 3; //充值金额、正整数
   string operationID = 4; //链路跟踪id
 }
 

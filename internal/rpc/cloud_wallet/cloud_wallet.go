@@ -129,7 +129,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 
 	accountResp, err := ncount.NewCounter().CheckUserAccountInfo(&ncount.CheckUserAccountReq{
 		OrderID: ncount.GetMerOrderID(),
-		UserID:  accountInfo.MainAccountId,
+		UserID:  accountInfo.PacketAccountId,
 	})
 
 	log.Info(operationID, "accountResp", &accountResp, err)
@@ -424,12 +424,12 @@ func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.Us
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
-			TranAmount:    "1",
+			TranAmount:    cast.ToString(req.Amount),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bankCardInfo.BindCardAgrNo,
 			ReceiveUserId: bankCardInfo.NcountUserId,
 			UserId:        bankCardInfo.NcountUserId,
-			SubMerchantId: "3", // 充值
+			SubMerchantId: "2206301126073014978", // 子商户编号
 		}})
 
 	fmt.Println("accountResp Println", accountResp, err, bankCardInfo.BindCardAgrNo, bankCardInfo.NcountUserId)
@@ -445,16 +445,18 @@ func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.Us
 		UserID:          bankCardInfo.UserId,
 		PaymentPlatform: 1,
 		Type:            imdb.TradeTypeCharge,
-		Amount:          cast.ToInt64(req.Amount),
+		Amount:          req.Amount * 100, //分
 		BeferAmount:     0,
 		AfterAmount:     0,
 		ThirdOrderNo:    accountResp.NcountOrderId,
-		CreatedTime:     time.Now(),
-		UpdatedTime:     time.Now(),
 	}
 
 	//数据入库
-	_ = imdb.FNcountTradeCreateData(info)
+	err = imdb.FNcountTradeCreateData(info)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("充值数据入库失败(%s)", err.Error()))
+	}
+
 	return &cloud_wallet.UserRechargeResp{
 		OrderNo: accountResp.NcountOrderId,
 	}, nil
@@ -474,9 +476,9 @@ func (c *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wa
 		QuickPayConfirmMsgCipher: ncount.QuickPayConfirmMsgCipher{
 			NcountOrderId:        tradeInfo.ThirdOrderNo,
 			SmsCode:              req.SmsCode,
-			PaymentTerminalInfo:  "01|10001",
-			ReceiverTerminalInfo: "01|00001|CN|110000",
-			DeviceInfo:           "192.168.0.1|E1E2E3E4E5E6|123456789012345|20000|12345678901234567890|H1H2H3H4H5H6|A.BCDEFG,- H.IJKLMN",
+			PaymentTerminalInfo:  "02|AA01BB",
+			ReceiverTerminalInfo: "01|00001|CN|469023",
+			DeviceInfo:           "192.168.0.1|E1E2E3E4E5E6|123456789012345|20000|898600MFSSYYGXXXXXXP|H1H2H3H4H5H6|AABBCC",
 		},
 	})
 
@@ -484,10 +486,60 @@ func (c *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wa
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("充值确认失败(%s)", err.Error()))
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode == "4444" {
 			return nil, errors.New(fmt.Sprintf("充值确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
 		}
 	}
 
 	return &cloud_wallet.UserRechargeConfirmResp{}, nil
+}
+
+// 提现
+func (w *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_wallet.DrawAccountReq) (*cloud_wallet.DrawAccountResp, error) {
+	// 获取银行卡信息
+	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("获取银行卡信息失败%s", err.Error()))
+	}
+
+	//调用新生支付提现接口
+	accountResp, err := ncount.NewCounter().Withdraw(&ncount.WithdrawReq{
+		MerOrderID: ncount.GetMerOrderID(),
+		MsgCipher: ncount.WithdrawMsgCipher{
+			BusinessType:    "08",
+			TranAmount:      req.Amount,
+			UserId:          bankCardInfo.NcountUserId,
+			BindCardAgrNo:   req.BindCardAgrNo,
+			NotifyUrl:       config.Config.Ncount.Notify.WithdrawNotifyUrl,
+			PaymentTerminal: "02|AA01BB",
+			DeviceInfo:      "192.168.0.1|E1E2E3E4E5E6|123456789012345|20000|898600MFSSYYGXXXXXXP|H1H2H3H4H5H6|AABBCC",
+		},
+	})
+
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("提现失败(%s)", err.Error()))
+	} else {
+		if accountResp.ResultCode == "4444" {
+			return nil, errors.New(fmt.Sprintf("提现失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		}
+	}
+
+	info := &db.FNcountTrade{
+		UserID:          bankCardInfo.UserId,
+		PaymentPlatform: 1,
+		Type:            imdb.TradeTypeWithdraw,
+		Amount:          cast.ToInt32(req.Amount) * 100, //分
+		BeferAmount:     0,
+		AfterAmount:     0,
+		ThirdOrderNo:    accountResp.NcountOrderID,
+		CreatedTime:     time.Now(),
+		UpdatedTime:     time.Now(),
+	}
+
+	//数据入库
+	_ = imdb.FNcountTradeCreateData(info)
+	return &cloud_wallet.DrawAccountResp{
+		OrderNo: accountResp.NcountOrderID,
+	}, nil
 }

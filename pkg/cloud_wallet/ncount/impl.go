@@ -540,12 +540,12 @@ func (c *counter) Withdraw(req *WithdrawReq) (*WithdrawResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.MsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
@@ -553,7 +553,7 @@ func (c *counter) Withdraw(req *WithdrawReq) (*WithdrawResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderID, string(cipher), "T006")
+	body := NewNAccountBaseParam(req.MerOrderID, string(cipher), "T002")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")

@@ -21,7 +21,7 @@ func FNcountTradeCreateData(req *db.FNcountTrade) error {
 	req.UpdatedTime = time.Now()
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Create(req)
 	if result.Error != nil {
-		return errors.Wrap(result.Error, "创建红包交易记录失败")
+		return errors.Wrap(result.Error, "创建交易记录失败")
 	}
 	return nil
 }

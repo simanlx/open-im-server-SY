@@ -71,14 +71,14 @@ type QuickPayConfirmResp struct {
 		submitTime 提交时间 同上送
 		tranFinishTime 交易完成时 间 14 格式： YYYYMMDDHHMMSS 本域为订单的完成时间 20111007094626
 	*/
-	ResultCode     string `json:"resultCode" binding:"required"`
-	ErrorCode      string `json:"errorCode" `
-	ErrorMsg       string `json:"errorMsg" `
-	NcountOrderId  string `json:"ncountOrderId" binding:"required"`
-	TranAmount     int    `json:"tranAmount" binding:"required"`
-	CheckDate      string `json:"checkDate" binding:"required"`
-	SubmitTime     string `json:"submitTime" binding:"required"`
-	TranFinishTime string `json:"tranFinishTime" binding:"required"`
+	ResultCode     string      `json:"resultCode" binding:"required"`
+	ErrorCode      string      `json:"errorCode" `
+	ErrorMsg       string      `json:"errorMsg" `
+	NcountOrderId  string      `json:"ncountOrderId" binding:"required"`
+	TranAmount     interface{} `json:"tranAmount" binding:"required"`
+	CheckDate      string      `json:"checkDate" binding:"required"`
+	SubmitTime     string      `json:"submitTime" binding:"required"`
+	TranFinishTime string      `json:"tranFinishTime" binding:"required"`
 
 	/*
 		bankCode 签约银行简 码 8 附录三 银行简码

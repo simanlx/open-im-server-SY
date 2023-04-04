@@ -205,21 +205,29 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		return nil, errors.Wrap(err, "修改红包状态失败 1")
 	}
 
+<<<<<<< HEAD
 	payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
 	if err != nil {
 		log.Error(in.OperationID, zap.Error(err))
 		payAcctAmount = 0
 	}
+=======
+	//payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
+	//if err != nil {
+	//	log.Error(in.OperateID, zap.Error(err))
+	//	payAcctAmount = 0
+	//}
+>>>>>>> 1909bfab0c1ffa85e23fae9b27ccc790b0afb828
 
 	// 记录用户的消费记录
 	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
 		UserID:          in.UserId,
 		PaymentPlatform: 1,                          // 云钱包
 		Type:            imdb.TradeTypeRedPacketOut, // 红包转出
-		Amount:          in.Amount,
-		BeferAmount:     int64(payAcctAmount) - in.Amount, // 转账前的金额
-		AfterAmount:     int64(payAcctAmount),             // 转账后的金额
-		ThirdOrderNo:    transferResult.MerOrderId,        // 第三方的订单号
+		//Amount:          in.Amount,
+		//BeferAmount:     int64(payAcctAmount) - in.Amount, // 转账前的金额
+		//AfterAmount:     int64(payAcctAmount),             // 转账后的金额
+		ThirdOrderNo: transferResult.MerOrderId, // 第三方的订单号
 	})
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是记录用户的消费记录失败，需要人工介入

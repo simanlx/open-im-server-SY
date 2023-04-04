@@ -9,7 +9,6 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -24,7 +23,7 @@ func ChargeAccount(c *gin.Context) {
 	req := &rpc.UserRechargeReq{
 		UserId:        params.UserId,
 		BindCardAgrNo: params.BindCardAgrNo,
-		Amount:        strconv.Itoa(int(params.Amount)),
+		Amount:        params.Amount,
 		OperationID:   params.OperationID,
 	}
 
@@ -73,6 +72,46 @@ func ChargeAccountConfirm(c *gin.Context) {
 	RpcResp, err := client.UserRechargeConfirm(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserRechargeConfirm failed ", err.Error(), req.String())
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}
+
+// 账户提现
+func DrawAccount(c *gin.Context) {
+	params := account.DrawAccountReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//提现金额验证
+	//if params.Amount < 10 {
+	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少10元"})
+	//	return
+	//}
+
+	req := &rpc.DrawAccountReq{
+		UserId:        params.UserId,
+		BindCardAgrNo: params.BindCardAgrNo,
+		Amount:        params.Amount,
+		OperationID:   params.OperationID,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.UserWithdrawal(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, "UserWithdrawal failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
 		return
 	}
