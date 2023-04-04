@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-//充值回调
+// 充值回调
 func ChargeNotify(c *gin.Context) {
 	params := notify.ChargeNotifyReq{}
 	if err := c.BindJSON(&params); err != nil {
@@ -37,7 +37,7 @@ func ChargeNotify(c *gin.Context) {
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.ChargeNotify(context.Background(), req)
 	if err != nil {
-		log.NewError(req.OperationID, "BindUserBankcard failed ", err.Error(), req.String())
+		log.NewError(req.OperationID, "ChargeNotify failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
 		return
 	}
@@ -68,7 +68,7 @@ func WithDrawNotify(c *gin.Context) {
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.WithDrawNotify(context.Background(), req)
 	if err != nil {
-		log.NewError(req.OperationID, "BindUserBankcard failed ", err.Error(), req.String())
+		log.NewError(req.OperationID, "WithDrawNotify failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
 		return
 	}

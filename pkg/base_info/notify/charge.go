@@ -91,5 +91,5 @@ type WithdrawNotifyReq struct {
 	SingValue      string `json:"signValue"`
 	ServiceAmount  string `json:"serviceAmount"`
 	PayAcctAmount  string `json:"payAcctAmount"`
-	OperationID    string `json:"operationID" binding:"required"`
+	OperationID    string `json:"operationID"`
 }
