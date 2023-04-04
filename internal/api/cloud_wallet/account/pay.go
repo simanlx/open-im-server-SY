@@ -89,17 +89,24 @@ func DrawAccount(c *gin.Context) {
 		return
 	}
 
-	//提现金额验证
-	//if params.Amount < 10 {
-	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少10元"})
+	//支付密码
+	if len(params.PaymentPassword) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "请输入支付密码"})
+		return
+	}
+
+	//提现金额限制
+	//if params.Amount < 1 {
+	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少1元"})
 	//	return
 	//}
 
 	req := &rpc.DrawAccountReq{
-		UserId:        params.UserId,
-		BindCardAgrNo: params.BindCardAgrNo,
-		Amount:        params.Amount,
-		OperationID:   params.OperationID,
+		UserId:          params.UserId,
+		BindCardAgrNo:   params.BindCardAgrNo,
+		Amount:          params.Amount,
+		PaymentPassword: params.PaymentPassword,
+		OperationID:     params.OperationID,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)

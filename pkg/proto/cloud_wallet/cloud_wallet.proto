@@ -44,30 +44,45 @@ message BindCardsList{
   string bindCardAgrNo = 1; //协议号
   string bankCode = 2; //银行
   string cardNo = 3; //卡号
+  string mobile = 4; //手机号码
+  int32 bindCardId = 5; //银行卡id
 }
 
 
 //4. 云钱包收支明细
 message CloudWalletRecordListReq{
   string userId = 1; //用户id
-  string date = 2; //日期
-  int32  pageNum = 3; //页码
-  int32  pageSize = 4; //每页条数
+  string startTime = 2; //开始日期
+  string endTime = 3; //结束日期
+  int32  page = 4; //页码
   string operationID = 5; //链路跟踪id
 }
 message CloudWalletRecordListResp{
-  string userId = 1; //用户id
-  int32  total = 2;
-  repeated RecordList recordList = 3;
+  int32  count = 1;
+  repeated RecordList recordList = 2;
 }
 
+//    transType 交易类型
+//    transAmt  交易金额
+//    accountingTime 交易时间
+//    balance 交易后金额
+//    summary 摘要
+//    businessType 业务类型
+
 message RecordList{
-  string userId = 1; //用户id
-  int32 type = 2; //类型 1充值 2提现 3消费 4退款 。。。 ？
-  float amount = 3; //变动金额
-  float afterAmount = 4; //变更后金额
-  int64 createdTime = 5; //变更时间
-  string remark = 6; //备注
+  string describe = 1; //明细描述
+  int32 account = 2; //变动金额
+  string createdTime = 3; //时间
+  string packetId = 4; //红包id
+  float afterAmount = 5; //变更后金额
+  int32 type = 6; //类型()
+
+
+
+    // businessType 业务类型
+
+
+//    trade
 }
 
 // 6.绑定用户银行卡
@@ -153,7 +168,8 @@ message drawAccountReq {
   string userId = 1; //用户id
   string bindCardAgrNo = 2;//绑卡协议号
   float amount = 3;//提现金额 单位：元
-  string OperationID = 4; //链路跟踪id
+  string paymentPassword = 4; //支付密码
+  string OperationID = 5; //链路跟踪id
 }
 message drawAccountResp {
   string orderNo = 1; //订单号

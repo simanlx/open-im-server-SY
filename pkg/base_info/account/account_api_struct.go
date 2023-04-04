@@ -67,8 +67,18 @@ type UserRechargeConfirmReq struct {
 
 // 提现
 type DrawAccountReq struct {
-	UserId        string  `json:"user_id"`
-	BindCardAgrNo string  `json:"bindCardAgrNo"  binding:"required"`
-	Amount        float32 `json:"amount"  binding:"required"`
-	OperationID   string  `json:"operationID" binding:"required"`
+	UserId          string  `json:"user_id"`
+	BindCardAgrNo   string  `json:"bindCardAgrNo"  binding:"required"`
+	Amount          float32 `json:"amount"  binding:"required"`
+	PaymentPassword string  `json:"payment_password"  binding:"required"`
+	OperationID     string  `json:"operationID" binding:"required"`
+}
+
+// 云钱包账户明细
+type CloudWalletRecordListReq struct {
+	UserId      string `json:"user_id"`
+	StartTime   string `json:"start_time"  binding:"required"`
+	EndTime     string `json:"end_time"  binding:"required"`
+	Page        int32  `json:"page"  binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
 }

@@ -223,27 +223,26 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
 		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)
 
-		/*// 账户充值提现
-		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
+		/*
 
-		//通过红包id查红包状态
-		cloudWalletGroup.POST("/get_red_packet_info", cloud_wallet.GetRedPacketInfo)
-		// 红包领取明细
-		cloudWalletGroup.POST("/red_packet_click_detail", cloud_wallet.RedPacketClickDetail)
-		// 根据日期-》 查询用户的红包记录 ： userid- red.list
-		cloudWalletGroup.POST("/list_red_packet_record", cloud_wallet.ListRedPacketRecord)
-		// 红包支付确认 ： 当需要选择银行卡支付的时候存在短信验证码
-		cloudWalletGroup.POST("/confirm_send_red_packet_code", cloud_wallet.ConfirmSendRedPacketCode)
+			//通过红包id查红包状态
+			cloudWalletGroup.POST("/get_red_packet_info", cloud_wallet.GetRedPacketInfo)
+			// 红包领取明细
+			cloudWalletGroup.POST("/red_packet_click_detail", cloud_wallet.RedPacketClickDetail)
+			// 根据日期-》 查询用户的红包记录 ： userid- red.list
+			cloudWalletGroup.POST("/list_red_packet_record", cloud_wallet.ListRedPacketRecord)
+			// 红包支付确认 ： 当需要选择银行卡支付的时候存在短信验证码
+			cloudWalletGroup.POST("/confirm_send_red_packet_code", cloud_wallet.ConfirmSendRedPacketCode)
 
-		// 回调 ： 充值是异步的，提现结果也是异步
-		cloudWalletGroup.POST("/send_red_packet_notify", cloud_wallet.SendRedPacketNotify)
-		cloudWalletGroup.POST("/draw_notify", cloud_wallet.DrawNotify)
+			// 回调 ： 充值是异步的，提现结果也是异步
+			cloudWalletGroup.POST("/send_red_packet_notify", cloud_wallet.SendRedPacketNotify)
+			cloudWalletGroup.POST("/draw_notify", cloud_wallet.DrawNotify)
 
-		// ====================== 规划：软删除========================
-		// 删除红包记录 : UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_red_packet_record", cloud_wallet.DelRedPacketRecord)
-		// 删除领钱明细: UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_account_change_record", cloud_wallet.DelAccountChangeRecord)*/
+			// ====================== 规划：软删除========================
+			// 删除红包记录 : UserID , data range ,RedIds
+			cloudWalletGroup.POST("/del_red_packet_record", cloud_wallet.DelRedPacketRecord)
+			// 删除领钱明细: UserID , data range ,RedIds
+			cloudWalletGroup.POST("/del_account_change_record", cloud_wallet.DelAccountChangeRecord)*/
 
 		// ===================== 脚本 ======================
 		// 红包24小时未领取，通知
