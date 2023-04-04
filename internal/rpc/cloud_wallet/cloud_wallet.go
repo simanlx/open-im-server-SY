@@ -54,6 +54,7 @@ func NewRpcCloudWalletServer(port int) *CloudWalletServer {
 		rpcRegisterName: config.Config.RpcRegisterName.OpenImCloudWalletName,
 		etcdSchema:      config.Config.Etcd.EtcdSchema,
 		etcdAddr:        config.Config.Etcd.EtcdAddr,
+		count:           ncount.NewCounter(),
 	}
 }
 
@@ -119,7 +120,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(ctx context.Context, req *cloud_
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %d,error:%s", req.UserId, err.Error()))
+		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %v,error:%v", req.UserId, err.Error()))
 	}
 
 	operationID := utils.OperationIDGenerator()

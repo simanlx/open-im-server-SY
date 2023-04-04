@@ -43,10 +43,11 @@ type FNcountAccount struct {
 	UpdatedTime     string `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
 }
 
+// 找到用户ID对应的主账户ID和红包账户ID
 func FNcountAccountGetUserAccountID(userId string) (*FNcountAccount, error) {
 	var account *FNcountAccount
 	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").
-		Select("main_account_id", "packet_account_id").Where("user_id = ?", userId).First(account).Error
+		Select("main_account_id", "packet_account_id").Where("user_id = ?", userId).First(&account).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "FNcountAccountGetUserAccountID error")
 	}

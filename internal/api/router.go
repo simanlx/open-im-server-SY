@@ -5,6 +5,7 @@ import (
 	clientInit "Open_IM/internal/api/client_init"
 	"Open_IM/internal/api/cloud_wallet/account"
 	"Open_IM/internal/api/cloud_wallet/notify"
+	"Open_IM/internal/api/cloud_wallet/redpacket"
 	"Open_IM/internal/api/conversation"
 	"Open_IM/internal/api/friend"
 	"Open_IM/internal/api/group"
@@ -213,13 +214,13 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify)
 		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)
 
+		// 红包管理
+		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
+		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)
+
 		/*// 账户充值提现
 		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
-
-		// 红包管理
-		cloudWalletGroup.POST("/send_red_packet", cloud_wallet.SendRedPacket)
-		cloudWalletGroup.POST("/click_red_packet", cloud_wallet.ClickRedPacket)
 
 		//通过红包id查红包状态
 		cloudWalletGroup.POST("/get_red_packet_info", cloud_wallet.GetRedPacketInfo)

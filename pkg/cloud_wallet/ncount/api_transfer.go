@@ -34,9 +34,6 @@ func (t *TransferMsgCipher) Valid() error {
 	if t.TranAmount == "" {
 		return errors.New("tranAmount is empty")
 	}
-	if t.BusinessType == "" {
-		return errors.New("businessType is empty")
-	}
 	return nil
 }
 

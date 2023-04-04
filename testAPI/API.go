@@ -3,6 +3,7 @@ package testAPI
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -31,6 +32,7 @@ func PostAPI(url string, construct func() []byte) (int, int, error) {
 	}
 	res := resptem{}
 	err = json.Unmarshal(body, &res)
+	fmt.Println("收到消息", string(body))
 	if err != nil {
 		return 0, 0, err
 	}

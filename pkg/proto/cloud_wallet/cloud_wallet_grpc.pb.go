@@ -30,6 +30,8 @@ const (
 	CloudWalletService_UserWithdrawal_FullMethodName          = "/cloud_wallet.CloudWalletService/UserWithdrawal"
 	CloudWalletService_ChargeNotify_FullMethodName            = "/cloud_wallet.CloudWalletService/ChargeNotify"
 	CloudWalletService_WithDrawNotify_FullMethodName          = "/cloud_wallet.CloudWalletService/WithDrawNotify"
+	CloudWalletService_SendRedPacket_FullMethodName           = "/cloud_wallet.CloudWalletService/SendRedPacket"
+	CloudWalletService_ClickRedPacket_FullMethodName          = "/cloud_wallet.CloudWalletService/ClickRedPacket"
 )
 
 // CloudWalletServiceClient is the client API for CloudWalletService service.
@@ -59,6 +61,10 @@ type CloudWalletServiceClient interface {
 	ChargeNotify(ctx context.Context, in *ChargeNotifyReq, opts ...grpc.CallOption) (*ChargeNotifyResp, error)
 	// 提现回调接口
 	WithDrawNotify(ctx context.Context, in *DrawNotifyReq, opts ...grpc.CallOption) (*DrawNotifyResp, error)
+	// 发送红包接口
+	SendRedPacket(ctx context.Context, in *SendRedPacketReq, opts ...grpc.CallOption) (*SendRedPacketResp, error)
+	// 抢红包接口
+	ClickRedPacket(ctx context.Context, in *ClickRedPacketReq, opts ...grpc.CallOption) (*ClickRedPacketResp, error)
 }
 
 type cloudWalletServiceClient struct {
@@ -168,6 +174,24 @@ func (c *cloudWalletServiceClient) WithDrawNotify(ctx context.Context, in *DrawN
 	return out, nil
 }
 
+func (c *cloudWalletServiceClient) SendRedPacket(ctx context.Context, in *SendRedPacketReq, opts ...grpc.CallOption) (*SendRedPacketResp, error) {
+	out := new(SendRedPacketResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_SendRedPacket_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudWalletServiceClient) ClickRedPacket(ctx context.Context, in *ClickRedPacketReq, opts ...grpc.CallOption) (*ClickRedPacketResp, error) {
+	out := new(ClickRedPacketResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_ClickRedPacket_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudWalletServiceServer is the server API for CloudWalletService service.
 // All implementations must embed UnimplementedCloudWalletServiceServer
 // for forward compatibility
@@ -195,6 +219,10 @@ type CloudWalletServiceServer interface {
 	ChargeNotify(context.Context, *ChargeNotifyReq) (*ChargeNotifyResp, error)
 	// 提现回调接口
 	WithDrawNotify(context.Context, *DrawNotifyReq) (*DrawNotifyResp, error)
+	// 发送红包接口
+	SendRedPacket(context.Context, *SendRedPacketReq) (*SendRedPacketResp, error)
+	// 抢红包接口
+	ClickRedPacket(context.Context, *ClickRedPacketReq) (*ClickRedPacketResp, error)
 	mustEmbedUnimplementedCloudWalletServiceServer()
 }
 
@@ -234,6 +262,12 @@ func (UnimplementedCloudWalletServiceServer) ChargeNotify(context.Context, *Char
 }
 func (UnimplementedCloudWalletServiceServer) WithDrawNotify(context.Context, *DrawNotifyReq) (*DrawNotifyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method WithDrawNotify not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) SendRedPacket(context.Context, *SendRedPacketReq) (*SendRedPacketResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendRedPacket not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) ClickRedPacket(context.Context, *ClickRedPacketReq) (*ClickRedPacketResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClickRedPacket not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) mustEmbedUnimplementedCloudWalletServiceServer() {}
 
@@ -446,6 +480,42 @@ func _CloudWalletService_WithDrawNotify_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudWalletService_SendRedPacket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendRedPacketReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).SendRedPacket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_SendRedPacket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).SendRedPacket(ctx, req.(*SendRedPacketReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudWalletService_ClickRedPacket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClickRedPacketReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).ClickRedPacket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_ClickRedPacket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).ClickRedPacket(ctx, req.(*ClickRedPacketReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudWalletService_ServiceDesc is the grpc.ServiceDesc for CloudWalletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -496,6 +566,14 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "WithDrawNotify",
 			Handler:    _CloudWalletService_WithDrawNotify_Handler,
+		},
+		{
+			MethodName: "SendRedPacket",
+			Handler:    _CloudWalletService_SendRedPacket_Handler,
+		},
+		{
+			MethodName: "ClickRedPacket",
+			Handler:    _CloudWalletService_ClickRedPacket_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

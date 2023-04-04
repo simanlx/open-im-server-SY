@@ -14,9 +14,12 @@ CREATE TABLE `f_packet` (
   `is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
   `exclusive_user_id` int(11) DEFAULT '0' COMMENT '专属用户id',
   `packet_title` varchar(100) NOT NULL COMMENT '红包标题',
-    `amount` int(11) NOT NULL COMMENT '红包金额',
+  `amount` int(11) NOT NULL COMMENT '红包金额',
   `number` tinyint(3) NOT NULL COMMENT '红包个数',
   `expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
+  `mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
+  `operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
+  `recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
   `created_time` int(11) DEFAULT NULL,
   `updated_time` int(11) DEFAULT NULL,
   `status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
@@ -37,6 +40,9 @@ type FPacket struct {
 	Amount          int64  `gorm:"column:amount;not null" json:"amount"`
 	Number          int32  `gorm:"column:number;not null" json:"number"`
 	ExpireTime      int64  `gorm:"column:expire_time;not null" json:"expire_time"`
+	MerOrderID      string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	OperateID       string `gorm:"column:operate_id;not null" json:"operate_id"`
+	RecvID          string `gorm:"column:recv_id;not null" json:"recv_id"`
 	CreatedTime     int64  `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime     int64  `gorm:"column:updated_time;not null" json:"updated_time"`
 	Status          int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期

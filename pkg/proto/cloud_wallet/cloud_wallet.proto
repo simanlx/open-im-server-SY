@@ -4,20 +4,20 @@ package cloud_wallet;
 
 
 enum CloudWalletErrCode {
-  ESC =0 ;
+  ESC = 0 ;
   ServerError = 9999 ; // 9999 服务器错误
   ServerNcountError = 8888 ;// 新生支付错误
 
   // 1000- 1999 云钱包相关错误
-  PacketStatusIsCreate  = 1000; // 红包状态是创建
-  PacketStatusIsFinish  = 1001; // 红包状态是完成
-  PacketStatusIsExpire  = 1002; // 红包状态是过期
-  PacketStatusIsExclusive  = 1003; // 红包状态是独占
-  PacketStatusIsReceived  = 1004; // 红包状态是取消
+  PacketStatusIsCreate = 1000; // 红包状态是创建
+  PacketStatusIsFinish = 1001; // 红包状态是完成
+  PacketStatusIsExpire = 1002; // 红包状态是过期
+  PacketStatusIsExclusive = 1003; // 红包状态是独占
+  PacketStatusIsReceived = 1004; // 红包状态是取消
 }
 
 
-  // 通用消息回复组件
+// 通用消息回复组件
 message CommonResp {
   CloudWalletErrCode  errCode = 1; //非0既有异常
   string errMsg = 2;
@@ -460,10 +460,10 @@ service CloudWalletService {
   // 提现回调接口
   rpc WithDrawNotify(drawNotifyReq)returns(drawNotifyResp);
 
-//  // 发送红包接口
-//  rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
-//
-//  // 抢红包接口
-//  rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
+  // 发送红包接口
+  rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
+
+  // 抢红包接口
+  rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
 
 }

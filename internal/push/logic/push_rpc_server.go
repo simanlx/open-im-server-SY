@@ -82,8 +82,10 @@ func (r *RPCServer) PushMsg(_ context.Context, pbData *pbPush.PushMsgReq) (*pbPu
 	//Call push module to send message to the user
 	switch pbData.MsgData.SessionType {
 	case constant.SuperGroupChatType:
+		// 消息发送给群聊
 		MsgToSuperGroupUser(pbData)
 	default:
+		// 消息发送给单聊用户
 		MsgToUser(pbData)
 	}
 	return &pbPush.PushMsgResp{
