@@ -409,7 +409,7 @@ type FNcountTrade struct {
 	AfterAmount     int32     `gorm:"column:after_amount" json:"after_amount"`
 	ThirdOrderNo    string    `gorm:"column:third_order_no" json:"third_order_no"`
 	NcountStatus    int64     `gorm:"column:ncount_status" json:"ncount_status"`
-	PacketId        int32     `gorm:"column:packet_id" json:"packet_id"`
+	PacketId        string    `gorm:"column:packet_id" json:"packet_id"`
 	CreatedTime     time.Time `gorm:"column:created_time" json:"created_time"`
 	UpdatedTime     time.Time `gorm:"column:updated_time" json:"updated_time"`
 }
