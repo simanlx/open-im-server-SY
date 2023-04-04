@@ -415,7 +415,7 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.UserRechargeReq) (*cloud_wallet.UserRechargeResp, error) {
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
-	if accountInfo != nil || accountInfo.Id <= 0 {
+	if err != nil || accountInfo.Id <= 0 {
 		return nil, errors.New("账户信息不存在")
 	}
 

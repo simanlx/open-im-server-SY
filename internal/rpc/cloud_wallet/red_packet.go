@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	ncount "Open_IM/pkg/cloud_wallet/ncount"
+	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/db"
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
@@ -14,6 +15,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"math/rand"
@@ -77,6 +79,11 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 		}
 	} else {
 		// 这里是调用银行卡转账接口
+
+		if err != nil {
+			log.Error(req.OperationID, "BankCardRechargePacketAccount error", zap.Error(err))
+			return nil, err
+		}
 
 	}
 
@@ -257,10 +264,8 @@ func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPa
 			TranAmount:    strconv.Itoa(int(in.Amount)),
 		},
 	}
-
 	log.Info(in.OperationID, "transfer req", req)
-	transferResult, err := h.count.Transfer(req)
-	log.Info(in.OperationID, "transfer res", transferResult)
+	err = BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount*100), redPacketID)
 	if err != nil {
 		return nil, errors.Wrap(err, "调用新生支付出现错误")
 	}
@@ -269,47 +274,13 @@ func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPa
 		ErrMsg:  "发送成功",
 		ErrCode: 0,
 	}
-	if transferResult.ResultCode != ncount.ResultCodeSuccess {
-		// 如果转账失败，需要给用户提示发送失败，并将红包状态修改为发送失败
-		err := imdb.UpdateRedPacketStatus(redPacketID, 2 /* 发送失败 */)
-		if err != nil {
-			log.Error(in.OperationID, zap.Error(err))
-			return nil, errors.Wrap(err, "修改红包状态失败 2 ")
-			// todo 记录到死信队列中，后续监控处理 ，不需要人工介入
-		}
-		// 记录操作失败日志 ，提供后续给客服人员核对
-		commonResp.ErrCode = 1
-		commonResp.ErrMsg = transferResult.ErrorMsg
-		return commonResp, nil
-	}
+
 	// 如果转账成功，需要将红包状态修改为发送成功
 	err = imdb.UpdateRedPacketStatus(redPacketID, 1 /* 发送成功 */)
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是修改红包状态失败，需要人工介入
 		log.Error(in.OperationID, zap.Error(err))
 		return nil, errors.Wrap(err, "修改红包状态失败 1")
-	}
-	// 记录用户的消费记录
-	payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
-	if err != nil {
-		log.Error(in.OperationID, zap.Error(err))
-		payAcctAmount = 0
-	}
-
-	// 记录用户的消费记录
-	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
-		UserID:          in.UserId,
-		PaymentPlatform: 1,                                           // 云钱包
-		Type:            imdb.TradeTypeRedPacketOut,                  // 红包转出
-		Amount:          int32(in.Amount) * 100,                      // 转账金额
-		BeferAmount:     int32(int64(payAcctAmount)-in.Amount) * 100, // 转账前的金额
-		AfterAmount:     int32(payAcctAmount) * 100,                  // 转账后的金额
-		ThirdOrderNo:    transferResult.MerOrderId,                   // 第三方的订单号
-	})
-	if err != nil {
-		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是记录用户的消费记录失败，需要人工介入
-		log.Error(in.OperationID, zap.Error(err))
-		return nil, errors.Wrap(err, "记录用户交易表失败")
 	}
 	return commonResp, nil
 }
@@ -465,4 +436,51 @@ func NewPostMessage(f *imdb.FPacket) *paramsUserSendMsg {
 	p.OfflinePushInfo.Ex = ""
 	p.OfflinePushInfo.IOSPushSound = "default"
 	return p
+}
+
+// 银行卡充值到红包账户
+func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, packetID string) error {
+	//获取用户账户信息
+	accountInfo, err := imdb.GetNcountAccountByUserId(userId)
+	if err != nil || accountInfo.Id <= 0 {
+		return errors.New("账户信息不存在")
+	}
+
+	//充值支付
+	accountResp, err := ncount.NewCounter().QuickPayOrder(&ncount.QuickPayOrderReq{
+		MerOrderId: ncount.GetMerOrderID(),
+		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
+			PayType:       "3", //绑卡协议号充值
+			TranAmount:    cast.ToString(amount),
+			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
+			BindCardAgrNo: bindCardAgrNo,
+			ReceiveUserId: accountInfo.PacketAccountId, //收款账户
+			UserId:        accountInfo.MainAccountId,
+			SubMerchantId: "2206301126073014978", // 子商户编号
+		}})
+
+	fmt.Println("accountResp Println", accountResp, err)
+	if err != nil {
+		return errors.New(fmt.Sprintf("充值失败(%s)", err.Error()))
+	} else {
+		if accountResp.ResultCode != "0000" {
+			return errors.New(fmt.Sprintf("充值失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		}
+	}
+
+	//记录账户日志
+	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
+		UserID:          userId,
+		PaymentPlatform: 4,
+		Type:            imdb.TradeTypeRedPacketOut,
+		Amount:          amount * 100, //分
+		BeferAmount:     0,
+		AfterAmount:     0,
+		ThirdOrderNo:    accountResp.NcountOrderId,
+		PacketId:        packetID,
+	})
+	if err != nil {
+		return errors.New(fmt.Sprintf("记录账户日志失败(%s)", err.Error()))
+	}
+	return nil
 }
