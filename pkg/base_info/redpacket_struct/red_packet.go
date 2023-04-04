@@ -30,6 +30,7 @@ type SendRedPacket struct {
 	SendType        int32  `json:"SendType"`        //发送方式(1钱包余额、2银行卡)
 	BankCardID      int64  `json:"BankCardID"`      //银行卡id
 	OperationID     string `json:"operationID"`     //链路跟踪id
+	RecvID          string `json:"recvID"`          //接收者id
 }
 
 // 发送红包响应

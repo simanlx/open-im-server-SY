@@ -187,6 +187,7 @@ message SendRedPacketReq {
   int32 SendType = 9; //发送方式(1钱包余额、2银行卡)
   int64 BankCardID = 10 ;//银行卡id
   string operationID = 11; //链路跟踪id
+  string recvID = 12; //接收者id (如果是群则是群聊红包，如果是用户是用户红包)
 }
 message SendRedPacketResp {
   string redPacketID = 1;

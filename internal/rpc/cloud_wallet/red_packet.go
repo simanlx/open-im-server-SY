@@ -25,15 +25,17 @@ import (
 // 发送红包接口
 func (rpc *CloudWalletServer) SendRedPacket(ctx context.Context, in *pb.SendRedPacketReq) (*pb.SendRedPacketResp, error) {
 	handler := &handlerSendRedPacket{
-		OperateID: in.GetOperationID(),
-		count:     rpc.count,
+		OperateID:  in.GetOperationID(),
+		merOrderID: ncount.GetMerOrderID(),
+		count:      rpc.count,
 	}
 	return handler.SendRedPacket(in)
 }
 
 type handlerSendRedPacket struct {
-	OperateID string
-	count     ncount.NCounter
+	OperateID  string
+	merOrderID string
+	count      ncount.NCounter
 }
 
 // 钱包账户转账
@@ -63,7 +65,9 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 		log.Error(req.OperationID, "wallet transfer error", zap.String("err_msg", commonResp.ErrMsg))
 		return nil, errors.New(commonResp.ErrMsg)
 	}
-	// 处理回调内容
+	// 记录转账信息
+
+	// 回调处理红包
 	err = HandleSendPacketResult(redpacketID, req.OperationID)
 	if err != nil {
 		log.Error(req.OperationID, "HandleSendPacketResult error", zap.Error(err))
@@ -134,7 +138,7 @@ func (req *handlerSendRedPacket) validateMore() error {
 	return nil
 }
 
-// 保存红包记录
+// 创建红包信息
 func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string /* red packet ID */, error) {
 	rand.Seed(time.Now().UnixNano())
 	redID := fmt.Sprintf("%v%v%v%v", in.PacketType, in.UserId, time.Now().Unix(), rand.Intn(100000))
@@ -147,6 +151,9 @@ func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string 
 		PacketTitle:     in.PacketTitle,
 		Amount:          in.Amount,
 		Number:          in.Number,
+		MerOrderID:      h.merOrderID,
+		OperateID:       h.OperateID,
+		RecvID:          in.RecvID, // 接收ID
 		ExpireTime:      time.Now().Unix() + 60*60*24,
 		CreatedTime:     time.Now().Unix(),
 		UpdatedTime:     time.Now().Unix(),
@@ -164,7 +171,7 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		return nil, errors.Wrap(err, "get user FNcountAccountGetUserAccountID by id error")
 	}
 	req := &ncount.TransferReq{
-		MerOrderId: ncount.GetMerOrderID(),
+		MerOrderId: h.merOrderID,
 		TransferMsgCipher: ncount.TransferMsgCipher{
 			PayUserId:     fncount.MainAccountId,
 			ReceiveUserId: fncount.PacketAccountId,
@@ -183,7 +190,6 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		ErrMsg:  "发送成功",
 		ErrCode: 0,
 	}
-	fmt.Println(transferResult)
 	if transferResult.ResultCode != ncount.ResultCodeSuccess {
 		// 如果转账失败，需要给用户提示发送失败，并将红包状态修改为发送失败
 		err := imdb.UpdateRedPacketStatus(redPacketID, 2 /* 发送失败 */)
@@ -204,7 +210,6 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		log.Error(in.OperationID, zap.Error(err))
 		return nil, errors.Wrap(err, "修改红包状态失败 1")
 	}
-
 	// 记录用户的消费记录
 	payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
 	if err != nil {
@@ -215,19 +220,18 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 	// 记录用户的消费记录
 	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
 		UserID:          in.UserId,
-		PaymentPlatform: 1,                                       // 云钱包
-		Type:            imdb.TradeTypeRedPacketOut,              // 红包转出
-		Amount:          int32(in.Amount),                        // 转账金额
-		BeferAmount:     int32(int64(payAcctAmount) - in.Amount), // 转账前的金额
-		AfterAmount:     int32(payAcctAmount),                    // 转账后的金额
-		ThirdOrderNo:    transferResult.MerOrderId,               // 第三方的订单号
+		PaymentPlatform: 1,                                           // 云钱包
+		Type:            imdb.TradeTypeRedPacketOut,                  // 红包转出
+		Amount:          int32(in.Amount) * 100,                      // 转账金额
+		BeferAmount:     int32(int64(payAcctAmount)-in.Amount) * 100, // 转账前的金额
+		AfterAmount:     int32(payAcctAmount) * 100,                  // 转账后的金额
+		ThirdOrderNo:    transferResult.MerOrderId,                   // 第三方的订单号
 	})
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是记录用户的消费记录失败，需要人工介入
 		log.Error(in.OperationID, zap.Error(err))
 		return nil, errors.Wrap(err, "记录用户交易表失败")
 	}
-	// todo 需要发送红包发送成功给用户IM
 	return commonResp, nil
 }
 
@@ -383,3 +387,5 @@ func NewPostMessage(f *imdb.FPacket) *paramsUserSendMsg {
 	p.OfflinePushInfo.IOSPushSound = "default"
 	return p
 }
+
+
