@@ -178,6 +178,8 @@ message SendRedPacketReq {
   int64 BankCardID = 10 ;//银行卡id
   string operationID = 11; //链路跟踪id
   string recvID = 12; //接收者id (如果是群则是群聊红包，如果是用户是用户红包)
+  // 发送一个银行卡协议号
+  string bindCardAgrNo = 13; //绑卡协议号
 }
 message SendRedPacketResp {
   string redPacketID = 1;
