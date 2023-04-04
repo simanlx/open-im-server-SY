@@ -413,21 +413,6 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 
 // 银行卡充值
 func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.UserRechargeReq) (*cloud_wallet.UserRechargeResp, error) {
-	//获取用户账户信息
-	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
-	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New("账户信息不存在")
-	}
-
-	var pType int32
-	pType = imdb.TradeTypeCharge
-	//充值账户类型(1主账户,2红包账户)
-	receiveUserId := accountInfo.MainAccountId //收款账户
-	if req.AccountType == 2 {
-		pType = imdb.TradeTypeRedPacketOut
-		receiveUserId = accountInfo.PacketAccountId
-	}
-
 	// 获取银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
 	if err != nil {
@@ -442,7 +427,7 @@ func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.Us
 			TranAmount:    cast.ToString(req.Amount),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bankCardInfo.BindCardAgrNo,
-			ReceiveUserId: receiveUserId, //收款账户
+			ReceiveUserId: bankCardInfo.NcountUserId, //收款账户
 			UserId:        bankCardInfo.NcountUserId,
 			SubMerchantId: "2206301126073014978", // 子商户编号
 		}})
@@ -459,7 +444,7 @@ func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.Us
 	info := &db.FNcountTrade{
 		UserID:          bankCardInfo.UserId,
 		PaymentPlatform: 4,
-		Type:            pType,
+		Type:            imdb.TradeTypeCharge,
 		Amount:          req.Amount * 100, //分
 		BeferAmount:     0,
 		AfterAmount:     0,
