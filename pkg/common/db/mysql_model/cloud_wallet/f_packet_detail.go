@@ -6,12 +6,12 @@ import "Open_IM/pkg/common/db"
 CREATE TABLE `f_packet_detail` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `packet_id` varchar(255) NOT NULL COMMENT '红包id',
-  `user_id` int(11) NOT NULL COMMENT '用户id',
-  `amount` int(11) NOT NULL COMMENT '领取金额',
+  `user_id` varchar(255) DEFAULT NULL COMMENT '用户id',
+  `mer_order_id` int(11) DEFAULT NULL COMMENT '转账的商户id',
+  `amount` int(11) NOT NULL COMMENT '领取金额分为单位',
   `receive_time` int(11) DEFAULT NULL COMMENT '领取时间',
   `created_time` int(11) DEFAULT NULL COMMENT '创建时间',
   `updated_time` int(11) DEFAULT NULL COMMENT '修改时间',
-  `status` tinyint(1) DEFAULT NULL COMMENT '1 是正常，0是删除',
   PRIMARY KEY (`id`),
   KEY `idx_packet_id` (`packet_id`) USING BTREE,
   KEY `idx_user_id` (`user_id`) USING BTREE
@@ -22,12 +22,12 @@ CREATE TABLE `f_packet_detail` (
 type FPacketDetail struct {
 	ID          int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID    string `gorm:"column:packet_id;not null" json:"packet_id"`
-	UserID      string `gorm:"column:user_id;not null" json:"user_id"`
+	UserID      string `gorm:"column:user_id" json:"user_id"`
+	MerOrderID  int64  `gorm:"column:mer_order_id" json:"mer_order_id"`
 	Amount      int64  `gorm:"column:amount;not null" json:"amount"`
-	ReceiveTime int64  `gorm:"column:receive_time;not null" json:"receive_time"`
-	CreatedTime int64  `gorm:"column:created_time;not null" json:"created_time"`
-	UpdatedTime int64  `gorm:"column:updated_time;not null" json:"updated_time"`
-	Status      int32  `gorm:"column:status;not null" json:"status"`
+	ReceiveTime int64  `gorm:"column:receive_time" json:"receive_time"`
+	CreatedTime int64  `gorm:"column:created_time" json:"created_time"`
+	UpdatedTime int64  `gorm:"column:updated_time" json:"updated_time"`
 }
 
 func RedPacketDetailCreateData(req *FPacketDetail) error {

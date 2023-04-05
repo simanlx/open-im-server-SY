@@ -221,7 +221,7 @@ func NewGinRouter() *gin.Engine {
 
 		// 红包管理
 		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
-		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)
+		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket) // 抢红包接口
 
 		/*// 账户充值提现
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)

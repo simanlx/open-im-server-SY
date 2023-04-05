@@ -80,10 +80,7 @@ func UpdateRedPacketStatus(packetID string, status int64) error {
 func GetRedPacketInfo(packetID string) (*FPacket, error) {
 	var fPacket FPacket
 	result := db.DB.MysqlDB.DefaultGormDB().
-		Table("f_packet").
-		Select([]string{"is_lucky", "IsExclusive", "exclusive_user_id", "expire_time"}).
-		Where("packet_id = ?", packetID).
-		First(&fPacket)
+		Table("f_packet").Where("packet_id = ?", packetID).First(&fPacket)
 	if result.Error != nil {
 		return nil, errors.Wrap(result.Error, "获取红包信息失败")
 	}

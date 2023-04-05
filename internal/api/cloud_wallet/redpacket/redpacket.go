@@ -4,7 +4,6 @@ import (
 	"Open_IM/pkg/base_info/redpacket_struct"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/utils"
@@ -70,7 +69,7 @@ func SendRedPacket(c *gin.Context) {
 
 //发送红包接口
 func ClickRedPacket(c *gin.Context) {
-	params := redpacket_struct.SendRedPacket{}
+	params := redpacket_struct.ClickRedPacketReq{}
 	if err := c.BindJSON(&params); err != nil {
 		log.Error("0", "ChargeNotify", err.Error(), params)
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
@@ -78,16 +77,18 @@ func ClickRedPacket(c *gin.Context) {
 	}
 
 	// 获取用户ID
-	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
-	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
-		return
-	}
+	/*	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperateID)
+		if !ok {
+			errMsg := params.OperateID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
+			log.NewError(params.OperateID, errMsg)
+			c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
+			return
+		}*/
+
+	UserID := "10018"
 
 	// 复制结构体
-	req := &rpc.SendRedPacketReq{}
+	req := &rpc.ClickRedPacketReq{}
 	utils.CopyStructFields(req, &params)
 	req.UserId = UserID
 
@@ -102,7 +103,7 @@ func ClickRedPacket(c *gin.Context) {
 
 	// 创建rpc连接
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
-	RpcResp, err := client.SendRedPacket(context.Background(), req)
+	RpcResp, err := client.ClickRedPacket(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "BindUserBankcard failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})

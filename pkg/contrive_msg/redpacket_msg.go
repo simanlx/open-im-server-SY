@@ -58,6 +58,15 @@ type FPacket struct {
 
 /*senderPlatformID*/
 
+type paramsUserSendMsg struct {
+	SenderPlatformID int32  `json:"senderPlatformID" binding:"required"`
+	SendID           string `json:"sendID" binding:"required"`
+	SenderNickName   string `json:"senderNickName"`
+	SenderFaceURL    string `json:"senderFaceUrl"`
+	OperationID      string `json:"operationID" binding:"required"`
+	Data             Data   `json:"data" binding:"required"`
+}
+
 type Data struct {
 	SessionType int32                        `json:"sessionType" binding:"required"`
 	MsgFrom     int32                        `json:"msgFrom" binding:"required"`
