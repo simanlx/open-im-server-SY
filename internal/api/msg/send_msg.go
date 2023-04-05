@@ -61,7 +61,7 @@ func newUserSendMsgReq(token string, params *paramsUserSendMsg) *pbChat.SendMsgR
 func SendMsg(c *gin.Context) {
 	params := paramsUserSendMsg{}
 	if err := c.BindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsgs": err.Error()})
 		log.Error("0", "BindJSON failed ", err.Error())
 		return
 	}

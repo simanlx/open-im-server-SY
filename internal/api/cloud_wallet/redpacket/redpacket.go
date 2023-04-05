@@ -31,8 +31,10 @@ func SendRedPacket(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
 			return
 		}*/
-
 	UserID := "10018"
+	if params.UserId != "" {
+		UserID = params.UserId
+	}
 	// 复制结构体
 	req := &rpc.SendRedPacketReq{}
 	err := utils.CopyStructFields(req, &params)

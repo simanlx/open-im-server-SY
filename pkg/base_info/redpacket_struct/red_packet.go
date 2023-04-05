@@ -31,6 +31,9 @@ type SendRedPacket struct {
 	BankCardID      int64  `json:"BankCardID"`      //银行卡id
 	OperationID     string `json:"operationID"`     //链路跟踪id
 	RecvID          string `json:"recvID"`          //接收者id
+
+	// 	BindCardAgrNo string `protobuf:"bytes,13,opt,name=bindCardAgrNo,proto3" json:"bindCardAgrNo,omitempty"` //绑卡协议号
+	BindCardAgrNo string `json:"bindCardAgrNo"` //绑卡协议号
 }
 
 // 发送红包响应

@@ -1476,14 +1476,14 @@ type SendRedPacketReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId          string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`                    //用户id
-	PacketType      int32  `protobuf:"varint,2,opt,name=PacketType,proto3" json:"PacketType,omitempty"`           //红包类型(1个人红包、2群红包)
-	IsLucky         int32  `protobuf:"varint,3,opt,name=IsLucky,proto3" json:"IsLucky,omitempty"`                 //是否为拼手气红包
-	IsExclusive     int32  `protobuf:"varint,4,opt,name=IsExclusive,proto3" json:"IsExclusive,omitempty"`         //是否为专属红包(0不是、1是)
-	ExclusiveUserID int32  `protobuf:"varint,5,opt,name=ExclusiveUserID,proto3" json:"ExclusiveUserID,omitempty"` //专属红包接收者 和isExclusive
-	PacketTitle     string `protobuf:"bytes,6,opt,name=PacketTitle,proto3" json:"PacketTitle,omitempty"`          //红包标题
-	Amount          int64  `protobuf:"varint,7,opt,name=Amount,proto3" json:"Amount,omitempty"`                   //红包金额 单位：分
-	Number          int32  `protobuf:"varint,8,opt,name=Number,proto3" json:"Number,omitempty"`                   //红包个数
+	UserId          string `protobuf:"bytes,1,opt,name=userId,proto3" json:"userId,omitempty"`                   //用户id
+	PacketType      int32  `protobuf:"varint,2,opt,name=PacketType,proto3" json:"PacketType,omitempty"`          //红包类型(1个人红包、2群红包)
+	IsLucky         int32  `protobuf:"varint,3,opt,name=IsLucky,proto3" json:"IsLucky,omitempty"`                //是否为拼手气红包
+	IsExclusive     int32  `protobuf:"varint,4,opt,name=IsExclusive,proto3" json:"IsExclusive,omitempty"`        //是否为专属红包(0不是、1是)
+	ExclusiveUserID string `protobuf:"bytes,5,opt,name=ExclusiveUserID,proto3" json:"ExclusiveUserID,omitempty"` //专属红包接收者 和isExclusive
+	PacketTitle     string `protobuf:"bytes,6,opt,name=PacketTitle,proto3" json:"PacketTitle,omitempty"`         //红包标题
+	Amount          int64  `protobuf:"varint,7,opt,name=Amount,proto3" json:"Amount,omitempty"`                  //红包金额 单位：分
+	Number          int32  `protobuf:"varint,8,opt,name=Number,proto3" json:"Number,omitempty"`                  //红包个数
 	// 通过哪种方式发送红包
 	SendType    int32  `protobuf:"varint,9,opt,name=SendType,proto3" json:"SendType,omitempty"`       //发送方式(1钱包余额、2银行卡)
 	BankCardID  int64  `protobuf:"varint,10,opt,name=BankCardID,proto3" json:"BankCardID,omitempty"`  //银行卡id
@@ -1553,11 +1553,11 @@ func (x *SendRedPacketReq) GetIsExclusive() int32 {
 	return 0
 }
 
-func (x *SendRedPacketReq) GetExclusiveUserID() int32 {
+func (x *SendRedPacketReq) GetExclusiveUserID() string {
 	if x != nil {
 		return x.ExclusiveUserID
 	}
-	return 0
+	return ""
 }
 
 func (x *SendRedPacketReq) GetPacketTitle() string {
@@ -3700,7 +3700,7 @@ var file_cloud_wallet_proto_rawDesc = []byte{
 	0x6b, 0x79, 0x12, 0x20, 0x0a, 0x0b, 0x49, 0x73, 0x45, 0x78, 0x63, 0x6c, 0x75, 0x73, 0x69, 0x76,
 	0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0b, 0x49, 0x73, 0x45, 0x78, 0x63, 0x6c, 0x75,
 	0x73, 0x69, 0x76, 0x65, 0x12, 0x28, 0x0a, 0x0f, 0x45, 0x78, 0x63, 0x6c, 0x75, 0x73, 0x69, 0x76,
-	0x65, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x18, 0x05, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0f, 0x45,
+	0x65, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x45,
 	0x78, 0x63, 0x6c, 0x75, 0x73, 0x69, 0x76, 0x65, 0x55, 0x73, 0x65, 0x72, 0x49, 0x44, 0x12, 0x20,
 	0x0a, 0x0b, 0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x54, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x06, 0x20,
 	0x01, 0x28, 0x09, 0x52, 0x0b, 0x50, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x54, 0x69, 0x74, 0x6c, 0x65,
