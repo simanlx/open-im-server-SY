@@ -21,6 +21,8 @@ type ManagementSendMsg struct {
 	IsOnlineOnly    bool                               `json:"isOnlineOnly"`
 	NotOfflinePush  bool                               `json:"notOfflinePush"`
 	OfflinePushInfo *server_api_params.OfflinePushInfo `json:"offlinePushInfo"`
+	// 2178158235
+	RecvID string `json:"recvID" `
 }
 
 func NewManagementSendMsg_RedMsg(f *FPacket) *ManagementSendMsg {
@@ -40,6 +42,7 @@ func NewManagementSendMsg_RedMsg(f *FPacket) *ManagementSendMsg {
 		SessionType:     1,
 		IsOnlineOnly:    false,
 		NotOfflinePush:  false,
+		RecvID:          "2178158235",
 		OfflinePushInfo: &server_api_params.OfflinePushInfo{},
 	}
 

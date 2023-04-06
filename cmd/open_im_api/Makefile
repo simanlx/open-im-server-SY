@@ -19,7 +19,6 @@ endif
 
 build:
 	CGO_ENABLED=0 GOOS=${OS} GOARCH=${ARCH} go build -ldflags="-w -s"
-	mv ./open_im_api ../../bin/
 
 run:
 	@go run ./
