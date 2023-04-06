@@ -19,7 +19,7 @@ type IdCardRealNameAuthReq struct {
 type SetPaymentSecretReq struct {
 	UserId        string `json:"user_id"`
 	Type          int32  `json:"type" binding:"required"` //设置类型(1设置密码、2忘记密码smsCode设置)
-	Code          string `json:"code" binding:"required"`
+	Code          string `json:"code"`
 	PaymentSecret string `json:"payment_secret" binding:"required"`
 	OperationID   string `json:"operationID" binding:"required"`
 }
@@ -86,9 +86,9 @@ type DrawAccountReq struct {
 // 云钱包账户明细
 type CloudWalletRecordListReq struct {
 	UserId      string `json:"user_id"`
-	StartTime   string `json:"start_time"  binding:"required"`
-	EndTime     string `json:"end_time"  binding:"required"`
-	Page        int32  `json:"page"  binding:"required"`
-	Size        int32  `json:"size"  binding:"required"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	Page        int32  `json:"page"`
+	Size        int32  `json:"size"`
 	OperationID string `json:"operationID" binding:"required"`
 }

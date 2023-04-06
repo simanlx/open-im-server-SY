@@ -15,6 +15,7 @@ import (
 	"Open_IM/internal/api/organization"
 	apiThird "Open_IM/internal/api/third"
 	"Open_IM/internal/api/user"
+	"Open_IM/internal/cms_api/middleware"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/log"
@@ -200,11 +201,11 @@ func NewGinRouter() *gin.Engine {
 		//cloudWalletGroup.Use(middleware.JWTAuth())
 
 		// 用户账户管理
-		cloudWalletGroup.POST("/account", account.Account)                                //获取账户信息
-		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth)      //身份证实名认证
-		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
-		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)        // 校验支付密码
-		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
+		cloudWalletGroup.POST("/account", account.Account)                                                      //获取账户信息
+		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth)                            //身份证实名认证
+		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)                                  // 设置支付密码
+		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)                              // 校验支付密码
+		cloudWalletGroup.POST("/cloud_wallet/record_list", middleware.JWTAuth(), account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
 
 		//用户银行卡管理
 		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)
