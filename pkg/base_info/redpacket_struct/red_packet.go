@@ -2,23 +2,6 @@ package redpacket_struct
 
 // 发送红包
 type SendRedPacket struct {
-	/*
-		message SendRedPacketReq {
-		  string userId = 1; //用户id
-		  int32 PacketType = 2; //红包类型(1个人红包、2群红包)
-		  int32 IsLucky = 3; //是否为拼手气红包
-		  int32 IsExclusive = 4; //是否为专属红包(0不是、1是)
-		  int32 ExclusiveUserID = 5; //专属红包接收者 和isExclusive
-		  string PacketTitle = 6; //红包标题
-		  int64 Amount = 7; //红包金额 单位：分
-		  int32 Number = 8; //红包个数
-
-		  // 通过哪种方式发送红包
-		  int32 SendType = 9; //发送方式(1钱包余额、2银行卡)
-		  int64 BankCardID = 10 ;//银行卡id
-		  string operationID = 11; //链路跟踪id
-		}
-	*/
 	UserId          string `json:"userId"`          //用户id
 	PacketType      int32  `json:"PacketType"`      //红包类型(1个人红包、2群红包)
 	IsLucky         int32  `json:"IsLucky"`         //是否为拼手气红包
@@ -31,8 +14,17 @@ type SendRedPacket struct {
 	BankCardID      int64  `json:"BankCardID"`      //银行卡id
 	OperationID     string `json:"operationID"`     //链路跟踪id
 	RecvID          string `json:"recvID"`          //接收者id
+
+	// 	BindCardAgrNo string `protobuf:"bytes,13,opt,name=bindCardAgrNo,proto3" json:"bindCardAgrNo,omitempty"` //绑卡协议号
+	BindCardAgrNo string `json:"bindCardAgrNo"` //绑卡协议号
 }
 
 // 发送红包响应
 type SendRedPacketResp struct {
+}
+
+// 点击抢红包
+type ClickRedPacketReq struct {
+	RedPacketID string `json:"redPacketID"` //红包id
+	OperateID   string `json:"operateID"`   //链路跟踪id
 }

@@ -8,18 +8,13 @@ import (
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
-	pb2 "Open_IM/pkg/proto/push"
 	"Open_IM/pkg/tools/redpacket"
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -79,67 +74,68 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 		}
 	} else {
 		// 这里是调用银行卡转账接口
-
 		if err != nil {
 			log.Error(req.OperationID, "BankCardRechargePacketAccount error", zap.Error(err))
 			return nil, err
 		}
-
 	}
-
 	return res, nil
 }
 
 func (h *handlerSendRedPacket) validateParam(req *pb.SendRedPacketReq) error {
 	if len(req.UserId) <= 0 {
-		return errors.New("user_id is empty")
+		return errors.New("user_id 不能为空")
 	}
 
 	// 检测红包类型
 	if req.PacketType != 1 && req.PacketType != 2 {
-		return errors.New("red_packet_type is bad input ")
+		return errors.New("red_packet_type 错误输入 ")
 	}
 
 	// 检测是否为幸运红包
 	if req.IsLucky != 1 && req.IsLucky != 0 {
-		return errors.New("is_lucky is bad input ")
+		return errors.New("is_lucky 错误输入 ")
 	}
 
 	// 检测是否为专属红包
 	if req.IsExclusive != 1 && req.IsExclusive != 0 {
-		return errors.New("is_exclusive is bad input ")
+		return errors.New("is_exclusive 错误输入 ")
 	}
 
 	// 专属红包必须要专属用户id
-	if req.IsExclusive == 1 && req.ExclusiveUserID == 0 {
-		return errors.New("exclusive red packet must be exclusive user id")
+	if req.IsExclusive == 1 && req.ExclusiveUserID == "" {
+		return errors.New("是专属红包就必须存在ExclusiveUserID")
 	}
 	// 红包必须要标题
 	if req.PacketTitle == "" {
-		return errors.New("red_packet_title is empty")
+		return errors.New("red_packet_title 红包title不能为空")
 	}
 
 	// 红包金额必须大于0
 	if req.Amount <= 0 {
-		return errors.New(fmt.Sprintf("red_packet_amount is bad input , %v", req.Amount/100))
+		return errors.New(fmt.Sprintf("red_packet_amount 红包金额必须为大于0 , %v", req.Amount/100))
 	}
 
 	// 红包个数必须大于0
 	if req.Number <= 0 {
-		return errors.New("red_packet_number is bad input")
+		return errors.New("red_packet_number 个数必须大于0")
 	}
 
 	if req.IsExclusive == 1 && req.PacketType != 2 {
-		return errors.New("exclusive red packet must be group red packet")
+		return errors.New("IsExclusive 属性红包必须是PacketType = 2 ")
 	}
 
 	// 检测发送方式
 	if req.SendType != 1 && req.SendType != 2 {
-		return errors.New("send_type is bad input ")
+		return errors.New("send_type 发送方式输入错误 ")
 	}
 
 	if req.SendType == 2 && req.BankCardID == 0 {
-		return errors.New("bank_card_id is empty")
+		return errors.New("SendType = 2 时，BankCardID && BindCardAgrNo 不能为空	")
+	}
+
+	if req.RecvID == "" {
+		return errors.New("RecvID 不能为空")
 	}
 
 	return nil
@@ -161,7 +157,7 @@ func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string 
 		UserID:          in.UserId,
 		PacketType:      in.PacketType,
 		IsLucky:         in.IsLucky,
-		ExclusiveUserID: int64(in.ExclusiveUserID),
+		ExclusiveUserID: in.ExclusiveUserID,
 		PacketTitle:     in.PacketTitle,
 		Amount:          in.Amount,
 		Number:          in.Number,
@@ -233,13 +229,14 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 
 	// 记录用户的消费记录
 	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
-		UserID:          in.UserId,
-		PaymentPlatform: 1,                                           // 云钱包
-		Type:            imdb.TradeTypeRedPacketOut,                  // 红包转出
-		Amount:          int32(in.Amount) * 100,                      // 转账金额
-		BeferAmount:     int32(int64(payAcctAmount)-in.Amount) * 100, // 转账前的金额
-		AfterAmount:     int32(payAcctAmount) * 100,                  // 转账后的金额
-		ThirdOrderNo:    transferResult.MerOrderId,                   // 第三方的订单号
+		UserID:            in.UserId,
+		PaymentPlatform:   1,                                           //新生支付
+		Type:              imdb.TradeTypeRedPacketOut,                  // 红包转出
+		Amount:            int32(in.Amount) * 100,                      // 转账金额
+		BeferAmount:       int32(int64(payAcctAmount)-in.Amount) * 100, // 转账前的金额
+		AfterAmount:       int32(payAcctAmount) * 100,                  // 转账后的金额
+		ThirdOrderNo:      transferResult.MerOrderId,                   // 第三方的订单号
+		RelevancePacketID: redPacketID,
 	})
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是记录用户的消费记录失败，需要人工介入
@@ -310,12 +307,7 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 		return err
 	}
 
-	// 发送红包消息给用户 和发送红包的人
-	_, err = sendRedMessage(redpacketInfo, OperateID)
-	if err != nil {
-		log.Error(OperateID, "send red packet message error", zap.Error(err))
-		return err
-	}
+	// todo 发送红包消息
 	return nil
 }
 
@@ -364,80 +356,6 @@ func spareEqualRedPacket(OperateID, packetID string, amount, number int) error {
 	return nil
 }
 
-type paramsUserSendMsg struct {
-	OperationID string `json:"operationID"`
-	SendID      string `json:"sendID"`
-	RecvID      string `json:"recvID"`
-	GroupID     string `json:"groupID"`
-	Content     struct {
-		Text string `json:"text"`
-	} `json:"content"`
-	ContentType     int32 `json:"contentType"` // 110 红包消息
-	SessionType     int32 `json:"sessionType"`
-	IsOnlineOnly    bool  `json:"isOnlineOnly"`
-	OfflinePushInfo Offline
-}
-
-type Offline struct {
-	Title         string `json:"title"`
-	Desc          string `json:"desc"`
-	Ex            string `json:"ex"`
-	IOSPushSound  string `json:"iOSPushSound"`
-	IOSBadgeCount bool   `json:"iOSBadgeCount"`
-}
-
-// 发送红包消息给用户
-func sendRedMessage(req *imdb.FPacket, redpacketID string) (*pb2.PushMsgResp, error) {
-	// 创建红包消息
-	p := NewPostMessage(req)
-	// http post 发送红包消息
-	url := "localhost:8080/v4/openim/sendmsg"
-	data, err := json.Marshal(p)
-	if err != nil {
-		log.Error(req.OperateID, zap.Error(err))
-		return nil, err
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
-	if err != nil {
-		log.Error(req.OperateID, zap.Error(err))
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Error(req.OperateID, zap.Error(err))
-		return nil, err
-	}
-	log.Info(req.OperateID, zap.String("send red packet message", string(body)))
-	return nil, nil
-}
-
-// 发送红包消息
-func NewPostMessage(f *imdb.FPacket) *paramsUserSendMsg {
-	p := &paramsUserSendMsg{
-		OfflinePushInfo: Offline{},
-	}
-	p.OperationID = f.OperateID
-	p.SendID = f.UserID
-	if f.PacketType == 1 {
-		// 个人红包
-		p.RecvID = f.RecvID
-		p.SessionType = 1 // 单聊
-	} else {
-		// 群红包
-		p.RecvID = ""
-		p.GroupID = f.RecvID
-		p.SessionType = 2 // 群消息
-	}
-	// 离线消息
-	p.OfflinePushInfo.Title = "你有新的红包"
-	p.OfflinePushInfo.Desc = ""
-	p.OfflinePushInfo.Ex = ""
-	p.OfflinePushInfo.IOSPushSound = "default"
-	return p
-}
-
 // 银行卡充值到红包账户
 func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, packetID string) error {
 	//获取用户账户信息
@@ -470,14 +388,14 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 
 	//记录账户日志
 	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
-		UserID:          userId,
-		PaymentPlatform: 4,
-		Type:            imdb.TradeTypeRedPacketOut,
-		Amount:          amount * 100, //分
-		BeferAmount:     0,
-		AfterAmount:     0,
-		ThirdOrderNo:    accountResp.NcountOrderId,
-		PacketId:        packetID,
+		UserID:            userId,
+		PaymentPlatform:   4,
+		Type:              imdb.TradeTypeRedPacketOut,
+		Amount:            amount * 100, //分
+		BeferAmount:       0,
+		AfterAmount:       0,
+		ThirdOrderNo:      accountResp.NcountOrderId,
+		RelevancePacketID: packetID,
 	})
 	if err != nil {
 		return errors.New(fmt.Sprintf("记录账户日志失败(%s)", err.Error()))

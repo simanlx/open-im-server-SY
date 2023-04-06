@@ -9,10 +9,10 @@ import (
 CREATE TABLE `f_packet` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
-  `user_id` int(11) NOT NULL COMMENT '红包发起者',
+  `user_id` varchar(255) NOT NULL COMMENT '红包发起者',
   `packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
   `is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
-  `exclusive_user_id` int(11) DEFAULT '0' COMMENT '专属用户id',
+  `exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
   `packet_title` varchar(100) NOT NULL COMMENT '红包标题',
   `amount` int(11) NOT NULL COMMENT '红包金额',
   `number` tinyint(3) NOT NULL COMMENT '红包个数',
@@ -20,13 +20,15 @@ CREATE TABLE `f_packet` (
   `mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
   `operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
   `recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
+  `send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
+  `bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
   `created_time` int(11) DEFAULT NULL,
   `updated_time` int(11) DEFAULT NULL,
   `status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
   `is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 */
 
 type FPacket struct {
@@ -35,7 +37,7 @@ type FPacket struct {
 	UserID          string `gorm:"column:user_id;not null" json:"user_id"`
 	PacketType      int32  `gorm:"column:packet_type;not null" json:"packet_type"`
 	IsLucky         int32  `gorm:"column:is_lucky;not null" json:"is_lucky"`
-	ExclusiveUserID int64  `gorm:"column:exclusive_user_id;not null" json:"exclusive_user_id"`
+	ExclusiveUserID string `gorm:"column:exclusive_user_id;not null" json:"exclusive_user_id"`
 	PacketTitle     string `gorm:"column:packet_title;not null" json:"packet_title"`
 	Amount          int64  `gorm:"column:amount;not null" json:"amount"`
 	Number          int32  `gorm:"column:number;not null" json:"number"`
@@ -78,10 +80,7 @@ func UpdateRedPacketStatus(packetID string, status int64) error {
 func GetRedPacketInfo(packetID string) (*FPacket, error) {
 	var fPacket FPacket
 	result := db.DB.MysqlDB.DefaultGormDB().
-		Table("f_packet").
-		Select([]string{"is_lucky", "IsExclusive", "exclusive_user_id", "expire_time"}).
-		Where("packet_id = ?", packetID).
-		First(&fPacket)
+		Table("f_packet").Where("packet_id = ?", packetID).First(&fPacket)
 	if result.Error != nil {
 		return nil, errors.Wrap(result.Error, "获取红包信息失败")
 	}

@@ -8,7 +8,6 @@ import (
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/pkg/errors"
-	"github.com/spf13/cast"
 	"strconv"
 )
 
@@ -29,12 +28,7 @@ func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickR
 		OperateID:         req.OperationID,
 		count:             rpc.count,
 	}
-	resp, err := handler.ClickRedPacket()
-	CompleteRespMsg(resp.CommonResp)
-	if err != nil {
-		log.Error(req.OperationID, "ClickRedPacket", err.Error(), req)
-	}
-	return resp, err
+	return handler.ClickRedPacket()
 }
 
 type handlerClickRedPacket struct {
@@ -44,7 +38,6 @@ type handlerClickRedPacket struct {
 }
 
 func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, error) {
-
 	var (
 		res    = &pb.ClickRedPacketResp{}
 		common = &pb.CommonResp{}
@@ -54,7 +47,8 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
 	if err != nil {
 		common.ErrCode = pb.CloudWalletErrCode_ServerError
-		return res, errors.Wrap(err, "查询数据库失败")
+		log.Error(req.OperateID, "数据库查询失败", err)
+		return res, err
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusCreate {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsCreate
@@ -69,7 +63,7 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 		return res, nil
 	}
 
-	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != cast.ToInt64(req.UserId) {
+	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != req.UserId {
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExclusive
 		return res, nil
 	}
@@ -78,42 +72,46 @@ func (req *handlerClickRedPacket) ClickRedPacket() (*pb.ClickRedPacketResp, erro
 	fp, err := imdb.FPacketDetailGetByPacketID(req.RedPacketID, req.UserId)
 	if err != nil {
 		common.ErrCode = pb.CloudWalletErrCode_ServerError
-		return res, errors.Wrap(err, "获取红包领取记录失败")
+		return res, errors.Wrap(err, "红包领取记录查询失败")
 	}
 
 	if fp.ID != 0 {
+		// 代表存在领取记录
 		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsReceived
 		return res, nil
 	}
-	// 3. 检查用户是否实名认证 todo
+	// 如果用户没实名认证就不能进行抢红包
+	//todo
 
+	var amount int
 	// 4. 判断红包的类型
-
-	if redPacketInfo.PacketType == 1 {
-		// 群聊红包
-		_, err := req.getRedPacketByGroup()
-		if err != nil {
-			common.ErrCode = pb.CloudWalletErrCode_ServerError
-			return res, errors.Wrap(err, "获取红包失败")
-		}
-		return res, nil
+	if redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1 {
+		// 直接从redis的set集合进行获取红包
+		amount, err = req.getRedPacketByGroup()
 	} else {
-		// 个人红包 ,发起转账
-		NcountReq, err := req.getRedPacketByUser(req.UserId, req.RedPacketID)
-		if err != nil {
-			common.ErrCode = pb.CloudWalletErrCode_ServerError
-			return res, errors.Wrap(err, "获取红包失败")
-		}
-		/*
-			MerOrderId        string `json:"merOrderId" binding:"required"`
-			TransferMsgCipher TransferMsgCipher
-		*/
-		NcountReq.MerOrderId = req.RedPacketID
-		NcountReq.TransferMsgCipher.TranAmount = strconv.Itoa(int(redPacketInfo.Amount))
-		// 发起红包调用
-		/*transreq ,err =req.count.Transfer(NcountReq)*/
+		// 直接查询数据库
+		amount, err = req.getRedPacketAmount()
 	}
-	return nil, nil
+	if err != nil {
+		common.ErrCode = pb.CloudWalletErrCode_ServerError
+		return res, errors.Wrap(err, "获取红包金额失败")
+	}
+
+	// 调用转账
+	sendAccount, receiveAccount, err := req.getRedPacketByUser(req.UserId, req.RedPacketID)
+
+	if err != nil {
+		log.Error(req.OperateID, "获取转账信息失败", err)
+		return res, errors.Wrap(err, "获取转账信息失败")
+	}
+
+	resp, err := req.transferRedPacketToUser(amount, sendAccount, receiveAccount)
+	if err != nil {
+		log.Error(req.OperateID, "转账失败", err)
+		return res, errors.Wrap(err, "转账失败")
+	}
+	res.CommonResp = resp
+	return res, nil
 }
 
 // 检查用户实名认证状态
@@ -144,34 +142,57 @@ func (req *handlerClickRedPacket) getRedPacketByGroup() (int, error) {
 		res.ErrCode = pb.CloudWalletErrCode_ServerError
 		return 0, err
 	}
-	if amount > 0 {
-
-	}
-	return 0, nil
+	return amount, nil
 }
 
-// // 调用转账接口  从红包账户 转账到 抢红包的用户的账户
+// 从红包记录获取转账金额
+func (req *handlerClickRedPacket) getRedPacketAmount() (int, error) {
+	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
+	if err != nil {
+		return 0, err
+	}
+	return int(redPacketInfo.Amount), nil
+}
 
-// UserID 是抢红包的人
 // 通过红包ID 倒查红包发送者的红包账户
-func (req *handlerClickRedPacket) getRedPacketByUser(UserID, packetID string) (*ncount.TransferReq, error) {
+func (req *handlerClickRedPacket) getRedPacketByUser(GrapRedPacketUserID, packetID string) (string, string, error) {
 	//  获取到发红包的用户ID
 	senderAccount, err := imdb.SelectRedPacketSenderRedPacketAccountByPacketID(packetID)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
-	recieveAccount, err := imdb.SelectUserMainAccountByUserID(UserID)
+	recieveAccount, err := imdb.SelectUserMainAccountByUserID(GrapRedPacketUserID)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
-	res := &ncount.TransferReq{
-		MerOrderId: ncount.GetMerOrderID(),
+
+	return senderAccount, recieveAccount, nil
+}
+
+// 发起转账 红包账户对具体用户进行转账，并调用红包消息发送
+func (req *handlerClickRedPacket) transferRedPacketToUser(Amount int, payUserID, ReceiveUserID string) (*pb.CommonResp, error) {
+	MEROrderID := ncount.GetMerOrderID()
+	request := &ncount.TransferReq{
+		MerOrderId: MEROrderID,
 		TransferMsgCipher: ncount.TransferMsgCipher{
-			PayUserId:     senderAccount,
-			ReceiveUserId: recieveAccount,
-			TranAmount:    "",
-			BusinessType:  "",
+			PayUserId:     payUserID,
+			ReceiveUserId: ReceiveUserID,
+			TranAmount:    strconv.Itoa(int(Amount)),
 		},
 	}
-	return res, nil
+	resp, err := req.count.Transfer(request)
+	if err != nil {
+		log.Error(req.OperateID, "发送红包转账失败", err, resp)
+		return nil, errors.Wrap(err, "第三方转账失败")
+	}
+	var result = &pb.CommonResp{
+		ErrCode: 0,
+	}
+	if resp.ResultCode != ncount.ResultCodeSuccess {
+		log.Error(req.OperateID, "发送红包转账失败", err, resp)
+		// todo
+		result.ErrCode = pb.CloudWalletErrCode_ServerError
+		result.ErrMsg = "很遗憾没有抢到红包，再接再厉"
+	}
+	return result, nil
 }

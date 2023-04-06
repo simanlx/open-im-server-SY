@@ -181,7 +181,7 @@ message SendRedPacketReq {
   int32 PacketType = 2; //红包类型(1个人红包、2群红包)
   int32 IsLucky = 3; //是否为拼手气红包
   int32 IsExclusive = 4; //是否为专属红包(0不是、1是)
-  int32 ExclusiveUserID = 5; //专属红包接收者 和isExclusive
+  string ExclusiveUserID = 5; //专属红包接收者 和isExclusive
   string PacketTitle = 6; //红包标题
   int64 Amount = 7; //红包金额 单位：分
   int32 Number = 8; //红包个数
