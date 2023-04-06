@@ -26,7 +26,7 @@ type paramsUserSendMsg struct {
 		RecvID      string                       `json:"recvID" `
 		GroupID     string                       `json:"groupID" `
 		ForceList   []string                     `json:"forceList"`
-		Content     []byte                       `json:"content" binding:"required"`
+		Content     []byte                       `json:"content" binding:"required"` //
 		Options     map[string]bool              `json:"options" `
 		ClientMsgID string                       `json:"clientMsgID" binding:"required"`
 		CreateTime  int64                        `json:"createTime" binding:"required"`

@@ -104,7 +104,6 @@ func NewPostMessage(f *FPacket) (*paramsUserSendMsg, error) {
 		GroupID = f.RecvID
 		sessionType = 2 // 群消息
 	}
-
 	p := &paramsUserSendMsg{
 		SenderPlatformID: 1,
 		SendID:           f.UserID,

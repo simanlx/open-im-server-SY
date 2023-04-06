@@ -223,6 +223,14 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
 		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket) // 抢红包接口
 
+		// 这里临时给检测使用
+		cloudWalletGroup.POST("/check_status", func(context *gin.Context) {
+			context.JSON(200, gin.H{
+				"code": 0,
+				"msg":  "ok",
+			})
+		}) // 抢红包接口
+
 		/*// 账户充值提现
 		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
 
