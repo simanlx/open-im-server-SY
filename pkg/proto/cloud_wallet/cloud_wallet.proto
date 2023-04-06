@@ -164,7 +164,7 @@ message userPaymentSecretAuthResp{
 message drawAccountReq {
   string userId = 1; //用户id
   string bindCardAgrNo = 2;//绑卡协议号
-  float amount = 3;//提现金额 单位：元
+  int32 amount = 3;//提现金额 单位：分
   string paymentPassword = 4; //支付密码
   string OperationID = 5; //链路跟踪id
 }
@@ -253,22 +253,24 @@ message getRedPacketInfoResp {
 }
 
 // 13. 红包领取明细
-message redPacketClickDetailReq {
+message RedPacketReceiveDetailReq {
   string userId = 1; //用户id
-  string redPacketID = 2;
+  string startTime = 2; //开始时间
+  string endTime = 3; //结束时间
+  string operationID = 4; //链路跟踪id
 }
 
-message redPacketClickDetail {
-  string userId = 1; //用户id
-  string nickname = 2; //领取人名称
-  string avater = 3; //领取人头像
-  uint32 redPacketID = 4; //红包id
-  float amount = 5; //红包金额
+message RedPacketReceiveDetailResp {
+  repeated RedPacketReceiveDetail redPacketReceiveDetail = 1;
 }
 
-message redPacketClickDetailResp {
-  repeated redPacketClickDetail redPacketClickDetail = 1;
-  CommonResp commonResp = 2;
+message RedPacketReceiveDetail {
+  string packetId = 1; //红包id
+  int32 amount = 2; //金额(分)
+  string packetTitle = 3; //红包标题
+  string receiveTime = 4; //领取时间
+  int32 packetType = 5; //红包类型(1个人红包、2群红包)
+  string isLucky = 6; //是否为拼手气红包
 }
 
 // 14. 根据日期查询用户的红包记录 ： userid- red.list
@@ -428,7 +430,7 @@ message authPaymentSecretResp {
 message UserRechargeReq{
   string userId = 1; //用户id
   string bindCardAgrNo = 2; //绑卡协议号
-  int32 amount = 3; //充值金额 单位：元
+  int32 amount = 3; //充值金额 单位：分
   int32 accountType = 4; //充值账户类型(1主账户,2红包账户)
   string OperationID = 5; //链路跟踪id
 }
@@ -486,5 +488,8 @@ service CloudWalletService {
 
   // 抢红包接口
   rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
+
+  //红包领取明细
+  rpc RedPacketReceiveDetail(RedPacketReceiveDetailReq)returns(RedPacketReceiveDetailResp);
 
 }

@@ -71,7 +71,7 @@ type WithdrawResp struct {
 	ResultCode    string `json:"resultCode"`    // 处理结果码
 	ErrorCode     string `json:"errorCode"`     // 异常代码
 	ErrorMsg      string `json:"errorMsg"`      // 异常描述
-	NcountOrderID string `json:"ncountOrderId"` // 订单号
+	NcountOrderId string `json:"ncountOrderId"` // 订单号
 	OrderDate     string `json:"orderDate"`     // 平台订单日期
 	SignValue     string `json:"signValue"`     // 签名字符串
 	ServiceAmount string `json:"serviceAmount"` // 服务费

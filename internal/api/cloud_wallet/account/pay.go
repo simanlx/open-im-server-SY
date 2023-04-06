@@ -20,6 +20,12 @@ func ChargeAccount(c *gin.Context) {
 		return
 	}
 
+	//校验金额
+	if params.Amount%100 != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "充值金额以元为单位"})
+		return
+	}
+
 	req := &rpc.UserRechargeReq{
 		UserId:        params.UserId,
 		BindCardAgrNo: params.BindCardAgrNo,
@@ -47,7 +53,7 @@ func ChargeAccount(c *gin.Context) {
 	return
 }
 
-// 账户充值回调通知
+// 账户充值code确定
 func ChargeAccountConfirm(c *gin.Context) {
 	params := account.UserRechargeConfirmReq{}
 	if err := c.BindJSON(&params); err != nil {

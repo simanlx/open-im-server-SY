@@ -76,11 +76,11 @@ type UserRechargeConfirmReq struct {
 
 // 提现
 type DrawAccountReq struct {
-	UserId          string  `json:"user_id"`
-	BindCardAgrNo   string  `json:"bindCardAgrNo"  binding:"required"`
-	Amount          float32 `json:"amount"  binding:"required"`
-	PaymentPassword string  `json:"payment_password"  binding:"required"`
-	OperationID     string  `json:"operationID" binding:"required"`
+	UserId          string `json:"user_id"`
+	BindCardAgrNo   string `json:"bindCardAgrNo"  binding:"required"`
+	Amount          int32  `json:"amount"  binding:"required"`
+	PaymentPassword string `json:"payment_password"  binding:"required"`
+	OperationID     string `json:"operationID" binding:"required"`
 }
 
 // 云钱包账户明细

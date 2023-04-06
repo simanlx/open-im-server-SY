@@ -28,3 +28,11 @@ type ClickRedPacketReq struct {
 	RedPacketID string `json:"redPacketID"` //红包id
 	OperateID   string `json:"operateID"`   //链路跟踪id
 }
+
+// 点击抢红包
+type RedPacketReceiveDetailReq struct {
+	UserId      string `json:"user_id"`
+	StartTime   string `json:"start_time" binding:"required"`
+	EndTime     string `json:"end_time" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}

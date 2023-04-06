@@ -451,7 +451,7 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
-			TranAmount:    cast.ToString(req.Amount),
+			TranAmount:    cast.ToString(req.Amount / 100),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bankCardInfo.BindCardAgrNo,
 			ReceiveUserId: bankCardInfo.NcountUserId, //收款账户
@@ -468,20 +468,10 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 		}
 	}
 
-	info := &db.FNcountTrade{
-		UserID:          bankCardInfo.UserId,
-		PaymentPlatform: 4,
-		Type:            imdb.TradeTypeCharge,
-		Amount:          req.Amount * 100, //分
-		BeferAmount:     0,
-		AfterAmount:     0,
-		ThirdOrderNo:    accountResp.NcountOrderId,
-	}
-
-	//数据入库
-	err = imdb.FNcountTradeCreateData(info)
+	//增加账户变更日志
+	err = AddNcountTradeLog(BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("充值数据入库失败(%s)", err.Error()))
+		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
 	}
 
 	return &cloud_wallet.UserRechargeResp{
@@ -545,7 +535,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 		MerOrderID: ncount.GetMerOrderID(),
 		MsgCipher: ncount.WithdrawMsgCipher{
 			BusinessType:    "08",
-			TranAmount:      req.Amount,
+			TranAmount:      cast.ToFloat32(req.Amount / 100),
 			UserId:          bankCardInfo.NcountUserId,
 			BindCardAgrNo:   req.BindCardAgrNo,
 			NotifyUrl:       config.Config.Ncount.Notify.WithdrawNotifyUrl,
@@ -563,21 +553,13 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 		}
 	}
 
-	info := &db.FNcountTrade{
-		UserID:          bankCardInfo.UserId,
-		PaymentPlatform: 1,
-		Type:            imdb.TradeTypeWithdraw,
-		Amount:          cast.ToInt32(req.Amount) * 100, //分
-		BeferAmount:     0,
-		AfterAmount:     0,
-		ThirdOrderNo:    accountResp.NcountOrderID,
-		CreatedTime:     time.Now(),
-		UpdatedTime:     time.Now(),
+	//增加账户变更日志
+	err = AddNcountTradeLog(BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
 	}
 
-	//数据入库
-	_ = imdb.FNcountTradeCreateData(info)
 	return &cloud_wallet.DrawAccountResp{
-		OrderNo: accountResp.NcountOrderID,
+		OrderNo: accountResp.NcountOrderId,
 	}, nil
 }
