@@ -7,7 +7,7 @@ CREATE TABLE `f_packet_detail` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `packet_id` varchar(255) NOT NULL COMMENT '红包id',
   `user_id` varchar(255) DEFAULT NULL COMMENT '用户id',
-  `mer_order_id` int(11) DEFAULT NULL COMMENT '转账的商户id',
+  `mer_order_id` varchar(255) DEFAULT NULL COMMENT '转账的商户id',
   `amount` int(11) NOT NULL COMMENT '领取金额分为单位',
   `receive_time` int(11) DEFAULT NULL COMMENT '领取时间',
   `created_time` int(11) DEFAULT NULL COMMENT '创建时间',
@@ -23,7 +23,7 @@ type FPacketDetail struct {
 	ID          int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID    string `gorm:"column:packet_id;not null" json:"packet_id"`
 	UserID      string `gorm:"column:user_id" json:"user_id"`
-	MerOrderID  int64  `gorm:"column:mer_order_id" json:"mer_order_id"`
+	MerOrderID  string `gorm:"column:mer_order_id" json:"mer_order_id"`
 	Amount      int64  `gorm:"column:amount;not null" json:"amount"`
 	ReceiveTime int64  `gorm:"column:receive_time" json:"receive_time"`
 	CreatedTime int64  `gorm:"column:created_time" json:"created_time"`
@@ -40,10 +40,19 @@ func RedPacketDetailCreateData(req *FPacketDetail) error {
 
 // 查询用户的发送红包记录
 func FPacketDetailGetByPacketID(packetID, userID string) (*FPacketDetail, error) {
-	var res *FPacketDetail
-	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Where("packet_id = ? and user_id", packetID, userID).Find(res)
+	var res = FPacketDetail{}
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Where("packet_id = ? and user_id= ?", packetID, userID).Find(&res)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return res, nil
+	return &res, nil
+}
+
+// 保存用户领取红包记录
+func InsertRedPacketDetail(req *FPacketDetail) error {
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Save(req)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }
