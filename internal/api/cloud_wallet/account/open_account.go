@@ -7,7 +7,6 @@ import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
-	"Open_IM/pkg/utils"
 	"context"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -78,14 +77,14 @@ func IdCardRealNameAuth(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.IdCardRealNameAuth(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "IdCardRealNameAuth failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -101,8 +100,16 @@ func SetPaymentSecret(c *gin.Context) {
 		return
 	}
 
-	//6位数密码
+	//设置类型(1设置密码、2忘记密码smsCode设置)
+	if params.Type == 2 {
+		//验证cmscode
+		if params.Code != "666666" {
+			c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "验证码错误"})
+			return
+		}
+	}
 
+	//6位数密码
 	req := &rpc.SetPaymentSecretReq{
 		UserId:        params.UserId,
 		PaymentSecret: params.PaymentSecret,
@@ -113,14 +120,48 @@ func SetPaymentSecret(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.SetPaymentSecret(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "SetPaymentSecret failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}
+
+// 校验支付密码
+func CheckPaymentSecret(c *gin.Context) {
+	params := account.CheckPaymentSecretReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//6位数密码
+	req := &rpc.CheckPaymentSecretReq{
+		UserId:        params.UserId,
+		PaymentSecret: params.PaymentSecret,
+		OperationID:   params.OperationID,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.CheckPaymentSecret(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, "CheckPaymentSecret failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -130,31 +171,34 @@ func SetPaymentSecret(c *gin.Context) {
 
 // 云钱包明细：云钱包收支情况
 func CloudWalletRecordList(c *gin.Context) {
-	operationID := utils.OperationIDGenerator()
+	params := account.CloudWalletRecordListReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
 
 	//获取token用户id
-	userId, _ := c.Get("userID")
-
+	//userId, _ := c.Get("userID")
 	req := &rpc.CloudWalletRecordListReq{
-		UserId:      userId.(string),
-		Date:        "2023-04",
-		OperationID: operationID,
-		PageNum:     0,
-		PageSize:    0,
+		UserId:      params.UserId,
+		StartTime:   params.StartTime,
+		EndTime:     params.EndTime,
+		Page:        params.Page,
+		OperationID: params.OperationID,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.CloudWalletRecordList(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "CloudWalletRecordList failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 

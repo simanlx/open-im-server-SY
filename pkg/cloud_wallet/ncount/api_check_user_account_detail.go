@@ -79,41 +79,42 @@ ieType 借贷标识 I 代表+，E
 signValue 签名字符串 将报文信息用 signType 域设 置的方式签名后生成的字符串
 */
 type CheckUserAccountDetailResp struct {
-	Version    string `json:"version" binding:"required"`
-	TranCode   string `json:"tranCode" binding:"required"`
-	MerOrderId string `json:"merOrderId" binding:"required"`
-	MerId      string `json:"merId" binding:"required"`
-	MerAttach  string `json:"merAttach" binding:"required"`
-	Charset    string `json:"charset" binding:"required"`
-	SignType   string `json:"signType" binding:"required"`
-	ResultCode string `json:"resultCode" binding:"required"`
-	ErrorCode  string `json:"errorCode" binding:"required"`
-	ErrorMsg   string `json:"errorMsg" binding:"required"`
-	UserId     string `json:"userId" binding:"required"`
-	AcctType   string `json:"acctType" binding:"required"`
-	Count      string `json:"count" binding:"required"`
+	Version         string        `json:"version" binding:"required"`
+	TranCode        string        `json:"tranCode" binding:"required"`
+	MerOrderId      string        `json:"merOrderId" binding:"required"`
+	MerId           string        `json:"merId" binding:"required"`
+	MerAttach       string        `json:"merAttach" binding:"required"`
+	Charset         string        `json:"charset" binding:"required"`
+	SignType        string        `json:"signType" binding:"required"`
+	ResultCode      string        `json:"resultCode" binding:"required"`
+	ErrorCode       string        `json:"errorCode" binding:"required"`
+	ErrorMsg        string        `json:"errorMsg" binding:"required"`
+	UserId          string        `json:"userId" binding:"required"`
+	AcctType        string        `json:"acctType" binding:"required"`
+	Count           int32         `json:"count" binding:"required"`
+	SignValue       string        `json:"signValue" binding:"required"`
+	TransDetailList []interface{} `json:"transDetailList" binding:"required"`
+}
 
-	TransDetailList []struct {
-		/*
-			// list
-			transType 交易类型 转帐、提现等 transAmt 交易金额
-			ncountOrderId 新 账 通 订 单 号 transTime 交易日期 YYYYMMDD
-			accountingTime 交易时间 YYYYMMDDHHMMSS
-			balance 交易后余额
-			remark 预留字段
-			summary 账户摘要 描述交易类型和手续费扣减信 息
-			businessType 业务类型 业务类型
-			ieType 借贷标识 I 代表+，E
-		*/
-		TransType      string `json:"transType" binding:"required"`
-		NcountOrderId  string `json:"ncountOrderId" binding:"required"`
-		AccountingTime string `json:"accountingTime" binding:"required"`
-		Balance        string `json:"balance" binding:"required"`
-		Remark         string `json:"remark" binding:"required"`
-		Summary        string `json:"summary" binding:"required"`
-		BusinessType   string `json:"businessType" binding:"required"`
-		IeType         string `json:"ieType" binding:"required"`
-	}
+/*
+	// list
+	transType 交易类型 转帐、提现等 transAmt 交易金额
+	ncountOrderId 新 账 通 订 单 号 transTime 交易日期 YYYYMMDD
+	accountingTime 交易时间 YYYYMMDDHHMMSS
+	balance 交易后余额
+	remark 预留字段
+	summary 账户摘要 描述交易类型和手续费扣减信 息
+	businessType 业务类型 业务类型
+	ieType 借贷标识 I 代表+，E
+*/
 
-	SignValue []string `json:"signValue" binding:"required"`
+type TransDetailList struct {
+	TransType      string `json:"transType" binding:"required"`
+	NcountOrderId  string `json:"ncountOrderId" binding:"required"`
+	AccountingTime string `json:"accountingTime" binding:"required"`
+	Balance        string `json:"balance" binding:"required"`
+	Remark         string `json:"remark" binding:"required"`
+	Summary        string `json:"summary" binding:"required"`
+	BusinessType   string `json:"businessType" binding:"required"`
+	IeType         string `json:"ieType" binding:"required"`
 }

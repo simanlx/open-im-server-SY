@@ -18,6 +18,15 @@ type IdCardRealNameAuthReq struct {
 // 设置支付密码
 type SetPaymentSecretReq struct {
 	UserId        string `json:"user_id"`
+	Type          int32  `json:"type" binding:"required"` //设置类型(1设置密码、2忘记密码smsCode设置)
+	Code          string `json:"code"`
+	PaymentSecret string `json:"payment_secret" binding:"required"`
+	OperationID   string `json:"operationID" binding:"required"`
+}
+
+// 校验支付密码
+type CheckPaymentSecretReq struct {
+	UserId        string `json:"user_id"`
 	PaymentSecret string `json:"payment_secret" binding:"required"`
 	OperationID   string `json:"operationID" binding:"required"`
 }
@@ -67,8 +76,19 @@ type UserRechargeConfirmReq struct {
 
 // 提现
 type DrawAccountReq struct {
-	UserId        string  `json:"user_id"`
-	BindCardAgrNo string  `json:"bindCardAgrNo"  binding:"required"`
-	Amount        float32 `json:"amount"  binding:"required"`
-	OperationID   string  `json:"operationID" binding:"required"`
+	UserId          string `json:"user_id"`
+	BindCardAgrNo   string `json:"bindCardAgrNo"  binding:"required"`
+	Amount          int32  `json:"amount"  binding:"required"`
+	PaymentPassword string `json:"payment_password"  binding:"required"`
+	OperationID     string `json:"operationID" binding:"required"`
+}
+
+// 云钱包账户明细
+type CloudWalletRecordListReq struct {
+	UserId      string `json:"user_id"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	Page        int32  `json:"page"`
+	Size        int32  `json:"size"`
+	OperationID string `json:"operationID" binding:"required"`
 }

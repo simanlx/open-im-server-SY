@@ -399,41 +399,20 @@ func (FNcountBankCard) TableName() string {
 	return "f_ncount_bank_card"
 }
 
-/*
-CREATE TABLE `f_ncount_trade` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `user_id` varchar(64) NOT NULL COMMENT '用户id',
-  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '收支类型(1收入、2支出)',
-  `payment_platform` int(11) DEFAULT NULL COMMENT '1.新生支付',
-  `business_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '业务类型(见枚举)',
-  `describe` varchar(50) DEFAULT NULL COMMENT '描述',
-  `amount` int(10) NOT NULL DEFAULT '0' COMMENT '变更金额(单位：分)',
-  `befer_amount` int(10) DEFAULT '0' COMMENT '变更前金额(单位：分)',
-  `after_amount` int(10) DEFAULT '0' COMMENT '变更后金额(单位：分)',
-  `third_order_no` varchar(50) DEFAULT NULL COMMENT '第三方订单号',
-  `relevance_packet_id` varchar(100) DEFAULT '0' COMMENT '关联红包id',
-  `ncount_status` tinyint(1) DEFAULT '0' COMMENT '异步通知状态（0未生效，1生效）',
-  `created_time` datetime DEFAULT NULL,
-  `updated_time` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户账户变更表';
-
-*/
 type FNcountTrade struct {
-	ID              int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
-	UserID          string `gorm:"column:user_id;not null" json:"user_id"`
-	PaymentPlatform int32  `gorm:"column:payment_platform;not null" json:"payment_platform"`
-	Type            int32  `gorm:"column:type" json:"type"`
-	Amount          int32  `gorm:"column:amount;not null" json:"amount"`
-	BeferAmount     int32  `gorm:"column:befer_amount" json:"befer_amount"`
-	AfterAmount     int32  `gorm:"column:after_amount" json:"after_amount"`
-	ThirdOrderNo    string `gorm:"column:third_order_no" json:"third_order_no"`
-	NcountStatus    int64  `gorm:"column:ncount_status" json:"ncount_status"`
-	//  `relevance_packet_id` varchar(100) DEFAULT '0' COMMENT '关联红包id',
-	RelevancePacketID string    `gorm:"column:relevance_packet_id" json:"relevance_packet_id"`
-	CreatedTime       time.Time `gorm:"column:created_time" json:"created_time"`
-	UpdatedTime       time.Time `gorm:"column:updated_time" json:"updated_time"`
+	ID           int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserID       string    `gorm:"column:user_id;not null" json:"user_id"`      //用户id
+	Type         int32     `gorm:"column:type" json:"type"`                     //收支类型(1收入、2支出)
+	BusinessType int32     `gorm:"column:business_type" json:"business_type"`   //业务类型(见枚举)
+	Describe     string    `gorm:"column:describe" json:"describe"`             //描述
+	Amount       int32     `gorm:"column:amount;not null" json:"amount"`        //变更金额(单位：分)
+	BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
+	AfterAmount  int32     `gorm:"column:after_amount" json:"after_amount"`     //变更后金额(单位：分)
+	ThirdOrderNo string    `gorm:"column:third_order_no" json:"third_order_no"` //第三方订单号
+	NcountStatus int32     `gorm:"column:ncount_status" json:"ncount_status"`   //异步通知状态（0未生效，1生效）
+	PacketID     string    `gorm:"column:packet_id" json:"packet_id"`           //红包id
+	CreatedTime  time.Time `gorm:"column:created_time" json:"created_time"`
+	UpdatedTime  time.Time `gorm:"column:updated_time" json:"updated_time"`
 }
 
 func (FNcountTrade) TableName() string {

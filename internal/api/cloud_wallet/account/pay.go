@@ -20,6 +20,12 @@ func ChargeAccount(c *gin.Context) {
 		return
 	}
 
+	//校验金额
+	if params.Amount%100 != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "充值金额以元为单位"})
+		return
+	}
+
 	req := &rpc.UserRechargeReq{
 		UserId:        params.UserId,
 		BindCardAgrNo: params.BindCardAgrNo,
@@ -32,14 +38,14 @@ func ChargeAccount(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserRecharge(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserRecharge failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -47,7 +53,7 @@ func ChargeAccount(c *gin.Context) {
 	return
 }
 
-// 账户充值回调通知
+// 账户充值code确定
 func ChargeAccountConfirm(c *gin.Context) {
 	params := account.UserRechargeConfirmReq{}
 	if err := c.BindJSON(&params); err != nil {
@@ -66,14 +72,14 @@ func ChargeAccountConfirm(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserRechargeConfirm(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserRechargeConfirm failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -89,31 +95,38 @@ func DrawAccount(c *gin.Context) {
 		return
 	}
 
-	//提现金额验证
-	//if params.Amount < 10 {
-	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少10元"})
+	//支付密码
+	if len(params.PaymentPassword) < 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "请输入支付密码"})
+		return
+	}
+
+	//提现金额限制
+	//if params.Amount < 1 {
+	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少1元"})
 	//	return
 	//}
 
 	req := &rpc.DrawAccountReq{
-		UserId:        params.UserId,
-		BindCardAgrNo: params.BindCardAgrNo,
-		Amount:        params.Amount,
-		OperationID:   params.OperationID,
+		UserId:          params.UserId,
+		BindCardAgrNo:   params.BindCardAgrNo,
+		Amount:          params.Amount,
+		PaymentPassword: params.PaymentPassword,
+		OperationID:     params.OperationID,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserWithdrawal(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserWithdrawal failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 

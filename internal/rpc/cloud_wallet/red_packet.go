@@ -3,7 +3,6 @@ package cloud_wallet
 import (
 	ncount "Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/config"
-	"Open_IM/pkg/common/db"
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
@@ -223,29 +222,14 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		log.Error(in.OperationID, zap.Error(err))
 		return nil, errors.Wrap(err, "修改红包状态失败 1")
 	}
-	// 记录用户的消费记录
-	payAcctAmount, err := strconv.Atoi(transferResult.PayAcctAmount)
+
+	//增加账户变更日志
+	//transferResult.PayAcctAmount
+	err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, transferResult.MerOrderId, redPacketID)
 	if err != nil {
-		log.Error(in.OperationID, zap.Error(err))
-		payAcctAmount = 0
+		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
 	}
 
-	// 记录用户的消费记录
-	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
-		UserID:            in.UserId,
-		PaymentPlatform:   1,                                           //新生支付
-		Type:              imdb.TradeTypeRedPacketOut,                  // 红包转出
-		Amount:            int32(in.Amount) * 100,                      // 转账金额
-		BeferAmount:       int32(int64(payAcctAmount)-in.Amount) * 100, // 转账前的金额
-		AfterAmount:       int32(payAcctAmount) * 100,                  // 转账后的金额
-		ThirdOrderNo:      transferResult.MerOrderId,                   // 第三方的订单号
-		RelevancePacketID: redPacketID,
-	})
-	if err != nil {
-		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是记录用户的消费记录失败，需要人工介入
-		log.Error(in.OperationID, zap.Error(err))
-		return nil, errors.Wrap(err, "记录用户交易表失败")
-	}
 	return commonResp, nil
 }
 
@@ -389,19 +373,37 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 		}
 	}
 
-	//记录账户日志
-	err = imdb.FNcountTradeCreateData(&db.FNcountTrade{
-		UserID:            userId,
-		PaymentPlatform:   4,
-		Type:              imdb.TradeTypeRedPacketOut,
-		Amount:            amount * 100, //分
-		BeferAmount:       0,
-		AfterAmount:       0,
-		ThirdOrderNo:      accountResp.NcountOrderId,
-		RelevancePacketID: packetID,
-	})
+	//增加账户变更日志
+	err = AddNcountTradeLog(BusinessTypeBankcardSendPacket, amount, userId, accountInfo.MainAccountId, accountResp.NcountOrderId, packetID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("记录账户日志失败(%s)", err.Error()))
+		return errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
 	}
+
 	return nil
+}
+
+// 红包领取明细
+func (rpc *CloudWalletServer) RedPacketReceiveDetail(_ context.Context, req *pb.RedPacketReceiveDetailReq) (*pb.RedPacketReceiveDetailResp, error) {
+	//查询时间转换
+	sTime, _ := time.ParseInLocation("2006-01-02", req.StartTime, time.Local)
+	eTime, _ := time.ParseInLocation("2006-01-02", req.EndTime, time.Local)
+
+	//获取列表数据
+	list, _ := imdb.FindReceiveRedPacketList(req.UserId, sTime.Unix(), eTime.Unix()+86399)
+
+	receiveList := make([]*pb.RedPacketReceiveDetail, 0)
+	for _, v := range list {
+		receiveList = append(receiveList, &pb.RedPacketReceiveDetail{
+			PacketId:    v.PacketId,
+			Amount:      v.Amount,
+			PacketTitle: v.PacketTitle,
+			ReceiveTime: time.Unix(v.ReceiveTime, 0).Format("2006-01-02 15:04:05"),
+			PacketType:  v.PacketType,
+			IsLucky:     v.IsLucky,
+		})
+	}
+
+	return &pb.RedPacketReceiveDetailResp{
+		RedPacketReceiveDetail: receiveList,
+	}, nil
 }
