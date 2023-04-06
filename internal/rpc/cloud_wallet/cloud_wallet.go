@@ -122,7 +122,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 	}
 
 	//调新生支付接口，获取用户信息
-	accountResp, err := ncount.NewCounter().CheckUserAccountInfo(&ncount.CheckUserAccountReq{
+	accountResp, err := rpc.count.CheckUserAccountInfo(&ncount.CheckUserAccountReq{
 		OrderID: ncount.GetMerOrderID(),
 		UserID:  accountInfo.MainAccountId,
 	})
@@ -205,7 +205,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	for _, account := range accountIds {
 		id := account
 		errGroup.Go(func() error {
-			accountResp, err := ncount.NewCounter().NewAccount(&ncount.NewAccountReq{
+			accountResp, err := rpc.count.NewAccount(&ncount.NewAccountReq{
 				OrderID: ncount.GetMerOrderID(),
 				MsgCipherText: &ncount.NewAccountMsgCipherText{
 					MerUserId: id,
@@ -285,9 +285,19 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error()))
 	}
 
+	recordList := make([]*cloud_wallet.RecordList, 0)
+	recordList = append(recordList, &cloud_wallet.RecordList{
+		Describe:          "银行卡充值",
+		Account:           1,
+		CreatedTime:       "2023-04-06 12:12:23",
+		RelevancePacketId: "",
+		AfterAmount:       2,
+		Type:              1,
+	})
+
 	return &cloud_wallet.CloudWalletRecordListResp{
-		Count:      9,
-		RecordList: nil,
+		Total:      9,
+		RecordList: recordList,
 	}, nil
 }
 
@@ -300,7 +310,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(_ context.Context, req *cloud_wal
 	}
 
 	merOrderId := ncount.GetMerOrderID()
-	accountResp, err := ncount.NewCounter().BindCard(&ncount.BindCardReq{
+	accountResp, err := rpc.count.BindCard(&ncount.BindCardReq{
 		MerOrderId: merOrderId,
 		BindCardMsgCipherText: ncount.BindCardMsgCipherText{
 			CardNo:       req.BankCardNumber,
@@ -358,7 +368,7 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cl
 	}
 
 	//新生支付确定接口
-	accountResp, err := ncount.NewCounter().BindCardConfirm(&ncount.BindCardConfirmReq{
+	accountResp, err := rpc.count.BindCardConfirm(&ncount.BindCardConfirmReq{
 		MerOrderId: ncount.GetMerOrderID(),
 		BindCardConfirmMsgCipherText: ncount.BindCardConfirmMsgCipherText{
 			NcountOrderId: bankCardInfo.NcountOrderId,
@@ -391,7 +401,7 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 	}
 
 	//新生支付确定接口
-	accountResp, err := ncount.NewCounter().UnbindCard(&ncount.UnBindCardReq{
+	accountResp, err := rpc.count.UnbindCard(&ncount.UnBindCardReq{
 		MerOrderId: ncount.GetMerOrderID(),
 		UnBindCardMsgCipher: ncount.UnBindCardMsgCipher{
 			OriBindCardAgrNo: bankCardInfo.BindCardAgrNo,
@@ -414,7 +424,7 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 }
 
 // 银行卡充值
-func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.UserRechargeReq) (*cloud_wallet.UserRechargeResp, error) {
+func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.UserRechargeReq) (*cloud_wallet.UserRechargeResp, error) {
 	// 获取银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
 	if err != nil {
@@ -422,7 +432,7 @@ func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.Us
 	}
 
 	//充值支付
-	accountResp, err := ncount.NewCounter().QuickPayOrder(&ncount.QuickPayOrderReq{
+	accountResp, err := rpc.count.QuickPayOrder(&ncount.QuickPayOrderReq{
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
@@ -465,7 +475,7 @@ func (c *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.Us
 }
 
 // 账户充值code 确认
-func (c *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wallet.UserRechargeConfirmReq) (*cloud_wallet.UserRechargeConfirmResp, error) {
+func (rpc *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wallet.UserRechargeConfirmReq) (*cloud_wallet.UserRechargeConfirmResp, error) {
 	// 获取记录信息
 	tradeInfo, err := imdb.GetFNcountTradeByOrderNo(req.MerOrderId, req.UserId)
 	if err != nil {
@@ -473,7 +483,7 @@ func (c *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wa
 	}
 
 	//新生支付确认接口
-	accountResp, err := ncount.NewCounter().QuickPayConfirm(&ncount.QuickPayConfirmReq{
+	accountResp, err := rpc.count.QuickPayConfirm(&ncount.QuickPayConfirmReq{
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayConfirmMsgCipher: ncount.QuickPayConfirmMsgCipher{
 			NcountOrderId:        tradeInfo.ThirdOrderNo,
@@ -497,7 +507,7 @@ func (c *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wa
 }
 
 // 提现
-func (w *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_wallet.DrawAccountReq) (*cloud_wallet.DrawAccountResp, error) {
+func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_wallet.DrawAccountReq) (*cloud_wallet.DrawAccountResp, error) {
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
@@ -516,7 +526,7 @@ func (w *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_wallet.
 	}
 
 	//调用新生支付提现接口
-	accountResp, err := ncount.NewCounter().Withdraw(&ncount.WithdrawReq{
+	accountResp, err := rpc.count.Withdraw(&ncount.WithdrawReq{
 		MerOrderID: ncount.GetMerOrderID(),
 		MsgCipher: ncount.WithdrawMsgCipher{
 			BusinessType:    "08",

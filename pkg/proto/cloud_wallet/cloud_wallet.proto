@@ -55,34 +55,21 @@ message CloudWalletRecordListReq{
   string startTime = 2; //开始日期
   string endTime = 3; //结束日期
   int32  page = 4; //页码
-  string operationID = 5; //链路跟踪id
+  int32  size = 5; //size
+  string operationID = 6; //链路跟踪id
 }
 message CloudWalletRecordListResp{
-  int32  count = 1;
+  int32  total = 1;
   repeated RecordList recordList = 2;
 }
-
-//    transType 交易类型
-//    transAmt  交易金额
-//    accountingTime 交易时间
-//    balance 交易后金额
-//    summary 摘要
-//    businessType 业务类型
 
 message RecordList{
   string describe = 1; //明细描述
   int32 account = 2; //变动金额
   string createdTime = 3; //时间
-  string packetId = 4; //红包id
-  float afterAmount = 5; //变更后金额
-  int32 type = 6; //类型()
-
-
-
-    // businessType 业务类型
-
-
-//    trade
+  string relevancePacketId = 4; //关联红包id
+  float afterAmount = 5; //变更后余额
+  int32 type = 6; //收支类型(1收入、2支出)
 }
 
 // 6.绑定用户银行卡
@@ -149,6 +136,8 @@ message SetPaymentSecretResp{
   CommonResp commonResp = 2;
 }
 
+
+//    CheckPaymentSecretReq
 
 // 8.用户密码认证  部分操作需要用户密码认证
 message userPaymentSecretAuthReq{
@@ -453,6 +442,9 @@ service CloudWalletService {
 
   // 设置用户支付密码
   rpc SetPaymentSecret(SetPaymentSecretReq)returns(SetPaymentSecretResp);
+
+  // 校验用户支付密码
+  rpc CheckPaymentSecret(CheckPaymentSecretReq)returns(CheckPaymentSecretResp);
 
   // 云钱包收支明细
   rpc CloudWalletRecordList(CloudWalletRecordListReq)returns(CloudWalletRecordListResp);
