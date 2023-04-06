@@ -32,14 +32,14 @@ func ChargeAccount(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserRecharge(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserRecharge failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -66,14 +66,14 @@ func ChargeAccountConfirm(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserRechargeConfirm(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserRechargeConfirm failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 
@@ -113,14 +113,14 @@ func DrawAccount(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.UserWithdrawal(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "UserWithdrawal failed ", err.Error(), req.String())
-		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
 

@@ -22,6 +22,7 @@ const (
 	CloudWalletService_UserNcountAccount_FullMethodName       = "/cloud_wallet.CloudWalletService/UserNcountAccount"
 	CloudWalletService_IdCardRealNameAuth_FullMethodName      = "/cloud_wallet.CloudWalletService/IdCardRealNameAuth"
 	CloudWalletService_SetPaymentSecret_FullMethodName        = "/cloud_wallet.CloudWalletService/SetPaymentSecret"
+	CloudWalletService_CheckPaymentSecret_FullMethodName      = "/cloud_wallet.CloudWalletService/CheckPaymentSecret"
 	CloudWalletService_CloudWalletRecordList_FullMethodName   = "/cloud_wallet.CloudWalletService/CloudWalletRecordList"
 	CloudWalletService_BindUserBankcard_FullMethodName        = "/cloud_wallet.CloudWalletService/BindUserBankcard"
 	CloudWalletService_BindUserBankcardConfirm_FullMethodName = "/cloud_wallet.CloudWalletService/BindUserBankcardConfirm"
@@ -46,6 +47,8 @@ type CloudWalletServiceClient interface {
 	IdCardRealNameAuth(ctx context.Context, in *IdCardRealNameAuthReq, opts ...grpc.CallOption) (*IdCardRealNameAuthResp, error)
 	// 设置用户支付密码
 	SetPaymentSecret(ctx context.Context, in *SetPaymentSecretReq, opts ...grpc.CallOption) (*SetPaymentSecretResp, error)
+	// 校验用户支付密码
+	CheckPaymentSecret(ctx context.Context, in *CheckPaymentSecretReq, opts ...grpc.CallOption) (*CheckPaymentSecretResp, error)
 	// 云钱包收支明细
 	CloudWalletRecordList(ctx context.Context, in *CloudWalletRecordListReq, opts ...grpc.CallOption) (*CloudWalletRecordListResp, error)
 	// 绑定用户银行卡
@@ -99,6 +102,15 @@ func (c *cloudWalletServiceClient) IdCardRealNameAuth(ctx context.Context, in *I
 func (c *cloudWalletServiceClient) SetPaymentSecret(ctx context.Context, in *SetPaymentSecretReq, opts ...grpc.CallOption) (*SetPaymentSecretResp, error) {
 	out := new(SetPaymentSecretResp)
 	err := c.cc.Invoke(ctx, CloudWalletService_SetPaymentSecret_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudWalletServiceClient) CheckPaymentSecret(ctx context.Context, in *CheckPaymentSecretReq, opts ...grpc.CallOption) (*CheckPaymentSecretResp, error) {
+	out := new(CheckPaymentSecretResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_CheckPaymentSecret_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -215,6 +227,8 @@ type CloudWalletServiceServer interface {
 	IdCardRealNameAuth(context.Context, *IdCardRealNameAuthReq) (*IdCardRealNameAuthResp, error)
 	// 设置用户支付密码
 	SetPaymentSecret(context.Context, *SetPaymentSecretReq) (*SetPaymentSecretResp, error)
+	// 校验用户支付密码
+	CheckPaymentSecret(context.Context, *CheckPaymentSecretReq) (*CheckPaymentSecretResp, error)
 	// 云钱包收支明细
 	CloudWalletRecordList(context.Context, *CloudWalletRecordListReq) (*CloudWalletRecordListResp, error)
 	// 绑定用户银行卡
@@ -252,6 +266,9 @@ func (UnimplementedCloudWalletServiceServer) IdCardRealNameAuth(context.Context,
 }
 func (UnimplementedCloudWalletServiceServer) SetPaymentSecret(context.Context, *SetPaymentSecretReq) (*SetPaymentSecretResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetPaymentSecret not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) CheckPaymentSecret(context.Context, *CheckPaymentSecretReq) (*CheckPaymentSecretResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckPaymentSecret not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) CloudWalletRecordList(context.Context, *CloudWalletRecordListReq) (*CloudWalletRecordListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CloudWalletRecordList not implemented")
@@ -349,6 +366,24 @@ func _CloudWalletService_SetPaymentSecret_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CloudWalletServiceServer).SetPaymentSecret(ctx, req.(*SetPaymentSecretReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudWalletService_CheckPaymentSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckPaymentSecretReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).CheckPaymentSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_CheckPaymentSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).CheckPaymentSecret(ctx, req.(*CheckPaymentSecretReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -569,6 +604,10 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetPaymentSecret",
 			Handler:    _CloudWalletService_SetPaymentSecret_Handler,
+		},
+		{
+			MethodName: "CheckPaymentSecret",
+			Handler:    _CloudWalletService_CheckPaymentSecret_Handler,
 		},
 		{
 			MethodName: "CloudWalletRecordList",

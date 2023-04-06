@@ -136,8 +136,16 @@ message SetPaymentSecretResp{
   CommonResp commonResp = 2;
 }
 
+// 校验用户支付密码
+message CheckPaymentSecretReq{
+  string userId = 1; //用户id
+  string paymentSecret = 2; //密码
+  string operationID = 3; //链路跟踪id
+}
+message CheckPaymentSecretResp{
+  CommonResp commonResp = 1;
+}
 
-//    CheckPaymentSecretReq
 
 // 8.用户密码认证  部分操作需要用户密码认证
 message userPaymentSecretAuthReq{

@@ -256,6 +256,21 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	}, nil
 }
 
+// 校验用户支付密码
+func (rpc *CloudWalletServer) CheckPaymentSecret(_ context.Context, req *cloud_wallet.CheckPaymentSecretReq) (*cloud_wallet.CheckPaymentSecretResp, error) {
+	//获取用户账户信息
+	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
+	if err != nil || accountInfo.Id <= 0 {
+		return nil, errors.New("账户信息不存在")
+	}
+
+	//验证支付密码
+	if len(accountInfo.PaymentPassword) == 0 || utils.Md5(req.PaymentSecret) != accountInfo.PaymentPassword {
+		return nil, errors.New("支付密码错误")
+	}
+	return &cloud_wallet.CheckPaymentSecretResp{}, nil
+}
+
 // 设置用户支付密码
 func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.SetPaymentSecretResp, error) {
 	//获取用户账户信息
