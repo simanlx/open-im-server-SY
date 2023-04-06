@@ -6,6 +6,7 @@ import (
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
+	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/tools/redpacket"
 	"context"
@@ -295,6 +296,24 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 	}
 
 	// todo 发送红包消息
+	freq := &contrive_msg.FPacket{
+		PacketID:        redPacketID,
+		UserID:          redpacketInfo.UserID,
+		PacketType:      redpacketInfo.PacketType,
+		IsLucky:         redpacketInfo.IsLucky,
+		ExclusiveUserID: redpacketInfo.ExclusiveUserID,
+		PacketTitle:     redpacketInfo.PacketTitle,
+		Amount:          redpacketInfo.Amount,
+		Number:          redpacketInfo.Number,
+		ExpireTime:      redpacketInfo.ExpireTime,
+		MerOrderID:      redpacketInfo.MerOrderID,
+		OperateID:       redpacketInfo.OperateID,
+		RecvID:          redpacketInfo.RecvID,
+		CreatedTime:     redpacketInfo.CreatedTime,
+		UpdatedTime:     redpacketInfo.UpdatedTime,
+		IsExclusive:     redpacketInfo.IsExclusive,
+	}
+	contrive_msg.SendSendRedPacket(freq, OperateID)
 	return nil
 }
 
@@ -312,7 +331,6 @@ func GroupPacket(req *imdb.FPacket, redpacketID string) error {
 		log.Error(req.OperateID, zap.Error(err))
 		return err
 	}
-
 	return err
 }
 
@@ -363,8 +381,6 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 			UserId:        accountInfo.MainAccountId,
 			SubMerchantId: "2206301126073014978", // 子商户编号
 		}})
-
-	fmt.Println("accountResp Println", accountResp, err)
 	if err != nil {
 		return errors.New(fmt.Sprintf("充值失败(%s)", err.Error()))
 	} else {

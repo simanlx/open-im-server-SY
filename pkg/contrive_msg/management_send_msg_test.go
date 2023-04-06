@@ -7,13 +7,18 @@ import (
 func TestNewManagementSendMsg_RedMsg(t *testing.T) {
 	req := &FPacket{
 		PacketID:    "1111111",
-		UserID:      "10086",
+		UserID:      "1914080869",
 		PacketType:  1,
 		IsLucky:     1,
 		PacketTitle: "新年快乐",
 		OperateID:   "123",
-		RecvID:      "10081",
+		RecvID:      "1914080869",
 		IsExclusive: 0,
 	}
-	NewManagementSendMsg_RedMsg(req)
+	SendSendRedPacket(req, "10000085")
+}
+
+//
+func TestSendSendRedPacket(t *testing.T) {
+	SendGrabPacket("1914080869", "1914080869", 1, "123", "100", "", "1111")
 }

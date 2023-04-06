@@ -225,7 +225,7 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail) // 红包领取明细
 
 		// 这里临时给检测使用
-		cloudWalletGroup.POST("/check_status", func(context *gin.Context) {
+		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
 			context.JSON(200, gin.H{
 				"code": 0,
 				"msg":  "ok",
