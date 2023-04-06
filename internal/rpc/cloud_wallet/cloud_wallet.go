@@ -171,7 +171,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 		IdCard:           accountInfo.IdCard,
 		RealName:         accountInfo.RealName,
 		AccountStatus:    accountInfo.OpenStatus,
-		BalAmount:        accountResp.BalAmount,
+		BalAmount:        cast.ToString(cast.ToFloat64(accountResp.BalAmount) * 100), //转换为分
 		AvailableBalance: accountResp.AvailableBalance,
 		BindCardsList:    bindCardsList,
 	}, nil
