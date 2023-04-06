@@ -163,7 +163,10 @@ func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string 
 		Number:          in.Number,
 		MerOrderID:      h.merOrderID,
 		OperateID:       h.OperateID,
+		SendType:        in.SendType,
+		BindCardAgrNo:   in.BindCardAgrNo,
 		RecvID:          in.RecvID, // 接收ID
+		Remain:          int64(in.Number),
 		ExpireTime:      time.Now().Unix() + 60*60*24,
 		CreatedTime:     time.Now().Unix(),
 		UpdatedTime:     time.Now().Unix(),

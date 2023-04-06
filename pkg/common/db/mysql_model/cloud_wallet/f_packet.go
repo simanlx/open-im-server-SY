@@ -3,6 +3,7 @@ package cloud_wallet
 import (
 	"Open_IM/pkg/common/db"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 /*
@@ -22,13 +23,14 @@ CREATE TABLE `f_packet` (
   `recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
   `send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
   `bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
+  `remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
   `created_time` int(11) DEFAULT NULL,
   `updated_time` int(11) DEFAULT NULL,
   `status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
   `is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 */
 
 type FPacket struct {
@@ -43,8 +45,11 @@ type FPacket struct {
 	Number          int32  `gorm:"column:number;not null" json:"number"`
 	ExpireTime      int64  `gorm:"column:expire_time;not null" json:"expire_time"`
 	MerOrderID      string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	SendType        int32  `gorm:"column:send_type;not null" json:"send_type"`
+	BindCardAgrNo   string `gorm:"column:bind_card_agr_no;not null" json:"bind_card_agr_no"`
 	OperateID       string `gorm:"column:operate_id;not null" json:"operate_id"`
 	RecvID          string `gorm:"column:recv_id;not null" json:"recv_id"`
+	Remain          int64  `gorm:"column:remain;not null" json:"remain"` // 剩余红包数量
 	CreatedTime     int64  `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime     int64  `gorm:"column:updated_time;not null" json:"updated_time"`
 	Status          int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
@@ -114,4 +119,14 @@ func SelectUserMainAccountByUserID(userID string) (string, error) {
 		return "", errors.Wrap(result.Error, "获取红包信息失败")
 	}
 	return fAccount.MainAccountId, nil
+}
+
+// 更新红包的剩余数量
+func UpdateRedPacketRemain(packetID string) error {
+	// 将红包数量减一
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Update("remain", gorm.Expr("remain - ?", 1))
+	if result.Error != nil {
+		return errors.Wrap(result.Error, "修改红包状态失败")
+	}
+	return nil
 }
