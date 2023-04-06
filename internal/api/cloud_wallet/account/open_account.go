@@ -9,7 +9,6 @@ import (
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/cast"
 	"net/http"
 	"strings"
 )
@@ -179,9 +178,9 @@ func CloudWalletRecordList(c *gin.Context) {
 	}
 
 	//获取token用户id
-	userId, _ := c.Get("userID")
+	//userId, _ := c.Get("userID")
 	req := &rpc.CloudWalletRecordListReq{
-		UserId:      cast.ToString(userId),
+		UserId:      params.UserId,
 		StartTime:   params.StartTime,
 		EndTime:     params.EndTime,
 		Page:        params.Page,
