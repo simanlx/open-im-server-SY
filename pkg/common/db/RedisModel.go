@@ -49,9 +49,14 @@ const (
 )
 
 // 设置群红包
-func (d *DataBases) SetRedPacket(packetID string, values ...int) error {
+func (d *DataBases) SetRedPacket(packetID string, values []int) error {
 	key := redPacket + packetID
-	return d.RDB.SAdd(context.Background(), key, values).Err()
+
+	var a []interface{}
+	for _, v := range values {
+		a = append(a, v)
+	}
+	return d.RDB.SAdd(context.Background(), key, a...).Err()
 }
 
 // 获取群红包
