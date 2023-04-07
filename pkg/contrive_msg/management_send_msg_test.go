@@ -21,5 +21,5 @@ func TestNewManagementSendMsg_RedMsg(t *testing.T) {
 
 // 模拟发送一个红包
 func TestSendSendRedPacket(t *testing.T) {
-	SendGrabPacket("1914080869", "1914080869", 1, "123", "100", "", "1111")
+	SendGrabPacket("1914080869", "1461819639", 1, "123", "100", "", "1111")
 }

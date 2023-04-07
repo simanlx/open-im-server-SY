@@ -6,6 +6,7 @@ import (
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/db/mysql_model/im_mysql_model"
+	imdb2 "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -43,6 +44,12 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 	}
 	// 首先生成红包ID 生成规则：红包类型+用户ID+时间戳+随机数
 	// 2. 生成红包ID后，发送红包，记录红包发送记录
+
+	// todo 暂时这么处理
+	if checkGroupValidate := h.checkGroupPacketState(req); checkGroupValidate != "" {
+		return nil, errors.New(checkGroupValidate)
+	}
+
 	redpacketID, err := h.recordRedPacket(req)
 	if err != nil {
 		log.Error(req.OperationID, "record red packet error", zap.Error(err))
@@ -145,7 +152,21 @@ func (req *handlerSendRedPacket) validateMore() error {
 	// 1 检测上传的银行卡ID是否为用户自己的
 	// 1. 验证用户是否在群内部
 	// 2. 验证用户之间是否是好友关系
+
+	// 检测用户是否在群里
 	return nil
+}
+
+// 验证业务上的逻辑错误
+func (h *handlerSendRedPacket) checkGroupPacketState(req *pb.SendRedPacketReq) string {
+	// 1.用户是否在群里
+	if req.PacketType == 2 {
+		ok := imdb2.IsExistGroupMember(req.RecvID, req.UserId)
+		if !ok {
+			return "用户不在群里"
+		}
+	}
+	return ""
 }
 
 // 创建红包信息

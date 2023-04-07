@@ -6,6 +6,7 @@ import (
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
+	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -35,20 +36,30 @@ func (s *CloudWalletServer) ChargeNotify(ctx context.Context, req *pb.ChargeNoti
 	}
 
 	f := &db.FNcountTrade{
-		ThirdOrderNo: req.MerOrderId,
+		ThirdOrderNo: req.OrderId,
 		NcountStatus: 1, // 表示修改成功
 	}
+
+	// 修改订单状态
 	err := imdb.FNcountTradeUpdateStatusbyThirdOrderNo(f)
 	if err != nil {
 		log.Error("修改订单状态失败", err, req)
 		return nil, err
 	}
+	log.Info("修改订单状态成功", req)
+	if f.PacketID != "" {
+		if err := HandleSendPacketResult(f.PacketID, ""); err != nil {
+			fmt.Println("HandleSendPacketResult err", err)
+			return nil, err
+		}
+	}
+
+	// 判断是否存在红包ID
 	// 2.修改订单状态
 	return resp, nil
 }
 
 // 提现回调接口
-
 func (s *CloudWalletServer) WithDrawNotify(ctx context.Context, req *pb.DrawNotifyReq) (*pb.DrawNotifyResp, error) {
 	var (
 		resp = &pb.DrawNotifyResp{
@@ -73,7 +84,7 @@ func (s *CloudWalletServer) WithDrawNotify(ctx context.Context, req *pb.DrawNoti
 	}
 
 	f := &db.FNcountTrade{
-		ThirdOrderNo: req.MerOrderId,
+		ThirdOrderNo: req.OrderId,
 		NcountStatus: 1, // 表示修改成功
 	}
 	err := imdb.FNcountTradeUpdateStatusbyThirdOrderNo(f)

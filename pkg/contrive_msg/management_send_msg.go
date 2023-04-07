@@ -55,9 +55,7 @@ func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark
 
 func SendSendRedPacket(f *FPacket, sessionID int) {
 	content := NewManagementSendMsg_RedMsg(f, f.OperateID, sessionID)
-	fmt.Println()
 	fmt.Println(string(content))
-	fmt.Println()
 	// 将消息发送给用户
 	err := SendMessage(f.OperateID, content)
 	if err != nil {
