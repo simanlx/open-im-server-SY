@@ -15,7 +15,6 @@ import (
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -188,7 +187,7 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		TransferMsgCipher: ncount.TransferMsgCipher{
 			PayUserId:     fncount.MainAccountId,
 			ReceiveUserId: fncount.PacketAccountId,
-			TranAmount:    strconv.Itoa(int(in.Amount)),
+			TranAmount:    cast.ToString(in.Amount / 100), //分转元
 		},
 	}
 
@@ -225,7 +224,6 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 	}
 
 	//增加账户变更日志
-	//transferResult.PayAcctAmount
 	err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, transferResult.MerOrderId, redPacketID)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
@@ -236,23 +234,10 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 
 // 银行卡转账
 func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) (*pb.CommonResp, error) {
-	// 1. 获取用户账户ID
-	fncount, err := imdb.FNcountAccountGetUserAccountID(in.UserId)
+	//银行卡充值到红包账户
+	err := BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount), redPacketID)
 	if err != nil {
-		return nil, errors.Wrap(err, "get user FNcountAccountGetUserAccountID by id error")
-	}
-	req := &ncount.TransferReq{
-		MerOrderId: h.merOrderID,
-		TransferMsgCipher: ncount.TransferMsgCipher{
-			PayUserId:     fncount.MainAccountId,
-			ReceiveUserId: fncount.PacketAccountId,
-			TranAmount:    strconv.Itoa(int(in.Amount)),
-		},
-	}
-	log.Info(in.OperationID, "transfer req", req)
-	err = BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount*100), redPacketID)
-	if err != nil {
-		return nil, errors.Wrap(err, "调用新生支付出现错误")
+		return nil, err
 	}
 
 	commonResp := &pb.CommonResp{
@@ -374,7 +359,7 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
-			TranAmount:    cast.ToString(amount),
+			TranAmount:    cast.ToString(amount / 100),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bindCardAgrNo,
 			ReceiveUserId: accountInfo.PacketAccountId, //收款账户
@@ -448,8 +433,7 @@ func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacket
 
 	//获取当前红包领取记录
 	receiveList, err := imdb.ReceiveListByPacketId(req.PacketId)
-	fmt.Println("---receiveList---", receiveList, err)
-	
+
 	for _, v := range receiveList {
 		info.ReceiveDetail = append(info.ReceiveDetail, &pb.ReceiveDetail{
 			UserId:      v.UserId,

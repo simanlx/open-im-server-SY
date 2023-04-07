@@ -400,13 +400,13 @@ func (FNcountBankCard) TableName() string {
 }
 
 type FNcountTrade struct {
-	ID           int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
-	UserID       string    `gorm:"column:user_id;not null" json:"user_id"`      //用户id
-	Type         int32     `gorm:"column:type" json:"type"`                     //收支类型(1收入、2支出)
-	BusinessType int32     `gorm:"column:business_type" json:"business_type"`   //业务类型(见枚举)
-	Describe     string    `gorm:"column:describe" json:"describe"`             //描述
-	Amount       int32     `gorm:"column:amount;not null" json:"amount"`        //变更金额(单位：分)
-	BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
+	ID           int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserID       string `gorm:"column:user_id;not null" json:"user_id"`    //用户id
+	Type         int32  `gorm:"column:type" json:"type"`                   //收支类型(1收入、2支出)
+	BusinessType int32  `gorm:"column:business_type" json:"business_type"` //业务类型(见枚举)
+	Describe     string `gorm:"column:describe" json:"describe"`           //描述
+	Amount       int32  `gorm:"column:amount;not null" json:"amount"`      //变更金额(单位：分)
+	//BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
 	AfterAmount  int32     `gorm:"column:after_amount" json:"after_amount"`     //变更后金额(单位：分)
 	ThirdOrderNo string    `gorm:"column:third_order_no" json:"third_order_no"` //第三方订单号
 	NcountStatus int32     `gorm:"column:ncount_status" json:"ncount_status"`   //异步通知状态（0未生效，1生效）
