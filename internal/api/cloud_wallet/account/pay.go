@@ -30,7 +30,6 @@ func ChargeAccount(c *gin.Context) {
 		UserId:        params.UserId,
 		BindCardAgrNo: params.BindCardAgrNo,
 		Amount:        params.Amount,
-		AccountType:   params.AccountType,
 		OperationID:   params.OperationID,
 	}
 

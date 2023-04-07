@@ -26,28 +26,23 @@ signValue 签名字符串 将报文信息用 signType 域设 置的方式加密�
 
 */
 
+//bankCode=CITIC&charset=1&bindCardAgrNo=202304030004579859&divideAcctDtl=&recvAcctAmount=10.98&ncountOrderId=2023040720951263&
+//	cardType=1&resultCode=0000&errorCode=&tranFinishTime=20230407200250&checkDate=20230407&
+//			version=1.0&errorMsg=&feeAmount=0&submitTime=20230407200203&shortCardNo=6812&signType=1&
+//				merId=300002428690&merAttach=&tranCode=T008&businessType=03&tranAmount=0.01&merOrderId=20230407200203609866
+
+// {"merOrderId":"20230407200203609866","resultCode":"0000","errorCode":"","errorMsg":"","ncountOrderId":"2023040720951263","tranAmount":"0.01","submitTime":"20230407200203","tranFinishTime":"20230407200250","feeAmount":"0"}
+
 type ChargeNotifyReq struct {
-	Version         string `json:"version"`
-	TranCode        string `json:"tranCode"`
-	MerOrderId      string `json:"merOrderId"`
-	MerId           string `json:"merId"`
-	MerAttach       string `json:"merAttach"`
-	Charset         string `json:"charset"`
-	SignType        string `json:"signType"`
-	ResultCode      string `json:"resultCode"`
-	ErrorCode       string `json:"errorCode"`
-	ErrorMsg        string `json:"errorMsg"`
-	OrderId         string `json:"ncountOrderId"`
-	TranAmount      string `json:"tranAmount"`
-	SubmitTime      string `json:"submitTime"`
-	TranFinishTime  string `json:"tranFinishTime"`
-	BusinessType    string `json:"businessType"`
-	FeeAmount       string `json:"feeAmount"`
-	BankOrderId     string `json:"bankOrderId"`
-	RealBankOrderId string `json:"realBankOrderId"`
-	DivideAcctDtl   string `json:"divideAcctDtl"`
-	SignValue       string `json:"signValue"`
-	OperationID     string `json:"operationID" `
+	MerOrderId     string `json:"merOrderId"`
+	ResultCode     string `json:"resultCode"`
+	ErrorCode      string `json:"errorCode"`
+	ErrorMsg       string `json:"errorMsg"`
+	NcountOrderId  string `json:"ncountOrderId"`
+	TranAmount     string `json:"tranAmount"`
+	SubmitTime     string `json:"submitTime"`
+	TranFinishTime string `json:"tranFinishTime"`
+	FeeAmount      string `json:"feeAmount"`
 }
 
 type ChargeNotifyResp struct {
@@ -75,21 +70,12 @@ payAcctAmount 付款方账户余额 1-10 格式：整数 单位：元 交易成�
 */
 
 type WithdrawNotifyReq struct {
-	Version        string `json:"version"`
-	TranCode       string `json:"tranCode"`
 	MerOrderId     string `json:"merOrderId"`
-	MerId          string `json:"merId"`
-	MerAttach      string `json:"merAttach"`
-	Charset        string `json:"charset"`
-	SignType       string `json:"signType"`
 	ResultCode     string `json:"resultCode"`
 	ErrorCode      string `json:"errorCode"`
 	ErrorMsg       string `json:"errorMsg"`
-	OrderId        string `json:"ncountOrderId"`
-	OrderDate      string `json:"orderDate"`
+	NcountOrderId  string `json:"ncountOrderId"`
 	TranFinishDate string `json:"tranFinishDate"`
-	SingValue      string `json:"signValue"`
 	ServiceAmount  string `json:"serviceAmount"`
 	PayAcctAmount  string `json:"payAcctAmount"`
-	OperationID    string `json:"operationID"`
 }

@@ -95,12 +95,12 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 
 	// 如果用户没实名认证就不能进行抢红包
-	err = h.checkUserAuthStatus(req.UserId)
-	if err != nil {
-		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
-		res.CommonResp.ErrMsg = "您的帐号没有实名认证"
-		return res, nil
-	}
+	//err = h.checkUserAuthStatus(req.UserId)
+	//if err != nil {
+	//	res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
+	//	res.CommonResp.ErrMsg = "您的帐号没有实名认证"
+	//	return res, nil
+	//}
 	var amount int
 	// 4. 判断红包的类型
 	if redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1 {
