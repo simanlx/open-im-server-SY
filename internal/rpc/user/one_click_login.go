@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	AppId  = "xnFiQUGP"
-	AppKey = "xnFiQUGP"
+	AppId  = "AfjfMIlF"
+	AppKey = "wsqJwoex"
 	Uri    = "https://api.253.com/open/flashsdk/mobile-query"
 )
 
@@ -42,6 +42,13 @@ type UserMobile struct {
 
 // 一键登录授权token换取用户手机号码
 func TokenExchangeMobile(token string) (string, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("recover error:", r)
+			return
+		}
+	}()
+
 	//签名
 	sign := Sign(fmt.Sprintf("appId%stoken%s", AppId, token))
 
@@ -59,18 +66,15 @@ func TokenExchangeMobile(token string) (string, error) {
 
 	reply := &OneClickLoginResp{}
 	err = json.Unmarshal(body, reply)
-	if err != nil {
-		return "", errors.New("请求api接口失败")
-	}
 	fmt.Println("----", reply, err)
 
-	//if reply.Code != "200000" {
-	//	return "", errors.New(fmt.Sprintf("接口响应错误:%s", reply.Message))
-	//}
+	if err != nil || reply.Code != "200000" {
+		return "", errors.New(fmt.Sprintf("接口响应错误:%s", reply.Message))
+	}
 
-	mobileName := "1F881288CC68352FC410E8D4A36FC6E0"
-	mobile := Decrypt(mobileName)
-	//mobile := Decrypt(reply.Data.MobileName)
+	//mobileName := "1F881288CC68352FC410E8D4A36FC6E0"
+	//mobile := Decrypt(mobileName)
+	mobile := Decrypt(reply.Data.MobileName)
 	if err != nil {
 		return "", errors.New("解密手机号码失败")
 	}
@@ -86,14 +90,8 @@ func Sign(text string) string {
 	return string(signature)
 }
 
+// 解密换取手机号码
 func Decrypt(mobileName string) string {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("recover error:", r)
-			return
-		}
-	}()
-
 	hash := md5.Sum([]byte(AppKey))
 	hashString := hex.EncodeToString(hash[:])
 
@@ -105,22 +103,13 @@ func Decrypt(mobileName string) string {
 	return string(unpad(decrypted))
 }
 
-func decrptPhone(data string, key string) string {
-	hash := md5.Sum([]byte(key))
-	hashString := hex.EncodeToString(hash[:])
-	block, _ := aes.NewCipher([]byte(hashString[:16]))
-	ecb := cipher.NewCBCDecrypter(block, []byte(hashString[16:]))
-	source, _ := hex.DecodeString(data)
-	decrypted := make([]byte, len(source))
-	ecb.CryptBlocks(decrypted, source)
-	return string(unpad(decrypted))
-}
-
+// 去掉补全码
 func PKCS5Unpadding(encrypt []byte) []byte {
 	padding := encrypt[len(encrypt)-1]
 	return encrypt[:len(encrypt)-int(padding)]
 }
 
+// 去掉补全码
 func unpad(ciphertext []byte) []byte {
 	length := len(ciphertext)
 	//去掉最后一次的padding

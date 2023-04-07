@@ -50,3 +50,17 @@ func GetFNcountTradeByOrderNo(orderNo, userId string) (info *db.FNcountTrade, er
 	}
 	return
 }
+
+// 获取账户变更列表
+func FindNcountTradeList(userId string) (list []*db.FNcountTrade, count int64, err error) {
+	//err := db.DB.MysqlDB.DefaultGormDB().Table("users").Limit(int(showNumber)).Offset(int(showNumber * (pageNumber - 1))).Find(&users).Error
+
+	//err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").
+	//	Where(" user_id = ?", userId).
+	//	Limit(pageSize).Offset(size).Count(&count).
+	//	Find(&list).Error
+	//if err != nil {
+	//	return nil, 0, err
+	//}
+	return
+}

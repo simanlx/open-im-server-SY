@@ -300,6 +300,26 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error()))
 	}
 
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	if req.Size <= 0 {
+		req.Size = 20
+	}
+
+	//处理时间
+	//if len(req.StartTime) > 0 {
+	//	startTime, _ := time.ParseInLocation("2006-01-02", req.StartTime, time.Local)
+	//}
+	//
+	//if len(req.EndTime) > 0 {
+	//	endTime, _ := time.ParseInLocation("2006-01-02", req.EndTime, time.Local)
+	//}
+	//
+	////条件获取列表数据
+	//list, count, err := imdb.FindNcountTradeList(req.UserId)
+
 	recordList := make([]*cloud_wallet.RecordList, 0)
 	recordList = append(recordList, &cloud_wallet.RecordList{
 		Describe:          "银行卡充值",

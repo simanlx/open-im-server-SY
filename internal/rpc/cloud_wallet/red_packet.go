@@ -5,6 +5,7 @@ import (
 	"Open_IM/pkg/common/config"
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	"Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	imdb2 "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
@@ -16,7 +17,6 @@ import (
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -209,7 +209,7 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		TransferMsgCipher: ncount.TransferMsgCipher{
 			PayUserId:     fncount.MainAccountId,
 			ReceiveUserId: fncount.PacketAccountId,
-			TranAmount:    strconv.Itoa(int(in.Amount)),
+			TranAmount:    cast.ToString(in.Amount / 100), //分转元
 		},
 	}
 
@@ -246,7 +246,6 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 	}
 
 	//增加账户变更日志
-	//transferResult.PayAcctAmount
 	err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, transferResult.MerOrderId, redPacketID)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
@@ -257,23 +256,10 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 
 // 银行卡转账
 func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) (*pb.CommonResp, error) {
-	// 1. 获取用户账户ID
-	fncount, err := imdb.FNcountAccountGetUserAccountID(in.UserId)
+	//银行卡充值到红包账户
+	err := BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount), redPacketID)
 	if err != nil {
-		return nil, errors.Wrap(err, "get user FNcountAccountGetUserAccountID by id error")
-	}
-	req := &ncount.TransferReq{
-		MerOrderId: h.merOrderID,
-		TransferMsgCipher: ncount.TransferMsgCipher{
-			PayUserId:     fncount.MainAccountId,
-			ReceiveUserId: fncount.PacketAccountId,
-			TranAmount:    strconv.Itoa(int(in.Amount)),
-		},
-	}
-	log.Info(in.OperationID, "transfer req", req)
-	err = BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount*100), redPacketID)
-	if err != nil {
-		return nil, errors.Wrap(err, "调用新生支付出现错误")
+		return nil, err
 	}
 
 	commonResp := &pb.CommonResp{
@@ -395,7 +381,7 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
-			TranAmount:    cast.ToString(amount),
+			TranAmount:    cast.ToString(amount / 100),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bindCardAgrNo,
 			ReceiveUserId: accountInfo.PacketAccountId, //收款账户
@@ -443,4 +429,51 @@ func (rpc *CloudWalletServer) RedPacketReceiveDetail(_ context.Context, req *pb.
 	return &pb.RedPacketReceiveDetailResp{
 		RedPacketReceiveDetail: receiveList,
 	}, nil
+}
+
+// 红包详情
+func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacketInfoReq) (*pb.RedPacketInfoResp, error) {
+	//获取红包记录
+	redPacketInfo, err := imdb.GetRedPacketInfo(req.PacketId)
+	if err != nil || redPacketInfo.UserID != req.UserId {
+		return nil, errors.New("红包信息不存在")
+	}
+
+	//补充发红包人的用户信息
+	nickname, faceUrl := "", ""
+	userInfo, err := im_mysql_model.GetUserByUserID(req.UserId)
+	if err == nil {
+		nickname = userInfo.Nickname
+		faceUrl = userInfo.FaceURL
+	}
+
+	info := &pb.RedPacketInfoResp{
+		UserId:          redPacketInfo.UserID,
+		PacketType:      redPacketInfo.PacketType,
+		IsLucky:         redPacketInfo.IsLucky,
+		IsExclusive:     redPacketInfo.IsExclusive,
+		ExclusiveUserID: redPacketInfo.ExclusiveUserID,
+		PacketTitle:     redPacketInfo.PacketTitle,
+		Amount:          redPacketInfo.Amount,
+		Number:          redPacketInfo.Number,
+		ExpireTime:      redPacketInfo.ExpireTime,
+		Remain:          redPacketInfo.Remain,
+		Nickname:        nickname,
+		FaceUrl:         faceUrl,
+		ReceiveDetail:   make([]*pb.ReceiveDetail, 0),
+	}
+
+	//获取当前红包领取记录
+	receiveList, _ := imdb.ReceiveListByPacketId(req.PacketId)
+	for _, v := range receiveList {
+		info.ReceiveDetail = append(info.ReceiveDetail, &pb.ReceiveDetail{
+			UserId:      v.UserId,
+			Amount:      v.Amount,
+			Nickname:    v.Nickname,
+			FaceUrl:     v.FaceUrl,
+			ReceiveTime: time.Unix(v.ReceiveTime, 0).Format("01月02日 15:04"),
+		})
+	}
+
+	return info, nil
 }

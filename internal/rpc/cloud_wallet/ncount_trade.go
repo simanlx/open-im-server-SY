@@ -27,7 +27,7 @@ func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int3
 	case BusinessTypeBankcardSendPacket:
 		return 2, 0, balAmount, "银行卡支付发送红包", nil
 	case BusinessTypeBalanceSendPacket:
-		return 2, 1, balAmount - amount, "余额支付发送红包", nil
+		return 2, 1, balAmount, "余额支付发送红包", nil
 	case BusinessTypeReceivePacket:
 		return 1, 1, balAmount + amount, "领取红包", nil
 	case BusinessTypePacketExpire:
@@ -67,7 +67,6 @@ func AddNcountTradeLog(businessType, amount int32, userId, mainAccountId, thirdO
 		BusinessType: businessType,
 		Describe:     describe,
 		Amount:       amount,
-		BeferAmount:  balAmount,
 		AfterAmount:  afterAmount,
 		ThirdOrderNo: thirdOrderNo,
 		NcountStatus: ncountStatus,
