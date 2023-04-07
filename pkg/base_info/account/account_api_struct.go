@@ -92,3 +92,10 @@ type CloudWalletRecordListReq struct {
 	Size        int32  `json:"size"`
 	OperationID string `json:"operationID" binding:"required"`
 }
+
+// 一键登录
+type UserOneClickLoginReq struct {
+	UserId      string `json:"user_id"`
+	Token       string `json:"token" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}

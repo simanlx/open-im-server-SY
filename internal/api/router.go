@@ -205,6 +205,7 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
 		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)        // 校验支付密码
 		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
+		cloudWalletGroup.POST("/user/one_click_login", account.UserOneClickLogin)         //一键登录-测试路由
 
 		//用户银行卡管理
 		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)
@@ -224,6 +225,7 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
 		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                  // 抢红包接口
 		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail) // 红包领取明细
+		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                 // 红包详情
 
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {

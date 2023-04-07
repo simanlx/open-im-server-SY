@@ -1,6 +1,7 @@
 package account
 
 import (
+	"Open_IM/internal/rpc/user"
 	utils2 "Open_IM/internal/utils"
 	"Open_IM/pkg/base_info/account"
 	"Open_IM/pkg/common/config"
@@ -203,5 +204,19 @@ func CloudWalletRecordList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}
+
+// 一键登录-测试路由
+func UserOneClickLogin(c *gin.Context) {
+	params := account.UserOneClickLoginReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	mobile, err := user.TokenExchangeMobile(params.Token)
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": mobile, "err": err})
 	return
 }

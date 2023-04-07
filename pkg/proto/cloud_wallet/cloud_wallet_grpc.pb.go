@@ -35,6 +35,7 @@ const (
 	CloudWalletService_SendRedPacket_FullMethodName           = "/cloud_wallet.CloudWalletService/SendRedPacket"
 	CloudWalletService_ClickRedPacket_FullMethodName          = "/cloud_wallet.CloudWalletService/ClickRedPacket"
 	CloudWalletService_RedPacketReceiveDetail_FullMethodName  = "/cloud_wallet.CloudWalletService/RedPacketReceiveDetail"
+	CloudWalletService_RedPacketInfo_FullMethodName           = "/cloud_wallet.CloudWalletService/RedPacketInfo"
 )
 
 // CloudWalletServiceClient is the client API for CloudWalletService service.
@@ -72,8 +73,10 @@ type CloudWalletServiceClient interface {
 	SendRedPacket(ctx context.Context, in *SendRedPacketReq, opts ...grpc.CallOption) (*SendRedPacketResp, error)
 	// 抢红包接口
 	ClickRedPacket(ctx context.Context, in *ClickRedPacketReq, opts ...grpc.CallOption) (*ClickRedPacketResp, error)
-	// 红包领取明细
+	// 红包领取明细列表
 	RedPacketReceiveDetail(ctx context.Context, in *RedPacketReceiveDetailReq, opts ...grpc.CallOption) (*RedPacketReceiveDetailResp, error)
+	// 红包详情
+	RedPacketInfo(ctx context.Context, in *RedPacketInfoReq, opts ...grpc.CallOption) (*RedPacketInfoResp, error)
 }
 
 type cloudWalletServiceClient struct {
@@ -228,6 +231,15 @@ func (c *cloudWalletServiceClient) RedPacketReceiveDetail(ctx context.Context, i
 	return out, nil
 }
 
+func (c *cloudWalletServiceClient) RedPacketInfo(ctx context.Context, in *RedPacketInfoReq, opts ...grpc.CallOption) (*RedPacketInfoResp, error) {
+	out := new(RedPacketInfoResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_RedPacketInfo_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudWalletServiceServer is the server API for CloudWalletService service.
 // All implementations must embed UnimplementedCloudWalletServiceServer
 // for forward compatibility
@@ -263,8 +275,10 @@ type CloudWalletServiceServer interface {
 	SendRedPacket(context.Context, *SendRedPacketReq) (*SendRedPacketResp, error)
 	// 抢红包接口
 	ClickRedPacket(context.Context, *ClickRedPacketReq) (*ClickRedPacketResp, error)
-	// 红包领取明细
+	// 红包领取明细列表
 	RedPacketReceiveDetail(context.Context, *RedPacketReceiveDetailReq) (*RedPacketReceiveDetailResp, error)
+	// 红包详情
+	RedPacketInfo(context.Context, *RedPacketInfoReq) (*RedPacketInfoResp, error)
 	mustEmbedUnimplementedCloudWalletServiceServer()
 }
 
@@ -319,6 +333,9 @@ func (UnimplementedCloudWalletServiceServer) ClickRedPacket(context.Context, *Cl
 }
 func (UnimplementedCloudWalletServiceServer) RedPacketReceiveDetail(context.Context, *RedPacketReceiveDetailReq) (*RedPacketReceiveDetailResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RedPacketReceiveDetail not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) RedPacketInfo(context.Context, *RedPacketInfoReq) (*RedPacketInfoResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RedPacketInfo not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) mustEmbedUnimplementedCloudWalletServiceServer() {}
 
@@ -621,6 +638,24 @@ func _CloudWalletService_RedPacketReceiveDetail_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudWalletService_RedPacketInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RedPacketInfoReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).RedPacketInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_RedPacketInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).RedPacketInfo(ctx, req.(*RedPacketInfoReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudWalletService_ServiceDesc is the grpc.ServiceDesc for CloudWalletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -691,6 +726,10 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RedPacketReceiveDetail",
 			Handler:    _CloudWalletService_RedPacketReceiveDetail_Handler,
+		},
+		{
+			MethodName: "RedPacketInfo",
+			Handler:    _CloudWalletService_RedPacketInfo_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

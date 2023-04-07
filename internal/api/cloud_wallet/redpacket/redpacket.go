@@ -150,3 +150,39 @@ func RedPacketReceiveDetail(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
+
+// 获取红包详情接口
+func GetRedPacketInfo(c *gin.Context) {
+	params := redpacket_struct.RedPacketInfoReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	req := &rpc.RedPacketInfoReq{
+		UserId:      params.UserId,
+		PacketId:    params.PacketId,
+		OperationID: params.OperationID,
+	}
+
+	//调用rpc
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.RedPacketInfo(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, "RedPacketInfo failed ", err.Error(), req.String())
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}

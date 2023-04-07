@@ -423,3 +423,42 @@ func (rpc *CloudWalletServer) RedPacketReceiveDetail(_ context.Context, req *pb.
 		RedPacketReceiveDetail: receiveList,
 	}, nil
 }
+
+// 红包详情
+func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacketInfoReq) (*pb.RedPacketInfoResp, error) {
+	//获取红包记录
+	redPacketInfo, err := imdb.GetRedPacketInfo(req.PacketId)
+	if err != nil || redPacketInfo.UserID != req.UserId {
+		return nil, errors.New("红包信息不存在")
+	}
+
+	info := &pb.RedPacketInfoResp{
+		UserId:          redPacketInfo.UserID,
+		PacketType:      redPacketInfo.PacketType,
+		IsLucky:         redPacketInfo.IsLucky,
+		IsExclusive:     redPacketInfo.IsExclusive,
+		ExclusiveUserID: redPacketInfo.ExclusiveUserID,
+		PacketTitle:     redPacketInfo.PacketTitle,
+		Amount:          redPacketInfo.Amount,
+		Number:          redPacketInfo.Number,
+		ExpireTime:      redPacketInfo.ExpireTime,
+		Remain:          redPacketInfo.Remain,
+		ReceiveDetail:   make([]*pb.ReceiveDetail, 0),
+	}
+
+	//获取当前红包领取记录
+	receiveList, err := imdb.ReceiveListByPacketId(req.PacketId)
+	fmt.Println("---receiveList---", receiveList, err)
+	
+	for _, v := range receiveList {
+		info.ReceiveDetail = append(info.ReceiveDetail, &pb.ReceiveDetail{
+			UserId:      v.UserId,
+			Amount:      v.Amount,
+			Nickname:    v.Nickname,
+			FaceUrl:     v.FaceUrl,
+			ReceiveTime: time.Unix(v.ReceiveTime, 0).Format("01月02日 15:04"),
+		})
+	}
+
+	return info, nil
+}

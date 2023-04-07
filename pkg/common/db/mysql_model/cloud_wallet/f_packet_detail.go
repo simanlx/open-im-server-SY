@@ -39,6 +39,14 @@ type ReceiveRedPacketList struct {
 	IsLucky     string `json:"is_lucky"`     //是否为拼手气红包
 }
 
+type RedPacketReceive struct {
+	UserId      string `json:"user_id"`
+	Nickname    string `json:"nickname"`     //昵称
+	FaceUrl     string `json:"face_url"`     //头像
+	ReceiveTime int64  `json:"receive_time"` //领取时间
+	Amount      int32  `json:"amount"`       //金额(分)
+}
+
 func RedPacketDetailCreateData(req *FPacketDetail) error {
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Create(req)
 	if result.Error != nil {
@@ -73,6 +81,16 @@ func FindReceiveRedPacketList(userId string, startTime, endTime int64) (list []*
 		Where("pd.user_id= ?", userId).
 		Where("pd.receive_time >= ? and pd.receive_time <= ? ", startTime, endTime).
 		Joins("left join f_packet p on pd.packet_id = p.packet_id").
+		Scan(&list).Error
+	return
+}
+
+// 单个红包的领取记录
+func ReceiveListByPacketId(packetId string) (list []*RedPacketReceive, err error) {
+	err = db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail pd").
+		Select("pd.amount,pd.user_id,pd.receive_time,u.name nickname,u.face_url").
+		Where("pd.packet_id= ?", packetId).
+		Joins("left join users u on pd.user_id = u.user_id").
 		Scan(&list).Error
 	return
 }
