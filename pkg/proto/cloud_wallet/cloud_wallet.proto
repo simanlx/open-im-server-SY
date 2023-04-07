@@ -234,22 +234,33 @@ message ClickRedPacketResp {
 }
 
 // 12. 获取红包信息
-message getRedPacketInfoReq {
+message RedPacketInfoReq {
   string userId = 1; //用户id
-  string redPacketID = 2;
+  string packetId = 2; //红包id
+  string operationID = 3; //链路跟踪id
 }
-message getRedPacketInfoResp {
+message RedPacketInfoResp {
   string userId = 1; //用户id
   int32 packetType = 2; //红包类型(1个人红包、2群红包)
   int32 is_lucky = 3; //是否为拼手气红包
   int32 is_exclusive = 4; //是否为专属红包(0不是、1是)
-  int32 exclusiveUserID = 5; //专属红包接收者 和isExclusive配合使用
+  string exclusiveUserID = 5; //专属红包接收者 和isExclusive配合使用
   string packet_title = 6; //红包标题
-  float amount = 7; //红包金额
+  int64 amount = 7; //红包金额
   int32 number = 8; //红包个数
-  string expireTime = 9; //红包过期时间
-  float isReceiveCompleted = 10; //是否已领完
-  CommonResp commonResp = 11;
+  int64 expireTime = 9; //红包过期时间
+  int64 remain = 10; //剩余红包个数
+  string nickname = 11; //昵称
+  string faceUrl = 12; //头像
+  repeated ReceiveDetail receiveDetail = 13; //当前红包领取列表
+}
+
+message ReceiveDetail {
+  string userId = 1; //用户id
+  int32 amount = 2; //金额
+  string nickname = 3; //昵称
+  string faceUrl = 4; //头像
+  string receiveTime = 5; //领取时间
 }
 
 // 13. 红包领取明细
@@ -489,7 +500,10 @@ service CloudWalletService {
   // 抢红包接口
   rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
 
-  //红包领取明细
+  //红包领取明细列表
   rpc RedPacketReceiveDetail(RedPacketReceiveDetailReq)returns(RedPacketReceiveDetailResp);
+
+  //红包详情
+  rpc RedPacketInfo(RedPacketInfoReq)returns(RedPacketInfoResp);
 
 }
