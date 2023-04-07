@@ -81,11 +81,11 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, nil
 	}
 
-	fmt.Println("==================")
 	// 2. 检测红包的领取记录 ，如果已经完成领取就不能再领取 , 针对当前用户查询红包领取记录
 	fp, err := imdb.FPacketDetailGetByPacketID(req.RedPacketID, req.UserId)
 	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
+		res.CommonResp.ErrMsg = "存在领取记录"
 		return res, errors.Wrap(err, "红包领取记录查询失败")
 	}
 
@@ -105,15 +105,16 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		}*/
 	var amount int
 	// 4. 判断红包的类型
-	if redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1 {
-		// 直接从redis的set集合进行获取红包
-		amount, err = h.getRedPacketAmount(req)
-	} else {
+	if (redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1) || redPacketInfo.Number == 1 {
 		// 直接查询数据库
+		amount, err = h.getRedPacketAmount(req.RedPacketID)
+	} else {
+		// 通过查询redis
 		amount, err = h.getRedPacketByGroup(req)
 	}
 	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
+		res.CommonResp.ErrMsg = "获取红包金额失败"
 		return res, errors.Wrap(err, "获取红包金额失败")
 	}
 
@@ -147,6 +148,8 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 
 	res.CommonResp = resp
+	res.CommonResp.ErrCode = 0
+	res.CommonResp.ErrMsg = "领取成功"
 	return res, nil
 }
 
@@ -198,8 +201,8 @@ func (h *handlerClickRedPacket) sendRedPacketMsg(req *pb.ClickRedPacketReq, amou
 }
 
 // 从红包记录获取转账金额
-func (h *handlerClickRedPacket) getRedPacketAmount(req *pb.ClickRedPacketReq) (int, error) {
-	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
+func (h *handlerClickRedPacket) getRedPacketAmount(redID string) (int, error) {
+	redPacketInfo, err := imdb.GetRedPacketInfo(redID)
 	if err != nil {
 		return 0, err
 	}

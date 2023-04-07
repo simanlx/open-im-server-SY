@@ -285,8 +285,9 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 		log.Error(OperateID, "red packet info is nil")
 		return errors.New("red packet info is nil")
 	}
+
 	// 2. 生成红包
-	if redpacketInfo.PacketType == 2 {
+	if redpacketInfo.PacketType == 2 && redpacketInfo.Number > 1 {
 		// 群红包
 		err = GroupPacket(redpacketInfo, OperateID)
 		if err != nil {
@@ -324,6 +325,8 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 
 // 给群发的红包
 func GroupPacket(req *imdb.FPacket, redpacketID string) error {
+
+	// 在群红包这里，
 	var err error
 	if req.IsLucky == 1 {
 		// 如果说是手气红包，分散放入红包池
@@ -343,7 +346,7 @@ func GroupPacket(req *imdb.FPacket, redpacketID string) error {
 func spareRedPacket(OperateID, packetID string, amount, number int) error {
 	// 将发送的红包进行计算
 	result := redpacket.GetRedPacket(amount, number)
-	err := commonDB.DB.SetRedPacket(packetID, result...)
+	err := commonDB.DB.SetRedPacket(packetID, result)
 	if err != nil {
 		log.Error(OperateID, zap.Error(err))
 		return err
@@ -358,7 +361,7 @@ func spareEqualRedPacket(OperateID, packetID string, amount, number int) error {
 		result = append(result, amount)
 	}
 	// 将发送的红包进行计算
-	err := commonDB.DB.SetRedPacket(packetID, result...)
+	err := commonDB.DB.SetRedPacket(packetID, result)
 	if err != nil {
 		log.Error(OperateID, zap.Error(err))
 		return err
