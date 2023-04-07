@@ -80,9 +80,10 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 			return nil, err
 		}
 	} else {
+		err = h.bankTransfer(redpacketID, req)
 		// 这里是调用银行卡转账接口
 		if err != nil {
-			log.Error(req.OperationID, "BankCardRechargePacketAccount error", zap.Error(err))
+			log.Error(req.OperationID, "bankTransfer error", zap.Error(err))
 			return nil, err
 		}
 	}
@@ -255,16 +256,11 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 }
 
 // 银行卡转账
-func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) (*pb.CommonResp, error) {
+func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) error {
 	//银行卡充值到红包账户
 	err := BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount), redPacketID)
 	if err != nil {
-		return nil, err
-	}
-
-	commonResp := &pb.CommonResp{
-		ErrMsg:  "发送成功",
-		ErrCode: 0,
+		return err
 	}
 
 	// 如果转账成功，需要将红包状态修改为发送成功
@@ -272,9 +268,9 @@ func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPa
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是修改红包状态失败，需要人工介入
 		log.Error(in.OperationID, zap.Error(err))
-		return nil, errors.Wrap(err, "修改红包状态失败 1")
+		return errors.Wrap(err, "修改红包状态失败 1")
 	}
-	return commonResp, nil
+	return nil
 }
 
 // 当用户发布红包发送成功的时候，调用这个回调函数进行发布红包的后续处理
