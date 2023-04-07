@@ -21,10 +21,10 @@ func ChargeAccount(c *gin.Context) {
 	}
 
 	//校验金额
-	if params.Amount%100 != 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "充值金额以元为单位"})
-		return
-	}
+	//if params.Amount%100 != 0 {
+	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "充值金额以元为单位"})
+	//	return
+	//}
 
 	req := &rpc.UserRechargeReq{
 		UserId:        params.UserId,
