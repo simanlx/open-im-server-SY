@@ -317,52 +317,16 @@ message confirmSendRedPacketCodeResp {
 
 // ==============================================回调 ===================
 // 16. 用户从银行卡充值到红包、充值到主账户都需要进行回调
-/*
-type ChargeNotifyReq struct {
-	Version         string `json:"version"`
-	TranCode        string `json:"tranCode"`
-	MerOrderId      string `json:"merOrderId"`
-	MerId           string `json:"merId"`
-	MerAttach       string `json:"merAttach"`
-	Charset         string `json:"charset"`
-	SignType        string `json:"signType"`
-	ResultCode      string `json:"resultCode"`
-	ErrorCode       string `json:"errorCode"`
-	ErrorMsg        string `json:"errorMsg"`
-	OrderId         string `json:"ncountOrderId"`
-	TranAmount      string `json:"tranAmount"`
-	SubmitTime      string `json:"submitTime"`
-	TranFinishTime  string `json:"tranFinishTime"`
-	BusinessType    string `json:"businessType"`
-	FeeAmount       string `json:"feeAmount"`
-	BankOrderId     string `json:"bankOrderId"`
-	RealBankOrderId string `json:"realBankOrderId"`
-	DivideAcctDtl   string `json:"divideAcctDtl"`
-	SignValue       string `json:"signValue"`
-}
-*/
 message chargeNotifyReq {
-  string version = 1;
-  string tranCode = 2;
-  string merOrderId = 3;
-  string merId = 4;
-  string merAttach = 5;
-  string charset = 6;
-  string signType = 7;
-  string resultCode = 8;
-  string errorCode = 9;
-  string errorMsg = 10;
-  string orderId = 11;
-  string tranAmount = 12;
-  string submitTime = 13;
-  string tranFinishTime = 14;
-  string businessType = 15;
-  string feeAmount = 16;
-  string bankOrderId = 17;
-  string realBankOrderId = 18;
-  string divideAcctDtl = 19;
-  string signValue = 20;
-  string OperationID = 21; //链路跟踪id
+  string merOrderId = 1;
+  string resultCode = 2;
+  string errorCode = 3;
+  string errorMsg = 4;
+  string ncountOrderId = 5;
+  string tranAmount = 6;
+  string submitTime = 7;
+  string tranFinishTime = 8;
+  string feeAmount = 9;
 }
 
 message chargeNotifyResp {
@@ -370,46 +334,15 @@ message chargeNotifyResp {
 }
 
 // 17. 提现的回调接口： 提供给第三方
-
-/*
-type WithdrawNotifyReq struct {
-	Version        string `json:"version"`
-	TranCode       string `json:"tranCode"`
-	MerOrderId     string `json:"merOrderId"`
-	MerId          string `json:"merId"`
-	MerAttach      string `json:"merAttach"`
-	Charset        string `json:"charset"`
-	SignType       string `json:"signType"`
-	ResultCode     string `json:"resultCode"`
-	ErrorCode      string `json:"errorCode"`
-	ErrorMsg       string `json:"errorMsg"`
-	OrderId        string `json:"ncountOrderId"`
-	OrderDate      string `json:"orderDate"`
-	TranFinishDate string `json:"tranFinishDate"`
-	SingValue      string `json:"signValue"`
-	ServiceAmount  string `json:"serviceAmount"`
-	PayAcctAmount  string `json:"payAcctAmount"`
-	OperationID    string `json:"operationID" binding:"required"`
-}
-*/
 message drawNotifyReq {
-  string version = 1;
-  string tranCode = 2;
-  string merOrderId = 3;
-  string merId = 4;
-  string merAttach = 5;
-  string charset = 6;
-  string signType = 7;
-  string resultCode = 8;
-  string errorCode = 9;
-  string errorMsg = 10;
-  string orderId = 11;
-  string orderDate = 12;
-  string tranFinishDate = 13;
-  string singValue = 14;
-  string serviceAmount = 15;
-  string payAcctAmount = 16;
-  string operationID = 17; //链路跟踪id
+  string merOrderId = 1;
+  string resultCode = 2;
+  string errorCode = 3;
+  string errorMsg = 4;
+  string ncountOrderId = 5;
+  string tranFinishDate = 6;
+  string serviceAmount = 7;
+  string payAcctAmount = 8;
 }
 
 message drawNotifyResp {

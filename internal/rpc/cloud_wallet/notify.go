@@ -1,7 +1,6 @@
 package cloud_wallet
 
 import (
-	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -10,88 +9,66 @@ import (
 	"github.com/pkg/errors"
 )
 
-// 这里是处理充值和回调的地方
-
-func (s *CloudWalletServer) ChargeNotify(ctx context.Context, req *pb.ChargeNotifyReq) (*pb.ChargeNotifyResp, error) {
-	var (
-		resp = &pb.ChargeNotifyResp{
-			CommonResp: &pb.CommonResp{
-				ErrCode: 0,
-				ErrMsg:  "修改成功",
-			},
-		}
-	)
-	// 这里处理充值回调接口
+// 银行卡充值回调
+func (s *CloudWalletServer) ChargeNotify(_ context.Context, req *pb.ChargeNotifyReq) (*pb.ChargeNotifyResp, error) {
 	// 1.检查订单是否存在
-	if req.MerOrderId == "" {
+	if req.NcountOrderId == "" {
 		return nil, errors.New("订单号不能为空")
 	}
 
-	//todo
 	if req.ResultCode != "0000" {
 		// 这里需要通知用户发送红包失败
 	}
+
 	if req.ResultCode == "0000" {
 		// 需要发送code到所有群用户
 	}
 
-	f := &db.FNcountTrade{
-		ThirdOrderNo: req.OrderId,
-		NcountStatus: 1, // 表示修改成功
+	// 查询记录
+	tradeInfo, err := imdb.GetThirdOrderNoRecord(req.NcountOrderId)
+	if err != nil {
+		return nil, errors.New("交易记录不存在")
 	}
 
+	//校验订单金额
+
 	// 修改订单状态
-	err := imdb.FNcountTradeUpdateStatusbyThirdOrderNo(f)
+	err = imdb.FNcountTradeUpdateStatusbyThirdOrderNo(req.NcountOrderId)
 	if err != nil {
 		log.Error("修改订单状态失败", err, req)
 		return nil, err
 	}
-	log.Info("修改订单状态成功", req)
-	if f.PacketID != "" {
-		if err := HandleSendPacketResult(f.PacketID, ""); err != nil {
+
+	//处理红包逻辑
+	if tradeInfo.PacketID != "" {
+		if err := HandleSendPacketResult(tradeInfo.PacketID, ""); err != nil {
 			fmt.Println("HandleSendPacketResult err", err)
 			return nil, err
 		}
 	}
 
-	// 判断是否存在红包ID
-	// 2.修改订单状态
-	return resp, nil
+	return &pb.ChargeNotifyResp{}, nil
 }
 
 // 提现回调接口
-func (s *CloudWalletServer) WithDrawNotify(ctx context.Context, req *pb.DrawNotifyReq) (*pb.DrawNotifyResp, error) {
-	var (
-		resp = &pb.DrawNotifyResp{
-			CommonResp: &pb.CommonResp{
-				ErrCode: 0,
-				ErrMsg:  "修改成功",
-			},
-		}
-	)
-	// 这里处理充值回调接口
+func (s *CloudWalletServer) WithDrawNotify(_ context.Context, req *pb.DrawNotifyReq) (*pb.DrawNotifyResp, error) {
 	// 1.检查订单是否存在
-	if req.MerOrderId == "" {
+	if req.NcountOrderId == "" {
 		return nil, errors.New("订单号不能为空")
 	}
 
-	//todo
-	if req.ResultCode != "0000" {
-		// 这里需要通知用户发送红包失败
-	}
-	if req.ResultCode == "0000" {
-		// 需要发送code到所有群用户
+	// 查询记录
+	_, err := imdb.GetThirdOrderNoRecord(req.NcountOrderId)
+	if err != nil {
+		return nil, errors.New("交易记录不存在")
 	}
 
-	f := &db.FNcountTrade{
-		ThirdOrderNo: req.OrderId,
-		NcountStatus: 1, // 表示修改成功
-	}
-	err := imdb.FNcountTradeUpdateStatusbyThirdOrderNo(f)
+	// 修改订单状态
+	err = imdb.FNcountTradeUpdateStatusbyThirdOrderNo(req.NcountOrderId)
 	if err != nil {
 		log.Error("修改订单状态失败", err, req)
 		return nil, err
 	}
-	// 2.修改订单状态
-	return resp, nil
+
+	return &pb.DrawNotifyResp{}, nil
 }
