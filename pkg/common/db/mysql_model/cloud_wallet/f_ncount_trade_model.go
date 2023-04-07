@@ -28,10 +28,17 @@ func FNcountTradeCreateData(req *db.FNcountTrade) error {
 
 // 修改交易的状态
 func FNcountTradeUpdateStatusbyThirdOrderNo(req *db.FNcountTrade) error {
+	// 查询这个红包
+	res := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where("third_order_no = ?", req.ThirdOrderNo).First(&req)
+	if res.Error != nil {
+		return errors.Wrap(res.Error, "查询交易记录失败")
+	}
+	// 修改红包状态
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where("third_order_no = ?", req.ThirdOrderNo).Update("ncount_status", req.NcountStatus)
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "修改交易的状态失败")
 	}
+
 	return nil
 }
 

@@ -109,6 +109,8 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, errors.Wrap(err, "更新红包领取记录失败")
 	}
 
+	// 6.发送红包领取通知
+
 	res.CommonResp = resp
 	return res, nil
 }
