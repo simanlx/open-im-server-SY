@@ -181,7 +181,7 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 	// 1. 获取用户的钱包账户
 	fncount, err := imdb.FNcountAccountGetUserAccountID(in.UserId)
 	if err != nil {
-		return nil, errors.Wrap(err, "get user FNcountAccountGetUserAccountID by id error")
+		return nil, errors.Wrap(err, "用户没有实名注册")
 	}
 	req := &ncount.TransferReq{
 		MerOrderId: h.merOrderID,
@@ -313,7 +313,7 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 		UpdatedTime:     redpacketInfo.UpdatedTime,
 		IsExclusive:     redpacketInfo.IsExclusive,
 	}
-	contrive_msg.SendSendRedPacket(freq, OperateID)
+	contrive_msg.SendSendRedPacket(freq, int(redpacketInfo.PacketType))
 	return nil
 }
 

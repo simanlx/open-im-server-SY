@@ -31,7 +31,7 @@ type FPacket struct {
 }
 
 const (
-	Url = "http://127.0.0.1:10002/msg/manage_send_msg"
+	Url = "http://10.20.0.183:10002/msg/manage_send_msg"
 )
 
 func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark_click, remark_send, redPacketID string) {
@@ -53,14 +53,16 @@ func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark
 	}
 }
 
-func SendSendRedPacket(f *FPacket, OperateID string) {
-	content := NewManagementSendMsg_RedMsg(f, OperateID)
+func SendSendRedPacket(f *FPacket, sessionID int) {
+	content := NewManagementSendMsg_RedMsg(f, f.OperateID, sessionID)
+	fmt.Println()
 	fmt.Println(string(content))
+	fmt.Println()
 	// 将消息发送给用户
-	err := SendMessage(OperateID, content)
+	err := SendMessage(f.OperateID, content)
 	if err != nil {
 		// todo  这里发送消息应该必须是可以重试的
-		log.Error(OperateID, "发送消息失败", err)
+		log.Error(f.OperateID, "发送消息失败", err)
 	}
 }
 
@@ -103,7 +105,7 @@ func NewManagementSendMsg_ClickPacket(sendID, recevieID string, sessionID int32,
 }
 
 // 创建发红包消息
-func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string) []byte {
+func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string, sessionID int) []byte {
 	contriveData := RedPacketMessage{
 		RedPacketID:   f.PacketID,
 		RedPacketType: f.PacketType,
@@ -130,8 +132,8 @@ func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string) []byte {
 			Description: "红包消息",
 			Extension:   "",
 		},
-		ContentType:     110, // 自定义消息
-		SessionType:     1,   // 1 单聊 2 群聊
+		ContentType:     110,              // 自定义消息
+		SessionType:     int32(sessionID), // 1 单聊 2 群聊
 		IsOnlineOnly:    false,
 		NotOfflinePush:  false,
 		GroupID:         f.RecvID, // 接收方ID 群聊

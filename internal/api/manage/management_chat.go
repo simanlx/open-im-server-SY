@@ -225,12 +225,18 @@ func ManagementSendMsg(c *gin.Context) {
 	log.Info(params.OperationID, "", "api ManagementSendMsg call, api call rpc...")
 	var status int32
 	RpcResp, err := client.SendMsg(context.Background(), pbData)
-	if err != nil || (RpcResp != nil && RpcResp.ErrCode != 0) {
+	if err != nil {
 		status = constant.MsgSendFailed
 		c.JSON(http.StatusOK, gin.H{"errCode": 500, "errMsg": err.Error(), "sendTime": 0, "MsgID": ""})
 		return
-	} else {
-		status = constant.MsgSendSuccessed
+	}
+	// 走到这里就相当于发送成功
+	status = constant.MsgSendSuccessed
+	// 这里进行内容保存
+
+	if RpcResp.ErrCode != 0 {
+		c.JSON(http.StatusOK, gin.H{"errCode": RpcResp.ErrCode, "errMsg": RpcResp.ErrMsg, "sendTime": 0, "MsgID": ""})
+		return
 	}
 
 	respSetSendMsgStatus, err2 := client.SetSendMsgStatus(context.Background(), &pbChat.SetSendMsgStatusReq{OperationID: params.OperationID, Status: status})
