@@ -6,6 +6,7 @@ import (
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"errors"
 	"fmt"
+	"github.com/shopspring/decimal"
 	"github.com/spf13/cast"
 )
 
@@ -53,8 +54,9 @@ func AddNcountTradeLog(businessType, amount int32, userId, mainAccountId, thirdO
 		}
 	}
 
-	//余额变更
-	balAmount := cast.ToInt32(cast.ToFloat32(accountResp.BalAmount) * 100) //用户余额
+	//余额变更、注意精度
+	decimalBalAmount, _ := decimal.NewFromString(accountResp.BalAmount)
+	balAmount := cast.ToInt32(decimalBalAmount.Mul(decimal.NewFromInt(100)).IntPart()) //用户余额
 	changeType, ncountStatus, afterAmount, describe, err := BusinessTypeAttr(businessType, amount, balAmount)
 	if err != nil {
 		return err

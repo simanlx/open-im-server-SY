@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/shopspring/decimal"
 	"github.com/spf13/cast"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -166,12 +167,14 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 		}
 	}
 
+	//精度
+	balAmount, _ := decimal.NewFromString(accountResp.BalAmount)
 	return &cloud_wallet.UserNcountAccountResp{
 		Step:             accountInfo.OpenStep,
 		IdCard:           accountInfo.IdCard,
 		RealName:         accountInfo.RealName,
 		AccountStatus:    accountInfo.OpenStatus,
-		BalAmount:        cast.ToString(cast.ToFloat64(accountResp.BalAmount) * 100), //转换为分
+		BalAmount:        balAmount.Mul(decimal.NewFromInt(100)).String(), //转换为分
 		AvailableBalance: accountResp.AvailableBalance,
 		BindCardsList:    bindCardsList,
 	}, nil
