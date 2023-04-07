@@ -430,7 +430,7 @@ func (rpc *CloudWalletServer) RedPacketReceiveDetail(_ context.Context, req *pb.
 func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacketInfoReq) (*pb.RedPacketInfoResp, error) {
 	//获取红包记录
 	redPacketInfo, err := imdb.GetRedPacketInfo(req.PacketId)
-	if err != nil || redPacketInfo.UserID != req.UserId {
+	if err != nil {
 		return nil, errors.New("红包信息不存在")
 	}
 
