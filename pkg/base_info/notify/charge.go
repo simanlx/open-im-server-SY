@@ -34,15 +34,15 @@ signValue 签名字符串 将报文信息用 signType 域设 置的方式加密�
 // {"merOrderId":"20230407200203609866","resultCode":"0000","errorCode":"","errorMsg":"","ncountOrderId":"2023040720951263","tranAmount":"0.01","submitTime":"20230407200203","tranFinishTime":"20230407200250","feeAmount":"0"}
 
 type ChargeNotifyReq struct {
-	MerOrderId     string `json:"merOrderId"`
-	ResultCode     string `json:"resultCode"`
-	ErrorCode      string `json:"errorCode"`
-	ErrorMsg       string `json:"errorMsg"`
-	NcountOrderId  string `json:"ncountOrderId"`
-	TranAmount     string `json:"tranAmount"`
-	SubmitTime     string `json:"submitTime"`
-	TranFinishTime string `json:"tranFinishTime"`
-	FeeAmount      string `json:"feeAmount"`
+	MerOrderId     string `json:"merOrderId"  form:"merOrderId"`
+	ResultCode     string `json:"resultCode" form:"resultCode"`
+	ErrorCode      string `json:"errorCode" form:"errorCode"`
+	ErrorMsg       string `json:"errorMsg" form:"errorMsg"`
+	NcountOrderId  string `json:"ncountOrderId" form:"ncountOrderId"`
+	TranAmount     string `json:"tranAmount" form:"tranAmount"`
+	SubmitTime     string `json:"submitTime" form:"submitTime"`
+	TranFinishTime string `json:"tranFinishTime" form:"tranFinishTime"`
+	FeeAmount      string `json:"feeAmount" form:"feeAmount"`
 }
 
 type ChargeNotifyResp struct {
@@ -70,12 +70,12 @@ payAcctAmount 付款方账户余额 1-10 格式：整数 单位：元 交易成�
 */
 
 type WithdrawNotifyReq struct {
-	MerOrderId     string `json:"merOrderId"`
-	ResultCode     string `json:"resultCode"`
-	ErrorCode      string `json:"errorCode"`
-	ErrorMsg       string `json:"errorMsg"`
-	NcountOrderId  string `json:"ncountOrderId"`
-	TranFinishDate string `json:"tranFinishDate"`
-	ServiceAmount  string `json:"serviceAmount"`
-	PayAcctAmount  string `json:"payAcctAmount"`
+	MerOrderId     string `json:"merOrderId" form:"merOrderId"`
+	ResultCode     string `json:"resultCode" form:"resultCode"`
+	ErrorCode      string `json:"errorCode" form:"errorCode"`
+	ErrorMsg       string `json:"errorMsg" form:"errorMsg"`
+	NcountOrderId  string `json:"ncountOrderId" form:"ncountOrderId"`
+	TranFinishDate string `json:"tranFinishDate" form:"tranFinishDate"`
+	ServiceAmount  string `json:"serviceAmount" form:"serviceAmount"`
+	PayAcctAmount  string `json:"payAcctAmount" form:"payAcctAmount"`
 }
