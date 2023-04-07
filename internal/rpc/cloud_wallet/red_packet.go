@@ -320,8 +320,7 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 		UpdatedTime:     redpacketInfo.UpdatedTime,
 		IsExclusive:     redpacketInfo.IsExclusive,
 	}
-	contrive_msg.SendSendRedPacket(freq, int(redpacketInfo.PacketType))
-	return nil
+	return contrive_msg.SendSendRedPacket(freq, int(redpacketInfo.PacketType))
 }
 
 // 给群发的红包

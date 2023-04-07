@@ -1,6 +1,7 @@
 package contrive_msg
 
 import (
+	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
 	server_api_params "Open_IM/pkg/proto/sdk_ws"
 	"bytes"
@@ -53,15 +54,21 @@ func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark
 	}
 }
 
-func SendSendRedPacket(f *FPacket, sessionID int) {
-	content := NewManagementSendMsg_RedMsg(f, f.OperateID, sessionID)
+func SendSendRedPacket(f *FPacket, sessionID int) error {
+	content, err := NewManagementSendMsg_RedMsg(f, f.OperateID, sessionID)
+	if err != nil {
+		log.Error(f.OperateID, "发送红包消息失败", err)
+		return err
+	}
 	fmt.Println(string(content))
 	// 将消息发送给用户
-	err := SendMessage(f.OperateID, content)
+	err = SendMessage(f.OperateID, content)
 	if err != nil {
 		// todo  这里发送消息应该必须是可以重试的
 		log.Error(f.OperateID, "发送消息失败", err)
+		return err
 	}
+	return nil
 }
 
 // 发送两条抢红包消息，一条给发送方，一条给抢红包方
@@ -103,14 +110,22 @@ func NewManagementSendMsg_ClickPacket(sendID, recevieID string, sessionID int32,
 }
 
 // 创建发红包消息
-func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string, sessionID int) []byte {
+func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string, sessionID int) ([]byte, error) {
+	usr, err := imdb.GetUserByUserID(f.UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	contriveData := RedPacketMessage{
-		RedPacketID:   f.PacketID,
-		RedPacketType: f.PacketType,
-		IsLucky:       f.IsLucky,
-		IsExclusive:   f.IsExclusive,
-		ExclusiveID:   f.ExclusiveUserID,
-		PacketTitle:   f.PacketTitle,
+		SendUserID:       usr.UserID,
+		SendUserHeadImg:  usr.FaceURL,
+		SendUserNickName: usr.Nickname,
+		RedPacketID:      f.PacketID,
+		RedPacketType:    f.PacketType,
+		IsLucky:          f.IsLucky,
+		IsExclusive:      f.IsExclusive,
+		ExclusiveID:      f.ExclusiveUserID,
+		PacketTitle:      f.PacketTitle,
 	}
 
 	wrap := &ContriveMessage{
@@ -139,7 +154,7 @@ func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string, sessionID int) []
 		OfflinePushInfo: &server_api_params.OfflinePushInfo{},
 	}
 	co1, _ := json.Marshal(res)
-	return co1
+	return co1, nil
 }
 
 // 创建抢红包消息

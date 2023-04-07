@@ -4,9 +4,12 @@ import (
 	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	imdb2 "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
+	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
+	"fmt"
 	"github.com/pkg/errors"
 	"strconv"
 	"time"
@@ -18,7 +21,18 @@ func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickR
 		OperateID: req.OperationID,
 		count:     rpc.count,
 	}
-	return handler.ClickRedPacket(req)
+
+	resp, err := handler.ClickRedPacket(req)
+	if err != nil {
+		log.Error(req.OperationID, "抢红包失败", err)
+		return nil, err
+	}
+
+	// 返回消息
+	if resp.CommonResp.ErrMsg != "" {
+		resp.CommonResp.ErrMsg = pb.CloudWalletErrCode_name[int32(resp.CommonResp.ErrCode)]
+	}
+	return resp, nil
 }
 
 type handlerClickRedPacket struct {
@@ -28,45 +42,46 @@ type handlerClickRedPacket struct {
 
 func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.ClickRedPacketResp, error) {
 	var (
-		res    = &pb.ClickRedPacketResp{}
-		common = &pb.CommonResp{}
+		res = &pb.ClickRedPacketResp{
+			CommonResp: &pb.CommonResp{},
+		}
 	)
 	// 1. 检测红包是否过期
 	// ======================================================== 进行红包状态的校验
 	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
 	if err != nil {
-		common.ErrCode = pb.CloudWalletErrCode_ServerError
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
 		log.Error(req.OperationID, "数据库查询失败", err)
 		return res, err
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusCreate {
-		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsCreate
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsCreate
 		return res, nil
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusFinished {
-		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsFinish
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsFinish
 		return res, nil
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusExpired {
-		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExpire
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExpire
 		return res, nil
 	}
 
 	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != req.UserId {
-		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExclusive
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExclusive
 		return res, nil
 	}
 
 	// 2. 检测红包的领取记录 ，如果已经完成领取就不能再领取 , 针对当前用户查询红包领取记录
 	fp, err := imdb.FPacketDetailGetByPacketID(req.RedPacketID, req.UserId)
 	if err != nil {
-		common.ErrCode = pb.CloudWalletErrCode_ServerError
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
 		return res, errors.Wrap(err, "红包领取记录查询失败")
 	}
 
 	if fp.ID != 0 {
 		// 代表存在领取记录
-		common.ErrCode = pb.CloudWalletErrCode_PacketStatusIsReceived
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsReceived
 		return res, nil
 	}
 	// 如果用户没实名认证就不能进行抢红包
@@ -82,7 +97,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		amount, err = h.getRedPacketByGroup(req)
 	}
 	if err != nil {
-		common.ErrCode = pb.CloudWalletErrCode_ServerError
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
 		return res, errors.Wrap(err, "获取红包金额失败")
 	}
 
@@ -110,6 +125,10 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 
 	// 6.发送红包领取通知
+	if err := h.sendRedPacketMsg(req, amount); err != nil {
+		log.Error(req.OperationID, "发送红包领取通知失败", err)
+		return res, errors.Wrap(err, "发送红包领取通知失败")
+	}
 
 	res.CommonResp = resp
 	return res, nil
@@ -144,6 +163,32 @@ func (h *handlerClickRedPacket) getRedPacketByGroup(req *pb.ClickRedPacketReq) (
 		return 0, err
 	}
 	return amount, nil
+}
+
+// 发送红包领取消息
+func (h *handlerClickRedPacket) sendRedPacketMsg(req *pb.ClickRedPacketReq, amount int) error {
+	// 获取红包信息
+	pkg, err := imdb.GetRedPacketInfo(req.RedPacketID)
+	if err != nil {
+		return err
+	}
+	// 获取发送用户信息
+	userInfo, err := imdb2.GetUserByUserID(pkg.UserID)
+	if err != nil {
+		return err
+	}
+	// 获取到抢红包用户的信息
+	recvUserInfo, err := imdb2.GetUserByUserID(req.UserId)
+	if err != nil {
+		return err
+	}
+	sendtoSenderMsg := fmt.Sprintf("你领取了%s的红包", userInfo.Nickname)
+	sendtoRecvMsg := fmt.Sprintf("%s领取了你的红包", recvUserInfo.Nickname)
+
+	// xxx 领取了你的红包
+	// 你领取了xxx的红包
+	contrive_msg.SendGrabPacket(pkg.UserID, pkg.RecvID, pkg.SendType, h.OperateID, sendtoSenderMsg, sendtoRecvMsg, pkg.PacketID)
+	return nil
 }
 
 // 从红包记录获取转账金额
