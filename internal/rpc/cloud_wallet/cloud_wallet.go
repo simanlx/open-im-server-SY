@@ -471,7 +471,7 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
-			TranAmount:    cast.ToString(req.Amount / 100),
+			TranAmount:    cast.ToString(cast.ToFloat64(req.Amount) / 100),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bankCardInfo.BindCardAgrNo,
 			ReceiveUserId: bankCardInfo.NcountUserId, //收款账户
@@ -555,7 +555,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 		MerOrderID: ncount.GetMerOrderID(),
 		MsgCipher: ncount.WithdrawMsgCipher{
 			BusinessType:    "08",
-			TranAmount:      cast.ToFloat32(req.Amount / 100),
+			TranAmount:      cast.ToFloat32(cast.ToFloat64(req.Amount) / 100),
 			UserId:          bankCardInfo.NcountUserId,
 			BindCardAgrNo:   req.BindCardAgrNo,
 			NotifyUrl:       config.Config.Ncount.Notify.WithdrawNotifyUrl,

@@ -53,7 +53,7 @@ func TokenExchangeMobile(token string) (string, error) {
 	sign := Sign(fmt.Sprintf("appId%stoken%s", AppId, token))
 
 	//封装参数、请求创蓝api
-	resp, err := http.PostForm(Uri, url.Values{"appId": {AppId}, "token": {token}, "encryptType": {"0"}, "sign": {sign}})
+	resp, err := http.PostForm(Uri, url.Values{"appId": {AppId}, "token": {token}, "sign": {sign}})
 	if err != nil {
 		return "", errors.New("请求api接口失败")
 	}

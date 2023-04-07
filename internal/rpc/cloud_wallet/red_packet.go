@@ -188,7 +188,7 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 		TransferMsgCipher: ncount.TransferMsgCipher{
 			PayUserId:     fncount.MainAccountId,
 			ReceiveUserId: fncount.PacketAccountId,
-			TranAmount:    cast.ToString(in.Amount / 100), //分转元
+			TranAmount:    cast.ToString(cast.ToFloat64(in.Amount) / 100), //分转元
 		},
 	}
 
@@ -360,7 +360,7 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 		MerOrderId: ncount.GetMerOrderID(),
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
-			TranAmount:    cast.ToString(amount / 100),
+			TranAmount:    cast.ToString(cast.ToFloat64(amount) / 100),
 			NotifyUrl:     config.Config.Ncount.Notify.RechargeNotifyUrl,
 			BindCardAgrNo: bindCardAgrNo,
 			ReceiveUserId: accountInfo.PacketAccountId, //收款账户
