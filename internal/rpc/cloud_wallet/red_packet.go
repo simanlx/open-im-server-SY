@@ -289,6 +289,9 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 	if redpacketInfo.PacketType == 2 {
 		// 群红包
 		err = GroupPacket(redpacketInfo, OperateID)
+		if err != nil {
+			return err
+		}
 	}
 
 	// 3. 修改红包状态

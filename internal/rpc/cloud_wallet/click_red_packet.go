@@ -63,6 +63,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		res.CommonResp.ErrMsg = "红包状态错误"
 		return res, nil
 	}
+
 	if redPacketInfo.Status == imdb.RedPacketStatusFinished {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsFinish
 		res.CommonResp.ErrMsg = "红包已经退还"
@@ -80,6 +81,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, nil
 	}
 
+	fmt.Println("==================")
 	// 2. 检测红包的领取记录 ，如果已经完成领取就不能再领取 , 针对当前用户查询红包领取记录
 	fp, err := imdb.FPacketDetailGetByPacketID(req.RedPacketID, req.UserId)
 	if err != nil {
@@ -95,12 +97,12 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 
 	// 如果用户没实名认证就不能进行抢红包
-	//err = h.checkUserAuthStatus(req.UserId)
-	//if err != nil {
-	//	res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
-	//	res.CommonResp.ErrMsg = "您的帐号没有实名认证"
-	//	return res, nil
-	//}
+	/*	err = h.checkUserAuthStatus(req.UserId)
+		if err != nil {
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
+			res.CommonResp.ErrMsg = "您的帐号没有实名认证"
+			return res, nil
+		}*/
 	var amount int
 	// 4. 判断红包的类型
 	if redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1 {
@@ -118,6 +120,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	// 调用转账
 	sendAccount, receiveAccount, err := h.getRedPacketByUser(req.UserId, req.RedPacketID)
 	if err != nil {
+		fmt.Println("获取转账信息失败", err)
 		log.Error(req.OperationID, "获取转账信息失败", err)
 		return res, errors.Wrap(err, "获取转账信息失败")
 	}
