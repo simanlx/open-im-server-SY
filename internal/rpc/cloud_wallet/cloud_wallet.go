@@ -118,7 +118,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %v,error:%v", req.UserId, err.Error()))
+		return &cloud_wallet.UserNcountAccountResp{Step: 0, BalAmount: "0"}, nil
 	}
 
 	//调新生支付接口，获取用户信息

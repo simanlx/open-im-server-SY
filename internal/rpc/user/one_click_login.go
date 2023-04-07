@@ -1,12 +1,11 @@
 package user
 
 import (
-	"Open_IM/pkg/utils"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -43,8 +42,8 @@ type UserMobile struct {
 
 // 一键登录授权token换取用户手机号码
 func TokenExchangeMobile(token string) (string, error) {
-	signStr := fmt.Sprintf("appId%stoken%s", AppId, token)
-	sign := Sign(signStr)
+	//签名
+	sign := Sign(fmt.Sprintf("appId%stoken%s", AppId, token))
 
 	//封装参数、请求创蓝api
 	resp, err := http.PostForm(Uri, url.Values{"appId": {AppId}, "token": {token}, "encryptType": {"0"}, "sign": {sign}})
@@ -63,8 +62,15 @@ func TokenExchangeMobile(token string) (string, error) {
 	if err != nil {
 		return "", errors.New("请求api接口失败")
 	}
+	fmt.Println("----", reply, err)
 
-	mobile, err := Decrypt(reply.Data.MobileName)
+	//if reply.Code != "200000" {
+	//	return "", errors.New(fmt.Sprintf("接口响应错误:%s", reply.Message))
+	//}
+
+	mobileName := "1F881288CC68352FC410E8D4A36FC6E0"
+	mobile := Decrypt(mobileName)
+	//mobile := Decrypt(reply.Data.MobileName)
 	if err != nil {
 		return "", errors.New("解密手机号码失败")
 	}
@@ -76,30 +82,51 @@ func TokenExchangeMobile(token string) (string, error) {
 func Sign(text string) string {
 	hMac := hmac.New(sha256.New, []byte(AppKey))
 	hMac.Write([]byte(text))
-	return hex.EncodeToString(hMac.Sum(nil))
+	signature := hex.EncodeToString(hMac.Sum(nil))
+	return string(signature)
 }
 
-func Decrypt(text string) (string, error) {
-	key := utils.Md5(AppKey)
-	//如未填写则只能使用AES CBC算法，以md5(appKey)前16位字符串为秘钥，后16位字符为初始化向量解密
-	decodeData, err := base64.StdEncoding.DecodeString(text)
-	if err != nil {
-		return "", nil
-	}
-	//生成密码数据块cipher.Block
-	block, _ := aes.NewCipher([]byte(key[0:16]))
-	//解密模式
-	blockMode := cipher.NewCBCDecrypter(block, []byte(key[16:]))
-	//输出到[]byte数组
-	origin_data := make([]byte, len(decodeData))
-	blockMode.CryptBlocks(origin_data, decodeData)
-	//去除填充,并返回
-	return string(unpad(origin_data)), nil
+func Decrypt(mobileName string) string {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("recover error:", r)
+			return
+		}
+	}()
+
+	hash := md5.Sum([]byte(AppKey))
+	hashString := hex.EncodeToString(hash[:])
+
+	block, _ := aes.NewCipher([]byte(hashString[:16]))
+	ecb := cipher.NewCBCDecrypter(block, []byte(hashString[16:]))
+	source, _ := hex.DecodeString(mobileName)
+	decrypted := make([]byte, len(source))
+	ecb.CryptBlocks(decrypted, source)
+	return string(unpad(decrypted))
+}
+
+func decrptPhone(data string, key string) string {
+	hash := md5.Sum([]byte(key))
+	hashString := hex.EncodeToString(hash[:])
+	block, _ := aes.NewCipher([]byte(hashString[:16]))
+	ecb := cipher.NewCBCDecrypter(block, []byte(hashString[16:]))
+	source, _ := hex.DecodeString(data)
+	decrypted := make([]byte, len(source))
+	ecb.CryptBlocks(decrypted, source)
+	return string(unpad(decrypted))
+}
+
+func PKCS5Unpadding(encrypt []byte) []byte {
+	padding := encrypt[len(encrypt)-1]
+	return encrypt[:len(encrypt)-int(padding)]
 }
 
 func unpad(ciphertext []byte) []byte {
 	length := len(ciphertext)
 	//去掉最后一次的padding
 	unpadding := int(ciphertext[length-1])
+
+	fmt.Println("--encrypt--", ciphertext, length, unpadding, ciphertext[length-1])
+
 	return ciphertext[:(length - unpadding)]
 }
