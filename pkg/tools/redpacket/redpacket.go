@@ -6,6 +6,14 @@ import (
 )
 
 func GetRedPacket(count, amount int) []int {
+	if count == amount {
+		result := make([]int, count)
+		for i := 0; i < count; i++ {
+			result = append(result, 1)
+		}
+		return result
+	}
+
 	remain := amount
 	var result []int
 	sum := 0

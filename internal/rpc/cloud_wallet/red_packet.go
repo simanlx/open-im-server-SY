@@ -289,7 +289,7 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 	// 2. 生成红包
 	if redpacketInfo.PacketType == 2 && redpacketInfo.Number > 1 {
 		// 群红包
-		err = GroupPacket(redpacketInfo, OperateID)
+		err = GroupPacket(redpacketInfo, redPacketID)
 		if err != nil {
 			return err
 		}
@@ -330,10 +330,10 @@ func GroupPacket(req *imdb.FPacket, redpacketID string) error {
 	var err error
 	if req.IsLucky == 1 {
 		// 如果说是手气红包，分散放入红包池
-		err = spareRedPacket(req.OperateID, redpacketID, int(req.Amount), int(req.Number))
+		err = spareRedPacket(redpacketID, int(req.Amount), int(req.Number))
 	} else {
-		// 非手气红包，平均分配
-		err = spareEqualRedPacket(req.OperateID, redpacketID, int(req.Amount), int(req.Number))
+		// 凭手气红包
+		err = spareEqualRedPacket(redpacketID, int(req.Amount), int(req.Number))
 	}
 	if err != nil {
 		log.Error(req.OperateID, zap.Error(err))
@@ -343,19 +343,23 @@ func GroupPacket(req *imdb.FPacket, redpacketID string) error {
 }
 
 // 将红包放入红包池
-func spareRedPacket(OperateID, packetID string, amount, number int) error {
+func spareRedPacket(packetID string, amount, number int) error {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("spareRedPacket panic", zap.Any("err", err))
+		}
+	}()
 	// 将发送的红包进行计算
 	result := redpacket.GetRedPacket(amount, number)
 	err := commonDB.DB.SetRedPacket(packetID, result)
 	if err != nil {
-		log.Error(OperateID, zap.Error(err))
 		return err
 	}
 	return nil
 }
 
 // amount = 3 ,number =3
-func spareEqualRedPacket(OperateID, packetID string, amount, number int) error {
+func spareEqualRedPacket(packetID string, amount, number int) error {
 	result := []int{}
 	for i := 0; i < number; i++ {
 		result = append(result, amount)
@@ -363,7 +367,6 @@ func spareEqualRedPacket(OperateID, packetID string, amount, number int) error {
 	// 将发送的红包进行计算
 	err := commonDB.DB.SetRedPacket(packetID, result)
 	if err != nil {
-		log.Error(OperateID, zap.Error(err))
 		return err
 	}
 	return nil

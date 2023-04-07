@@ -169,6 +169,7 @@ func (h *handlerClickRedPacket) getRedPacketByGroup(req *pb.ClickRedPacketReq) (
 	amount, err := db.DB.GetRedPacket(req.RedPacketID)
 	if err != nil {
 		res.ErrCode = pb.CloudWalletErrCode_ServerError
+		res.ErrMsg = "红包已经被抢完了"
 		return 0, err
 	}
 	return amount, nil
