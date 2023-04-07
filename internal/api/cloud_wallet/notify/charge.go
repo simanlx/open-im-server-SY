@@ -7,6 +7,7 @@ import (
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -15,7 +16,7 @@ import (
 // 充值回调
 func ChargeNotify(c *gin.Context) {
 	params := notify.ChargeNotifyReq{}
-	if err := c.BindJSON(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		log.Error("0", "ChargeNotify", err.Error(), params)
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
@@ -59,7 +60,7 @@ func WithDrawNotify(c *gin.Context) {
 	//fmt.Println("WithDrawNotify Body", string(data))
 	//log.Error("0", "WithDrawNotify Body", string(data))
 	params := notify.WithdrawNotifyReq{}
-	if err := c.BindJSON(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		log.Error("0", "WithDrawNotify", err.Error(), params)
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
@@ -75,6 +76,8 @@ func WithDrawNotify(c *gin.Context) {
 		ServiceAmount:  params.ServiceAmount,
 		PayAcctAmount:  params.PayAcctAmount,
 	}
+
+	fmt.Println("--req DrawNotifyReq", req, "---", params)
 
 	//调用rpc
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, "0000")

@@ -30,6 +30,11 @@ func (s *CloudWalletServer) ChargeNotify(_ context.Context, req *pb.ChargeNotify
 		return nil, errors.New("交易记录不存在")
 	}
 
+	//已处理
+	if tradeInfo.NcountStatus == 1 {
+		return &pb.ChargeNotifyResp{}, nil
+	}
+
 	//校验订单金额
 
 	// 修改订单状态
@@ -58,9 +63,14 @@ func (s *CloudWalletServer) WithDrawNotify(_ context.Context, req *pb.DrawNotify
 	}
 
 	// 查询记录
-	_, err := imdb.GetThirdOrderNoRecord(req.NcountOrderId)
+	tradeInfo, err := imdb.GetThirdOrderNoRecord(req.NcountOrderId)
 	if err != nil {
 		return nil, errors.New("交易记录不存在")
+	}
+
+	//已处理
+	if tradeInfo.NcountStatus == 1 {
+		return &pb.DrawNotifyResp{}, nil
 	}
 
 	// 修改订单状态
