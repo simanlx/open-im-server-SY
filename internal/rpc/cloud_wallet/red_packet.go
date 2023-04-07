@@ -5,6 +5,7 @@ import (
 	"Open_IM/pkg/common/config"
 	commonDB "Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	"Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -417,6 +418,14 @@ func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacket
 		return nil, errors.New("红包信息不存在")
 	}
 
+	//补充发红包人的用户信息
+	nickname, faceUrl := "", ""
+	userInfo, err := im_mysql_model.GetUserByUserID(req.UserId)
+	if err == nil {
+		nickname = userInfo.Nickname
+		faceUrl = userInfo.FaceURL
+	}
+
 	info := &pb.RedPacketInfoResp{
 		UserId:          redPacketInfo.UserID,
 		PacketType:      redPacketInfo.PacketType,
@@ -428,12 +437,13 @@ func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacket
 		Number:          redPacketInfo.Number,
 		ExpireTime:      redPacketInfo.ExpireTime,
 		Remain:          redPacketInfo.Remain,
+		Nickname:        nickname,
+		FaceUrl:         faceUrl,
 		ReceiveDetail:   make([]*pb.ReceiveDetail, 0),
 	}
 
 	//获取当前红包领取记录
-	receiveList, err := imdb.ReceiveListByPacketId(req.PacketId)
-
+	receiveList, _ := imdb.ReceiveListByPacketId(req.PacketId)
 	for _, v := range receiveList {
 		info.ReceiveDetail = append(info.ReceiveDetail, &pb.ReceiveDetail{
 			UserId:      v.UserId,

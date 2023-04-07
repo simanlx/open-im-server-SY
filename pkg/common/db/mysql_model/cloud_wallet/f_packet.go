@@ -63,6 +63,21 @@ const (
 	RedPacketStatusExpired         // 3为红包过期
 )
 
+type RedPacketDetail struct {
+	UserId          string `json:"user_id"`
+	PacketType      int32  `json:"packet_type"`
+	IsLucky         int32  `json:"is_lucky"`
+	IsExclusive     int32  `json:"is_exclusive"`
+	ExclusiveUserID string `json:"exclusiveUser_id"`
+	PacketTitle     string `json:"packet_title"`
+	Amount          int64  `json:"amount"`
+	Number          int32  `json:"number"`
+	ExpireTime      int64  `json:"expire_time"`
+	Remain          int64  `json:"remain"`
+	Nickname        string `json:"nickname"`
+	FaceUrl         string `json:"face_url"`
+}
+
 // 保存到红包到数据库
 func RedPacketCreateData(req *FPacket) error {
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Create(req)

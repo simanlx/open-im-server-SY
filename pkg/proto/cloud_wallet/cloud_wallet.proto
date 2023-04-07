@@ -250,7 +250,9 @@ message RedPacketInfoResp {
   int32 number = 8; //红包个数
   int64 expireTime = 9; //红包过期时间
   int64 remain = 10; //剩余红包个数
-  repeated ReceiveDetail receiveDetail = 11; //当前红包领取列表
+  string nickname = 11; //昵称
+  string faceUrl = 12; //头像
+  repeated ReceiveDetail receiveDetail = 13; //当前红包领取列表
 }
 
 message ReceiveDetail {
