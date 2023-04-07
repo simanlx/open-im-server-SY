@@ -85,12 +85,9 @@ func ClickRedPacket(c *gin.Context) {
 			return
 		}*/
 
-	UserID := "10018"
-
 	// 复制结构体
 	req := &rpc.ClickRedPacketReq{}
 	utils.CopyStructFields(req, &params)
-	req.UserId = UserID
 
 	//调用rpc
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
@@ -110,7 +107,7 @@ func ClickRedPacket(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	c.JSON(http.StatusOK, gin.H{"errCode": RpcResp.CommonResp.ErrCode, "errMsg": RpcResp.CommonResp.ErrMsg})
 	return
 }
 

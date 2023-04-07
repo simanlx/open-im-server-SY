@@ -72,19 +72,19 @@ func SendSendRedPacket(f *FPacket, sessionID int) error {
 }
 
 // 发送两条抢红包消息，一条给发送方，一条给抢红包方
-func NewManagementSendMsg_ClickPacket(sendID, recevieID string, sessionID int32, OperateID, remark_click, remark_send, redPacketID string) ([]byte, []byte) {
+func NewManagementSendMsg_ClickPacket(sendID, recevieID string, sessionID int32, OperateID, clickUsername, sendUsername, redPacketID string) ([]byte, []byte) {
 	// 创建msg 给对方发一条消息
 	msg1 := ContriveMessage{
 		Data: RedPacketGrabMessage{
 			RedPacketID: redPacketID,
-			Remark:      remark_click,
+			UserName:    clickUsername,
 		},
 		MsgType: ContriveMessageGrapRedPacket,
 	}
 	msg2 := ContriveMessage{
 		Data: RedPacketGrabMessage{
 			RedPacketID: redPacketID,
-			Remark:      remark_send,
+			UserName:    sendUsername,
 		},
 		MsgType: ContriveMessageGrapRedPacket,
 	}

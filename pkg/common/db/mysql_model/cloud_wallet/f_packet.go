@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	"Open_IM/pkg/common/db"
+	"Open_IM/pkg/common/log"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -113,7 +114,8 @@ func SelectRedPacketSenderRedPacketAccountByPacketID(packetID string) (string, e
 	var fPacket FPacket
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).First(&fPacket)
 	if result.Error != nil {
-		return "", errors.Wrap(result.Error, "获取红包信息失败")
+		log.Debug("查询红包信息: ", packetID)
+		return "", errors.Wrap(result.Error, "获取红包信息失败: "+packetID)
 	}
 	sendUserID := fPacket.UserID
 

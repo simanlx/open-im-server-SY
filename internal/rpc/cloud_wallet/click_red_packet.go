@@ -29,7 +29,7 @@ func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickR
 	}
 
 	// 返回消息
-	if resp.CommonResp.ErrMsg != "" {
+	if resp.CommonResp.ErrMsg == "" {
 		resp.CommonResp.ErrMsg = pb.CloudWalletErrCode_name[int32(resp.CommonResp.ErrCode)]
 	}
 	return resp, nil
@@ -43,9 +43,13 @@ type handlerClickRedPacket struct {
 func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.ClickRedPacketResp, error) {
 	var (
 		res = &pb.ClickRedPacketResp{
-			CommonResp: &pb.CommonResp{},
+			CommonResp: &pb.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "领取成功",
+			},
 		}
 	)
+
 	// 1. 检测红包是否过期
 	// ======================================================== 进行红包状态的校验
 	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
@@ -56,19 +60,23 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusCreate {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsCreate
+		res.CommonResp.ErrMsg = "红包状态错误"
 		return res, nil
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusFinished {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsFinish
+		res.CommonResp.ErrMsg = "红包已经退还"
 		return res, nil
 	}
 	if redPacketInfo.Status == imdb.RedPacketStatusExpired {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExpire
+		res.CommonResp.ErrMsg = "红包已过期"
 		return res, nil
 	}
 
 	if redPacketInfo.IsExclusive == 1 && redPacketInfo.ExclusiveUserID != req.UserId {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsExclusive
+		res.CommonResp.ErrMsg = "红包为专属红包"
 		return res, nil
 	}
 
@@ -81,12 +89,18 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 
 	if fp.ID != 0 {
 		// 代表存在领取记录
+		res.CommonResp.ErrMsg = "你已经领取过该红包"
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsReceived
 		return res, nil
 	}
-	// 如果用户没实名认证就不能进行抢红包
-	//todo
 
+	// 如果用户没实名认证就不能进行抢红包
+	err = h.checkUserAuthStatus(req.UserId)
+	if err != nil {
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
+		res.CommonResp.ErrMsg = "您的帐号没有实名认证"
+		return res, nil
+	}
 	var amount int
 	// 4. 判断红包的类型
 	if redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1 {
@@ -103,7 +117,6 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 
 	// 调用转账
 	sendAccount, receiveAccount, err := h.getRedPacketByUser(req.UserId, req.RedPacketID)
-
 	if err != nil {
 		log.Error(req.OperationID, "获取转账信息失败", err)
 		return res, errors.Wrap(err, "获取转账信息失败")
@@ -135,23 +148,13 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 }
 
 // 检查用户实名认证状态
-func (h *handlerClickRedPacket) checkUserAuthStatus() (*pb.CommonResp, error) {
-	/*	res := &pb.CommonResp{}
-		// 检查用户是否实名认证
-		// 检查用户是否实名认证
-		authStatus, err := req.count.GetUserAuthStatus(req.UserId)
-		if err != nil {
-			res.ErrCode = pb.CloudWalletErrCode_ServerError
-			res.ErrMsg = "服务器错误"
-			return res, errors.Wrap(err, "获取用户实名认证状态失败")
-		}
-		if authStatus != 1 {
-			res.ErrCode = pb.CloudWalletErrCode_UserNotAuth
-			res.ErrMsg = "用户未实名认证"
-			return res, nil
-		}
-		return res, nil*/
-	return nil, nil
+func (h *handlerClickRedPacket) checkUserAuthStatus(userID string) error {
+	// 判断用户是否实名注册
+	_, err := imdb.GetNcountAccountByUserId(userID)
+	if err != nil {
+		return errors.Wrap(err, "查询用户实名认证状态失败")
+	}
+	return nil
 }
 
 // 如果红包是群聊红包， 直接redis的set集合进行获取红包
@@ -205,7 +208,7 @@ func (h *handlerClickRedPacket) getRedPacketByUser(GrapRedPacketUserID, packetID
 	//  获取到发红包的用户ID
 	senderAccount, err := imdb.SelectRedPacketSenderRedPacketAccountByPacketID(packetID)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.Wrap(err, "查询红包发送用户失败")
 	}
 	recieveAccount, err := imdb.SelectUserMainAccountByUserID(GrapRedPacketUserID)
 	if err != nil {

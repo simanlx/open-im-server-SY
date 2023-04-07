@@ -25,6 +25,7 @@ type SendRedPacketResp struct {
 
 // 点击抢红包
 type ClickRedPacketReq struct {
+	UserId      string `json:"userId"`      //用户id
 	RedPacketID string `json:"redPacketID"` //红包id
 	OperateID   string `json:"operateID"`   //链路跟踪id
 }

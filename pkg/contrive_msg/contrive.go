@@ -59,5 +59,5 @@ type RedPacketMessage struct {
 // 抢红包消息结构体 // 谁抢了我的红包 ｜ 我抢了谁的红包
 type RedPacketGrabMessage struct {
 	RedPacketID string `json:"redPacketID" binding:"required"` // 红包ID
-	Remark      string `json:"remark" binding:"required"`      // 红包消息
+	UserName    string `json:"userName" binding:"required"`    // 用户昵称
 }
