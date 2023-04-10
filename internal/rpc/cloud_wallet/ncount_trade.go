@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	BusinessTypeBankcardRecharge   = 1 //银行卡充值 (增加余额)
-	BusinessTypeBankcardWithdrawal = 2 //银行卡提现 (减少余额)
-	BusinessTypeBankcardSendPacket = 3 //银行卡支付发送红包 (余额不变)
-	BusinessTypeBalanceSendPacket  = 4 //余额支付发送红包 (减少余额)
-	BusinessTypeReceivePacket      = 5 //领取红包 (增加余额)
-	BusinessTypePacketExpire       = 6 //红包过期 (退还,增加余额)
+	BusinessTypeBankcardRecharge   = 1 //银行卡充值
+	BusinessTypeBankcardWithdrawal = 2 //银行卡提现
+	BusinessTypeBankcardSendPacket = 3 //银行卡支付发送红包
+	BusinessTypeBalanceSendPacket  = 4 //余额支付发送红包
+	BusinessTypeReceivePacket      = 5 //领取红包
+	BusinessTypePacketExpire       = 6 //红包超时退回
 )
 
 func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int32, string, error) {
