@@ -68,10 +68,10 @@ message CloudWalletRecordListResp{
 
 message RecordList{
   string describe = 1; //明细描述
-  int32 account = 2; //变动金额
+  int32 amount = 2; //变动金额
   string createdTime = 3; //时间
   string relevancePacketId = 4; //关联红包id
-  float afterAmount = 5; //变更后余额
+  int32 afterAmount = 5; //变更后余额
   int32 type = 6; //收支类型(1收入、2支出)
 }
 

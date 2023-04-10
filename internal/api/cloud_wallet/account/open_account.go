@@ -185,6 +185,7 @@ func CloudWalletRecordList(c *gin.Context) {
 		StartTime:   params.StartTime,
 		EndTime:     params.EndTime,
 		Page:        params.Page,
+		Size:        params.Size,
 		OperationID: params.OperationID,
 	}
 

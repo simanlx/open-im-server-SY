@@ -6,7 +6,7 @@ serverversion: 2.3.1
 #---------------Infrastructure configuration---------------------#
 etcd:
   etcdSchema: openim  #默认即可
-  etcdAddr: [127.0.0.1:12379 ] #单机部署时，默认即可
+  etcdAddr: [127.0.0.1:2379 ] #单机部署时，默认即可
   userName:
   password:
   secret:
@@ -21,7 +21,7 @@ mysql:
   dbMaxOpenConns: 100
   dbMaxIdleConns: 10
   dbMaxLifeTime: 5
-  logLevel: 1 #1=slient 2=error 3=warn 4=info
+  logLevel: 4 #1=slient 2=error 3=warn 4=info
   slowThreshold: 500
 mongo:
   dbUri: ""#当dbUri值不为空则直接使用该值
