@@ -2,6 +2,7 @@ package cloud_wallet
 
 import (
 	"Open_IM/pkg/common/db"
+	"fmt"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -52,15 +53,18 @@ func GetFNcountTradeByOrderNo(orderNo, userId string) (info *db.FNcountTrade, er
 }
 
 // 获取账户变更列表
-func FindNcountTradeList(userId string) (list []*db.FNcountTrade, count int64, err error) {
-	//err := db.DB.MysqlDB.DefaultGormDB().Table("users").Limit(int(showNumber)).Offset(int(showNumber * (pageNumber - 1))).Find(&users).Error
+func FindNcountTradeList(userId, startTime, endTime string, page, size int32) (list []*db.FNcountTrade, count int64, err error) {
+	model := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").
+		Where(" user_id = ? and ncount_status = ?", userId, 1)
 
-	//err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").
-	//	Where(" user_id = ?", userId).
-	//	Limit(pageSize).Offset(size).Count(&count).
-	//	Find(&list).Error
-	//if err != nil {
-	//	return nil, 0, err
-	//}
+	if len(startTime) > 0 {
+		model = model.Where("created_time >= ?", fmt.Sprintf("%s 00:00:00", startTime))
+	}
+
+	if len(endTime) > 0 {
+		model = model.Where("created_time <= ?", fmt.Sprintf("%s 23:59:59", endTime))
+	}
+
+	err = model.Count(&count).Limit(int(size)).Offset(int(size * (page - 1))).Order("id desc").Find(&list).Error
 	return
 }

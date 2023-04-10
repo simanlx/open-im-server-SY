@@ -297,12 +297,6 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 
 // 云钱包收支明细
 func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *cloud_wallet.CloudWalletRecordListReq) (*cloud_wallet.CloudWalletRecordListResp, error) {
-	//获取用户账户信息
-	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
-	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error()))
-	}
-
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -311,30 +305,26 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 		req.Size = 20
 	}
 
-	//处理时间
-	//if len(req.StartTime) > 0 {
-	//	startTime, _ := time.ParseInLocation("2006-01-02", req.StartTime, time.Local)
-	//}
-	//
-	//if len(req.EndTime) > 0 {
-	//	endTime, _ := time.ParseInLocation("2006-01-02", req.EndTime, time.Local)
-	//}
-	//
-	////条件获取列表数据
-	//list, count, err := imdb.FindNcountTradeList(req.UserId)
+	//条件获取列表数据
+	list, count, err := imdb.FindNcountTradeList(req.UserId, req.StartTime, req.EndTime, req.Page, req.Size)
+	if err != nil {
+		return &cloud_wallet.CloudWalletRecordListResp{}, nil
+	}
 
 	recordList := make([]*cloud_wallet.RecordList, 0)
-	recordList = append(recordList, &cloud_wallet.RecordList{
-		Describe:          "银行卡充值",
-		Account:           1,
-		CreatedTime:       "2023-04-06 12:12:23",
-		RelevancePacketId: "",
-		AfterAmount:       2,
-		Type:              1,
-	})
+	for _, v := range list {
+		recordList = append(recordList, &cloud_wallet.RecordList{
+			Describe:          v.Describe,
+			Amount:            v.Amount,
+			CreatedTime:       v.CreatedTime.Format("2006-01-02 15:04:05"),
+			RelevancePacketId: v.PacketID,
+			AfterAmount:       v.AfterAmount,
+			Type:              v.Type,
+		})
+	}
 
 	return &cloud_wallet.CloudWalletRecordListResp{
-		Total:      9,
+		Total:      int32(count),
 		RecordList: recordList,
 	}, nil
 }
