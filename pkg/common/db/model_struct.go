@@ -418,3 +418,14 @@ type FNcountTrade struct {
 func (FNcountTrade) TableName() string {
 	return "f_ncount_trade"
 }
+
+type GroupHistoryMembers struct {
+	GroupId         string    `gorm:"column:group_id" json:"group_id"`                     //群id
+	UserId          string    `gorm:"column:user_id" json:"user_id"`                       //用户id
+	LastSendMsgTime int       `gorm:"column:last_send_msg_time" json:"last_send_msg_time"` //最后发送群消息时间
+	CreatedTime     time.Time `gorm:"column:created_time" json:"created_time"`             //加群时间
+}
+
+func (GroupHistoryMembers) TableName() string {
+	return "group_history_members"
+}

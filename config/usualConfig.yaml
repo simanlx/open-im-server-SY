@@ -25,7 +25,7 @@ credential:
     accessKeyID: root
     secretAccessKey: openIM123
 
-secret: tuoyun #建议修改
+secret: xingdong8888 #建议修改
 
 tokenpolicy:
   accessSecret: "open_im_server" #token生成相关 建议修改

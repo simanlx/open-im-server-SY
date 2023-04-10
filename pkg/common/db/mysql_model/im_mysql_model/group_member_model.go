@@ -31,6 +31,10 @@ func InsertIntoGroupMember(toInsertInfo db.GroupMember) error {
 	if err != nil {
 		return err
 	}
+
+	//冗余一份群历史成员记录
+	_ = InsertGroupHistoryMembers(db.GroupHistoryMembers{GroupId: toInsertInfo.GroupID, UserId: toInsertInfo.UserID})
+
 	return nil
 }
 
