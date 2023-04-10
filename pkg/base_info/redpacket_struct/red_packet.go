@@ -44,3 +44,9 @@ type RedPacketInfoReq struct {
 	PacketId    string `json:"packet_id"`                      //红包id
 	OperationID string `json:"operationID" binding:"required"` //链路跟踪id
 }
+
+// 禁止用户抢红包
+type BanRedPacketReq struct {
+	GroupId     string `json:"group_id"`    //群id
+	OperationID string `json:"operationID"` //链路跟踪id
+}
