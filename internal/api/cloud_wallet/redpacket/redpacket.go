@@ -226,3 +226,12 @@ func BanGroupClickRedPacket(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
+
+// 这里是获取声网token
+func GetAgoraToken(c *gin.Context) {
+	params := redpacket_struct.BanRedPacketReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+}

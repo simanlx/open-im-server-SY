@@ -228,6 +228,9 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                             // 红包详情
 		cloudWalletGroup.POST("/red_packet/ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 红包列表
 
+		// 生成声网token
+		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken) // 获取声网token
+
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
 			context.JSON(200, gin.H{
