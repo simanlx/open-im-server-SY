@@ -84,10 +84,34 @@ func (FriendRequest) TableName() string {
 //	}
 //
 // open_im_sdk.GroupInfo (OwnerUserID ,  MemberCount )> imdb.Group
+
+//
+//CREATE TABLE `groups` (
+//`group_id` varchar(64) NOT NULL,
+//`ban_click_packet` tinyint(1) NOT NULL COMMENT ' 1为禁止抢红包',
+//`name` varchar(255) DEFAULT NULL,
+//`notification` varchar(255) DEFAULT NULL,
+//`introduction` varchar(255) DEFAULT NULL,
+//`face_url` varchar(255) DEFAULT NULL,
+//`create_time` datetime(3) DEFAULT NULL,
+//`ex` longtext,
+//`status` int(11) DEFAULT NULL,
+//`creator_user_id` varchar(64) DEFAULT NULL,
+//`group_type` int(11) DEFAULT NULL,
+//`need_verification` int(11) DEFAULT NULL,
+//`look_member_info` int(11) DEFAULT NULL,
+//`apply_member_friend` int(11) DEFAULT NULL,
+//`notification_update_time` datetime(3) DEFAULT NULL,
+//`notification_user_id` varchar(64) DEFAULT NULL,
+//PRIMARY KEY (`group_id`),
+//KEY `create_time` (`create_time`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 type Group struct {
 	//`json:"operationID" binding:"required"`
 	//`protobuf:"bytes,1,opt,name=GroupID" json:"GroupID,omitempty"` `json:"operationID" binding:"required"`
 	GroupID                string    `gorm:"column:group_id;primary_key;size:64" json:"groupID" binding:"required"`
+	BanClickPacket         int32     `gorm:"column:ban_click_packet" json:"banClickPacket"`
 	GroupName              string    `gorm:"column:name;size:255" json:"groupName"`
 	Notification           string    `gorm:"column:notification;size:255" json:"notification"`
 	Introduction           string    `gorm:"column:introduction;size:255" json:"introduction"`

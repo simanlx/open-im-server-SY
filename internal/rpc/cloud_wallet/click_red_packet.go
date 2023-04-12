@@ -96,16 +96,32 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, nil
 	}
 
-	// 如果用户没实名认证就不能进行抢红包
-	/*	err = h.checkUserAuthStatus(req.UserId)
-		if err != nil {
-			res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
-			res.CommonResp.ErrMsg = "您的帐号没有实名认证"
+	// 3. 群红包是否设置了禁止抢红包
+	if redPacketInfo.PacketType == 2 { // 群红包
+		groupInfo, err := imdb2.GetGroupInfoByGroupID(redPacketInfo.RecvID)
+		if err != nil || groupInfo.GroupID == "" {
+			log.Info(req.OperationID, "获取群信息失败", err)
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
+			res.CommonResp.ErrMsg = "获取群信息失败"
+			return res, errors.Wrap(err, "获取群信息失败")
+		}
+
+		if groupInfo.BanClickPacket == 1 {
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsBan
+			res.CommonResp.ErrMsg = "该群禁止抢红包"
 			return res, nil
-		}*/
+		}
+	}
+
+	// 4.如果用户没实名认证就不能进行抢红包
+	err = h.checkUserAuthStatus(req.UserId)
+	if err != nil {
+		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
+		res.CommonResp.ErrMsg = "您的帐号没有实名认证"
+		return res, nil
+	}
 
 	// 如果是群，并且设置了抢红包
-
 	var amount int
 	// 4. 判断红包的类型
 	if (redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1) || redPacketInfo.Number == 1 {

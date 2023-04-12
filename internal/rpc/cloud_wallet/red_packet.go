@@ -12,6 +12,7 @@ import (
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/tools/redpacket"
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
@@ -36,8 +37,16 @@ type handlerSendRedPacket struct {
 	count      ncount.NCounter
 }
 
-// 钱包账户转账
+// 发送红包
 func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.SendRedPacketResp, error) {
+	var (
+		result = &pb.SendRedPacketResp{
+			CommonResp: &pb.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "发送成功",
+			},
+		}
+	)
 	// 1. 校验参数
 	if err := h.validateParam(req); err != nil {
 		return nil, err
@@ -48,6 +57,40 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 	// todo 暂时这么处理
 	if checkGroupValidate := h.checkGroupPacketState(req); checkGroupValidate != "" {
 		return nil, errors.New(checkGroupValidate)
+	}
+
+	// 如果发送给用户，判断用户是否存在
+	if req.PacketType == 1 {
+		// 判断用户是否存在
+		user, err := imdb2.GetUserByUserID(req.RecvID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.CommonResp.ErrMsg = "您发送红包的用户不存在"
+				result.CommonResp.ErrCode = 400
+				return result, nil
+			}
+			return nil, errors.New("查询用户信息失败")
+		}
+		if user.UserID == "" {
+			result.CommonResp.ErrMsg = "您发送红包的用户不存在"
+			result.CommonResp.ErrCode = 400
+			return result, nil
+		}
+	} else {
+		group, err := imdb2.GetGroupInfoByGroupID(req.RecvID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				result.CommonResp.ErrMsg = "您发送的红包群不存在"
+				result.CommonResp.ErrCode = 400
+				return result, nil
+			}
+			return nil, errors.New("查询用户信息失败")
+		}
+		if group.GroupID == "" {
+			result.CommonResp.ErrMsg = "您发送的红包群不存在"
+			result.CommonResp.ErrCode = 400
+			return result, nil
+		}
 	}
 
 	redpacketID, err := h.recordRedPacket(req)
@@ -480,4 +523,38 @@ func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacket
 	}
 
 	return info, nil
+}
+
+// 禁止群抢红包
+func (rpc *CloudWalletServer) ForbidGroupRedPacket(ctx context.Context, req *pb.ForbidGroupRedPacketReq) (*pb.ForbidGroupRedPacketResp, error) {
+	var (
+		result = &pb.ForbidGroupRedPacketResp{
+			CommonResp: &pb.CommonResp{
+				ErrMsg:  "禁止群抢红包成功",
+				ErrCode: 0,
+			},
+		}
+	)
+	// 查看用户是否为群主
+	group, err := imdb2.GetGroupInfoByGroupID(req.GroupId)
+	if (err != nil && errors.Is(err, sql.ErrNoRows)) || group.GroupID == "" {
+		result.CommonResp.ErrCode = 400
+		result.CommonResp.ErrMsg = "群信息不存在"
+		return result, nil
+	}
+
+	// 如果存在群，且用户不是群主
+	if group.CreatorUserID != req.UserId {
+		result.CommonResp.ErrCode = 400
+		result.CommonResp.ErrMsg = "您不是群主"
+		return result, nil
+	}
+
+	// 禁止抢红包
+	err = imdb2.UpdateGroupIsAllowRedPacket(req.GroupId, req.Forbid)
+	if err != nil {
+		log.Error(req.OperationID, "禁止群抢红包失败", err)
+		return nil, err
+	}
+	return result, nil
 }

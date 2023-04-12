@@ -45,8 +45,25 @@ type RedPacketInfoReq struct {
 	OperationID string `json:"operationID" binding:"required"` //链路跟踪id
 }
 
-// 禁止用户抢红包
+// 禁止用户抢红包 (禁止用户抢红包：未做)
 type BanRedPacketReq struct {
+	UserId      string `json:"user_id"`     //用户id
+	Forbid      int32  `json:"forbid"`      //是否禁止抢红包(0不禁止、1禁止)
 	GroupId     string `json:"group_id"`    //群id
 	OperationID string `json:"operationID"` //链路跟踪id
+}
+
+// json : {"forbid":0,"group_id":"123456","operationID":"123456","user_id":"123456"}
+
+// 获取声网token (获取声网token： 未做)
+type AgoraTokenReq struct {
+	Channel_name string `json:"ChannelName"` // 频道名称，如果是个人，就用用户的ID= UserID：single ，如果是群，就用群的ID= GroupID：group
+	Role         uint32 `json:"role"`        // 用户角色，1是发起者，2是接受者
+	OperationID  string `json:"operationID"` // 链路跟踪id
+}
+
+// 腾讯云进行消息转义 (腾讯云进行消息转义： 未做)
+type TencentMsgEscapeReq struct {
+	ContentUrl  string `json:"content_url" binding:"required"` //消息内容
+	OperationID string `json:"operationID"`                    // 链路跟踪id
 }

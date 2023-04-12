@@ -1,13 +1,17 @@
 package redpacket
 
 import (
+	"Open_IM/pkg/agora"
 	"Open_IM/pkg/base_info/redpacket_struct"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
+	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
+	"Open_IM/pkg/tencent_cloud"
 	"Open_IM/pkg/utils"
 	"context"
+	rtctokenbuilder "github.com/AgoraIO/Tools/DynamicKey/AgoraDynamicKey/go/src/rtctokenbuilder2"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -67,7 +71,7 @@ func SendRedPacket(c *gin.Context) {
 	return
 }
 
-// 发送红包接口
+// 抢红包接口
 func ClickRedPacket(c *gin.Context) {
 	params := redpacket_struct.ClickRedPacketReq{}
 	if err := c.BindJSON(&params); err != nil {
@@ -200,8 +204,17 @@ func BanGroupClickRedPacket(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
 			return
 		}*/
+	UserID := "10000"
+	if params.UserId == "" {
+		UserID = "1000"
+	} else {
+		UserID = params.UserId
+	}
 
-	req := &rpc.RedPacketInfoReq{
+	req := &rpc.ForbidGroupRedPacketReq{
+		UserId:      UserID,
+		GroupId:     params.GroupId,
+		Forbid:      params.Forbid,
 		OperationID: params.OperationID,
 	}
 
@@ -216,7 +229,7 @@ func BanGroupClickRedPacket(c *gin.Context) {
 
 	// 创建rpc连接
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
-	RpcResp, err := client.RedPacketInfo(context.Background(), req)
+	RpcResp, err := client.ForbidGroupRedPacket(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperationID, "RedPacketInfo failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
@@ -227,11 +240,65 @@ func BanGroupClickRedPacket(c *gin.Context) {
 	return
 }
 
-// 这里是获取声网token
+// 这里是获取声网（完成）
 func GetAgoraToken(c *gin.Context) {
-	params := redpacket_struct.BanRedPacketReq{}
+	params := redpacket_struct.AgoraTokenReq{}
 	if err := c.BindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}
+
+	// 获取用户token
+	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	if !ok {
+		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	var role rtctokenbuilder.Role
+	switch params.Role {
+	case 1:
+		role = rtctokenbuilder.RolePublisher
+	case 2:
+		role = rtctokenbuilder.RoleSubscriber
+	}
+
+	// 生成token
+	result, err := agora.GenerateRtcToken(UserID, params.OperationID, params.Channel_name, role)
+	if err != nil {
+		log.NewError(params.OperationID, "RedPacketInfo failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "msg": "获取成功", "data": result})
+}
+
+// 翻译音频 （完成）
+func TranslateVideo(c *gin.Context) {
+	params := redpacket_struct.TencentMsgEscapeReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	// 获取用户token
+	//ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	//if !ok {
+	//	errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
+	//	log.NewError(params.OperationID, errMsg)
+	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
+	//	return
+	//}
+
+	// 消息翻译
+	result, err := tencent_cloud.GetTencentCloudTranslate(params.ContentUrl, params.OperationID)
+	if err != nil {
+		log.NewError(params.OperationID, "RedPacketInfo failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "errMsg": "获取成功", "data": result})
 }

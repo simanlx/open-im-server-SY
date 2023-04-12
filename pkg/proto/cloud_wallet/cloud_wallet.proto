@@ -14,9 +14,10 @@ enum CloudWalletErrCode {
   PacketStatusIsExpire = 1002; // 红包状态是过期
   PacketStatusIsExclusive = 1003; // 红包状态是独占
   PacketStatusIsReceived = 1004; // 红包状态是取消
+  PacketStatusIsBan = 1005; // 该群禁止抢红包
 
   // 2- 用户相关的
-  UserNotValidate =2000; // 用户未认证
+  UserNotValidate = 2000; // 用户未认证
 }
 
 
@@ -388,6 +389,18 @@ message UserRechargeResp {
 }
 
 
+message ForbidGroupRedPacketReq {
+  string userId = 1; //用户id
+  string groupId = 2; //群id
+  string operationID = 3; //链路跟踪id
+  int32  forbid = 4; //是否禁止群红包(1禁止,0不禁止)
+}
+
+message ForbidGroupRedPacketResp {
+  CommonResp commonResp = 1;
+}
+
+
 // 钱包服务
 service CloudWalletService {
   // ==================================云钱包管理 ========
@@ -435,6 +448,9 @@ service CloudWalletService {
 
   // 抢红包接口
   rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
+
+  // 禁止群抢红包操作
+  rpc ForbidGroupRedPacket(ForbidGroupRedPacketReq)returns(ForbidGroupRedPacketResp);
 
   //红包领取明细列表
   rpc RedPacketReceiveDetail(RedPacketReceiveDetailReq)returns(RedPacketReceiveDetailResp);
