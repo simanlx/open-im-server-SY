@@ -183,3 +183,55 @@ func GetRedPacketInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
+
+// 禁止用户抢红包
+func BanGroupClickRedPacket(c *gin.Context) {
+	params := redpacket_struct.BanRedPacketReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	// 获取用户ID
+	/*	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperateID)
+		if !ok {
+			errMsg := params.OperateID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
+			log.NewError(params.OperateID, errMsg)
+			c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
+			return
+		}*/
+
+	req := &rpc.RedPacketInfoReq{
+		OperationID: params.OperationID,
+	}
+
+	//调用rpc
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.RedPacketInfo(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, "RedPacketInfo failed ", err.Error(), req.String())
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}
+
+// 这里是获取声网token
+func GetAgoraToken(c *gin.Context) {
+	params := redpacket_struct.BanRedPacketReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+}

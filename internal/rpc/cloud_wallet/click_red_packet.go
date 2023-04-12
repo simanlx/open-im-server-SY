@@ -103,6 +103,9 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 			res.CommonResp.ErrMsg = "您的帐号没有实名认证"
 			return res, nil
 		}*/
+
+	// 如果是群，并且设置了抢红包
+
 	var amount int
 	// 4. 判断红包的类型
 	if (redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1) || redPacketInfo.Number == 1 {
