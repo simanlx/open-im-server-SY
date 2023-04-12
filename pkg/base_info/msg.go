@@ -143,3 +143,22 @@ type ReactionMessageDeleteNotification struct {
 	ClientMsgID                  string                      `json:"clientMsgID" binding:"required"`
 	MsgFirstModifyTime           int64                       `json:"msgFirstModifyTime"`
 }
+
+type MsgCollectReq struct {
+	MsgType     int32  `json:"msg_type" binding:"required"`
+	Content     string `json:"content" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type DelMsgCollectReq struct {
+	CollectId   int32  `json:"collect_id" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type MsgCollectListReq struct {
+	MsgType     int32  `json:"msg_type"`
+	OperationID string `json:"operationID" binding:"required"`
+	Page        int32  `json:"page"`
+	Size        int32  `json:"size"`
+	Keyword     string `json:"keyword"`
+}

@@ -1,11 +1,11 @@
 package account
 
 import (
-	"Open_IM/internal/rpc/user"
 	utils2 "Open_IM/internal/utils"
 	"Open_IM/pkg/base_info/account"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
+	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"context"
@@ -178,10 +178,17 @@ func CloudWalletRecordList(c *gin.Context) {
 		return
 	}
 
-	//获取token用户id
-	//userId, _ := c.Get("userID")
+	//解析token、获取用户id
+	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im_token"), params.OperationID)
+	if !ok {
+		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		return
+	}
+
 	req := &rpc.CloudWalletRecordListReq{
-		UserId:      params.UserId,
+		UserId:      userId,
 		StartTime:   params.StartTime,
 		EndTime:     params.EndTime,
 		Page:        params.Page,
@@ -205,19 +212,5 @@ func CloudWalletRecordList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
-	return
-}
-
-// 一键登录-测试路由
-func UserOneClickLogin(c *gin.Context) {
-	params := account.UserOneClickLoginReq{}
-	if err := c.BindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
-		return
-	}
-
-	mobile, err := user.TokenExchangeMobile(params.Token)
-
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": mobile, "err": err})
 	return
 }

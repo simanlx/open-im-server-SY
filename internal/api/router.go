@@ -111,6 +111,7 @@ func NewGinRouter() *gin.Engine {
 		groupRouterGroup.POST("/set_group_member_info", group.SetGroupMemberInfo)
 		groupRouterGroup.POST("/get_group_abstract_info", group.GetGroupAbstractInfo)
 		//groupRouterGroup.POST("/get_group_all_member_list_by_split", group.GetGroupAllMemberListBySplit)
+		groupRouterGroup.POST("/get_group_history_members", group.GetGroupHistoryMembers) // 获取群历史成员列表
 	}
 	superGroupRouterGroup := r.Group("/super_group")
 	{
@@ -158,6 +159,10 @@ func NewGinRouter() *gin.Engine {
 		chatGroup.POST("/get_message_list_reaction_extensions", apiChat.GetMessageListReactionExtensions)
 		chatGroup.POST("/add_message_reaction_extensions", apiChat.AddMessageReactionExtensions)
 		chatGroup.POST("/delete_message_reaction_extensions", apiChat.DeleteMessageReactionExtensions)
+
+		chatGroup.POST("/collect", apiChat.MsgCollect)          //消息收藏
+		chatGroup.POST("/collect/list", apiChat.MsgCollectList) //消息收藏列表
+		chatGroup.POST("/collect/del", apiChat.MsgCollectDel)   //删除消息收藏
 	}
 	//Conversation
 	conversationGroup := r.Group("/conversation")
@@ -197,15 +202,12 @@ func NewGinRouter() *gin.Engine {
 	// CloudWallet
 	cloudWalletGroup := r.Group("/cloudWallet")
 	{
-		//cloudWalletGroup.Use(middleware.JWTAuth())
-
 		// 用户账户管理
 		cloudWalletGroup.POST("/account", account.Account)                                //获取账户信息
 		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth)      //身份证实名认证
 		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
 		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)        // 校验支付密码
 		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
-		cloudWalletGroup.POST("/user/one_click_login", account.UserOneClickLogin)         //一键登录-测试路由
 
 		//用户银行卡管理
 		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)

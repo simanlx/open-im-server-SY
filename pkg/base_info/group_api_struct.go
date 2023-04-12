@@ -309,3 +309,23 @@ type GetGroupAbstractInfoResp struct {
 	GroupMemberNumber   int32  `json:"groupMemberNumber"`
 	GroupMemberListHash uint64 `json:"groupMemberListHash"`
 }
+
+type GetGroupHistoryMembersReq struct {
+	Page        int32  `json:"page"`
+	Size        int32  `json:"size"`
+	GroupID     string `json:"group_id" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type GetGroupHistoryMembersResp struct {
+	Total int32                 `json:"total"`
+	Data  []GroupHistoryMembers `json:"data"`
+}
+
+type GroupHistoryMembers struct {
+	UserId          string `json:"user_id"`            //用户id
+	FaceUrl         string `json:"face_url"`           //头像
+	Nickname        string `json:"nickname"`           //昵称
+	LastSendMsgTime int    `json:"last_send_msg_time"` //最后发送群消息时间
+	CreatedTime     string `json:"created_time"`       //加群时间
+}
