@@ -1,4 +1,4 @@
-package main
+package agora
 
 import (
 	"encoding/json"
@@ -65,7 +65,6 @@ func rtcTokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	generateRtcToken(int_uid, channel_name, role)
 	errorResponse(w, rtc_token, http.StatusOK)
 	log.Println(w, r)
 }

@@ -223,13 +223,14 @@ func NewGinRouter() *gin.Engine {
 
 		// 红包管理
 		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
-		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                              // 抢红包接口
-		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail)             // 红包领取明细
-		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                             // 红包详情
-		cloudWalletGroup.POST("/red_packet/ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 红包列表
+		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                  // 抢红包接口
+		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail) // 红包领取明细
+		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                 // 红包详情
+		cloudWalletGroup.POST("ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 禁止群抢红包
 
 		// 生成声网token
-		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken) // 获取声网token
+		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token
+		cloudWalletGroup.POST("/translateVideo", redpacket.TranslateVideo) // 翻译文字
 
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {

@@ -61,3 +61,8 @@ type RedPacketGrabMessage struct {
 	RedPacketID string `json:"redPacketID" binding:"required"` // 红包ID
 	UserName    string `json:"userName" binding:"required"`    // 用户昵称
 }
+
+// 群解散消息
+type GroupDismissMessage struct {
+	GroupID string `json:"groupID" binding:"required"` // 群ID
+}

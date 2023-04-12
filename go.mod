@@ -49,7 +49,8 @@ require (
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe
 	github.com/swaggo/gin-swagger v1.5.0
 	github.com/swaggo/swag v1.8.3
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.428
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/asr v1.0.636
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.636
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.428
 	github.com/tencentyun/qcloud-cos-sts-sdk v0.0.0-20210325043845-84a0811633ca
 	go.etcd.io/etcd/api/v3 v3.5.4

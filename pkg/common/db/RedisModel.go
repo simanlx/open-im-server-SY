@@ -51,12 +51,16 @@ const (
 // 设置群红包
 func (d *DataBases) SetRedPacket(packetID string, values []int) error {
 	key := redPacket + packetID
-
 	var a []interface{}
 	for _, v := range values {
 		a = append(a, v)
 	}
-	return d.RDB.SAdd(context.Background(), key, a...).Err()
+	err := d.RDB.SAdd(context.Background(), key, a...).Err()
+	if err != nil {
+		return err
+	}
+	// 给红包设置过期时间
+	return d.RDB.Expire(context.Background(), key, 24*time.Hour).Err()
 }
 
 // 获取群红包
