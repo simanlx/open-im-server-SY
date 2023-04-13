@@ -1,6 +1,7 @@
 package account
 
 import (
+	"Open_IM/internal/api/common"
 	"Open_IM/pkg/base_info/account"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
@@ -26,8 +27,14 @@ func ChargeAccount(c *gin.Context) {
 	//	return
 	//}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.UserRechargeReq{
-		UserId:        params.UserId,
+		UserId:        userId,
 		BindCardAgrNo: params.BindCardAgrNo,
 		Amount:        params.Amount,
 		OperationID:   params.OperationID,
@@ -48,6 +55,11 @@ func ChargeAccount(c *gin.Context) {
 		return
 	}
 
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
@@ -60,8 +72,14 @@ func ChargeAccountConfirm(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.UserRechargeConfirmReq{
-		UserId:      params.UserId,
+		UserId:      userId,
 		MerOrderId:  params.OrderNo,
 		SmsCode:     params.Code,
 		OperationID: params.OperationID,
@@ -79,6 +97,11 @@ func ChargeAccountConfirm(c *gin.Context) {
 	if err != nil {
 		log.NewError(req.OperationID, "UserRechargeConfirm failed ", err.Error(), req.String())
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
 		return
 	}
 
@@ -106,8 +129,14 @@ func DrawAccount(c *gin.Context) {
 	//	return
 	//}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.DrawAccountReq{
-		UserId:          params.UserId,
+		UserId:          userId,
 		BindCardAgrNo:   params.BindCardAgrNo,
 		Amount:          params.Amount,
 		PaymentPassword: params.PaymentPassword,
@@ -129,6 +158,11 @@ func DrawAccount(c *gin.Context) {
 		return
 	}
 
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }

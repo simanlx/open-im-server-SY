@@ -45,7 +45,7 @@ func UnBindUserBankcard(bankcardId int32, userId string) error {
 	return nil
 }
 
-// 获取绑定的银行卡信息
+// 获取绑定的银行卡信息ById
 func GetNcountBankCardById(id int32, userId string) (info *db.FNcountBankCard, err error) {
 	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("id = ? and user_id = ?", id, userId).First(&info).Error
 	if err != nil {
@@ -54,7 +54,7 @@ func GetNcountBankCardById(id int32, userId string) (info *db.FNcountBankCard, e
 	return
 }
 
-// 获取绑定的银行卡信息
+// 获取绑定的银行卡信息ByBindCardAgrNo
 func GetNcountBankCardByBindCardAgrNo(bindCardAgrNo, userId string) (info *db.FNcountBankCard, err error) {
 	err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_bank_card").Where("bind_card_agr_no = ? and user_id = ?", bindCardAgrNo, userId).First(&info).Error
 	if err != nil {

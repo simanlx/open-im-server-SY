@@ -1,6 +1,7 @@
 package account
 
 import (
+	"Open_IM/internal/api/common"
 	"Open_IM/pkg/base_info/account"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
@@ -20,8 +21,14 @@ func BindUserBankCard(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.BindUserBankcardReq{
-		UserId:            params.UserId,
+		UserId:            userId,
 		CardOwner:         params.CardOwner,
 		BankCardNumber:    params.BankCard,
 		Mobile:            params.Mobile,
@@ -45,6 +52,11 @@ func BindUserBankCard(c *gin.Context) {
 		return
 	}
 
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
@@ -57,8 +69,14 @@ func BindUserBankcardConfirm(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.BindUserBankcardConfirmReq{
-		UserId:      params.UserId,
+		UserId:      userId,
 		BankCardId:  params.BankCardId,
 		SmsCode:     params.Code,
 		MerUserIp:   c.ClientIP(),
@@ -80,6 +98,11 @@ func BindUserBankcardConfirm(c *gin.Context) {
 		return
 	}
 
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
@@ -92,8 +115,14 @@ func UnBindUserBankcard(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.UnBindingUserBankcardReq{
-		UserId:        params.UserId,
+		UserId:        userId,
 		BindCardAgrNo: params.BindCardAgrNo,
 		OperationID:   params.OperationID,
 	}
@@ -110,6 +139,11 @@ func UnBindUserBankcard(c *gin.Context) {
 	if err != nil {
 		log.NewError(req.OperationID, "UnBindingUserBankcard failed ", err.Error(), req.String())
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
 		return
 	}
 

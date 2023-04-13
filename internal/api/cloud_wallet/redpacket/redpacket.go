@@ -1,6 +1,7 @@
 package redpacket
 
 import (
+	"Open_IM/internal/api/common"
 	"Open_IM/pkg/agora"
 	"Open_IM/pkg/base_info/redpacket_struct"
 	"Open_IM/pkg/common/config"
@@ -123,8 +124,14 @@ func RedPacketReceiveDetail(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.RedPacketReceiveDetailReq{
-		UserId:      params.UserId,
+		UserId:      userId,
 		StartTime:   params.StartTime,
 		EndTime:     params.EndTime,
 		OperationID: params.OperationID,

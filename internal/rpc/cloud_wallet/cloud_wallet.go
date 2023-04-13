@@ -116,7 +116,7 @@ func (rpc *CloudWalletServer) Run() {
 
 // 获取云账户信息
 func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
-	resp := &cloud_wallet.UserNcountAccountResp{Step: 0, BalAmount: "0"}
+	resp := &cloud_wallet.UserNcountAccountResp{Step: 0, BalAmount: "0", CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
 
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
@@ -130,12 +130,16 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 		UserID:  accountInfo.MainAccountId,
 	})
 
-	log.Info(req.OperationID, "获取云账户信息->", utils.JsonFormat(accountResp), err)
+	log.Info(req.OperationID, "获取云账户信息-CheckUserAccountInfo->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("查询账户信息失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("查询账户信息失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
 		if accountResp.ResultCode != "0000" {
-			return nil, errors.New(fmt.Sprintf("查询账户信息失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+			resp.CommonResp.ErrMsg = fmt.Sprintf("查询账户信息失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
@@ -183,10 +187,14 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 
 // 身份证实名认证
 func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_wallet.IdCardRealNameAuthReq) (*cloud_wallet.IdCardRealNameAuthResp, error) {
+	resp := &cloud_wallet.IdCardRealNameAuthResp{Step: 0, CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if accountInfo != nil && accountInfo.Id > 0 {
-		return nil, errors.New("已实名认证,请勿重复操作")
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "已实名认证,请勿重复操作"
+		return resp, nil
 	}
 
 	//组装数据
@@ -219,9 +227,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 				},
 			})
 
-			fmt.Println("accountResp", id, accountResp)
-			log.Info("", "accountResp", &accountResp, err)
-
+			log.Info(req.OperationID, "实名认证-NewAccount->", utils.JsonFormat(accountResp), err)
 			if err != nil {
 				return errors.New(fmt.Sprintf("实名认证失败(%s)", err.Error()))
 			} else {
@@ -241,46 +247,55 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 		})
 	}
 
-	if err := errGroup.Wait(); err != nil {
-		return nil, err
+	if err = errGroup.Wait(); err != nil {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = err.Error()
+		return resp, nil
 	}
 
 	//实名数据入库
 	err = imdb.CreateNcountAccount(info)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("数据入库失败:%s", err.Error()))
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = fmt.Sprintf("实名认证数据入库失败:%s", err.Error())
+		return resp, nil
 	}
 
-	return &cloud_wallet.IdCardRealNameAuthResp{
-		Step: 1,
-		CommonResp: &cloud_wallet.CommonResp{
-			ErrCode: 0,
-			ErrMsg:  "实名认证成功",
-		},
-	}, nil
+	resp.Step = 1
+	return resp, nil
 }
 
 // 校验用户支付密码
 func (rpc *CloudWalletServer) CheckPaymentSecret(_ context.Context, req *cloud_wallet.CheckPaymentSecretReq) (*cloud_wallet.CheckPaymentSecretResp, error) {
+	resp := &cloud_wallet.CheckPaymentSecretResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New("账户信息不存在")
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "账户信息不存在"
+		return resp, nil
 	}
 
 	//验证支付密码
 	if len(accountInfo.PaymentPassword) == 0 || utils.Md5(req.PaymentSecret) != accountInfo.PaymentPassword {
-		return nil, errors.New("支付密码错误")
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "支付密码错误"
+		return resp, nil
 	}
-	return &cloud_wallet.CheckPaymentSecretResp{}, nil
+	return resp, nil
 }
 
 // 设置用户支付密码
 func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.SetPaymentSecretResp, error) {
+	resp := &cloud_wallet.SetPaymentSecretResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New("账户信息不存在")
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "账户信息不存在"
+		return resp, nil
 	}
 
 	//md5 加密密码
@@ -288,16 +303,18 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 
 	err = imdb.UpdateNcountAccountField(req.UserId, map[string]interface{}{"payment_password": secret, "open_step": 2})
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("保存数据失败,err:%s", err.Error()))
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = fmt.Sprintf("保存支付密码失败,err:%s", err.Error())
+		return resp, nil
 	}
 
-	return &cloud_wallet.SetPaymentSecretResp{
-		Step: 2,
-	}, nil
+	resp.Step = 2
+	return resp, nil
 }
 
 // 云钱包收支明细
 func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *cloud_wallet.CloudWalletRecordListReq) (*cloud_wallet.CloudWalletRecordListResp, error) {
+	resp := &cloud_wallet.CloudWalletRecordListResp{}
 	if req.Page <= 0 {
 		req.Page = 1
 	}
@@ -309,7 +326,7 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 	//条件获取列表数据
 	list, count, err := imdb.FindNcountTradeList(req.UserId, req.StartTime, req.EndTime, req.Page, req.Size)
 	if err != nil {
-		return &cloud_wallet.CloudWalletRecordListResp{}, nil
+		return resp, nil
 	}
 
 	recordList := make([]*cloud_wallet.RecordList, 0)
@@ -324,18 +341,21 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 		})
 	}
 
-	return &cloud_wallet.CloudWalletRecordListResp{
-		Total:      int32(count),
-		RecordList: recordList,
-	}, nil
+	resp.Total = int32(count)
+	resp.RecordList = recordList
+	return resp, nil
 }
 
 // 绑定用户银行卡
 func (rpc *CloudWalletServer) BindUserBankcard(_ context.Context, req *cloud_wallet.BindUserBankcardReq) (*cloud_wallet.BindUserBankcardResp, error) {
+	resp := &cloud_wallet.BindUserBankcardResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error()))
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error())
+		return resp, nil
 	}
 
 	merOrderId := ncount.GetMerOrderID()
@@ -351,13 +371,16 @@ func (rpc *CloudWalletServer) BindUserBankcard(_ context.Context, req *cloud_wal
 		},
 	})
 
-	log.Info(merOrderId, "accountResp", &accountResp, err)
-	fmt.Println("accountResp Println", accountResp, err)
+	log.Info(req.OperationID, "绑定银行卡-BindUserBankcard->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("绑定银行卡失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("绑定银行卡失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
 		if accountResp.ResultCode != "0000" {
-			return nil, errors.New(fmt.Sprintf("绑定银行卡失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+			resp.CommonResp.ErrMsg = fmt.Sprintf("绑定银行卡失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
@@ -376,24 +399,32 @@ func (rpc *CloudWalletServer) BindUserBankcard(_ context.Context, req *cloud_wal
 	}
 
 	//数据入库
-	_ = imdb.BindUserBankcard(info)
+	err = imdb.BindUserBankcard(info)
+	if err != nil {
+		resp.CommonResp.ErrMsg = "银行卡数据入库失败"
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
+	}
 
-	return &cloud_wallet.BindUserBankcardResp{
-		BankCardId: info.Id,
-	}, nil
+	resp.BankCardId = info.Id
+	return resp, nil
 }
 
 // 绑定用户银行卡确认code
 func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cloud_wallet.BindUserBankcardConfirmReq) (*cloud_wallet.BindUserBankcardConfirmResp, error) {
+	resp := &cloud_wallet.BindUserBankcardConfirmResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取绑定的银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardById(req.BankCardId, req.UserId)
 	if err != nil || bankCardInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	}
 
 	//已绑定
 	if bankCardInfo.IsBind == 1 {
-		return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
+		return resp, err
 	}
 
 	//新生支付确定接口
@@ -406,27 +437,40 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cl
 		},
 	})
 
-	fmt.Println("accountResp Println", accountResp, err)
+	log.Info(req.OperationID, "绑定用户银行卡确认-BindUserBankcardConfirm->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("绑定用户银行卡确认失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("绑定用户银行卡确认失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
 		if accountResp.ResultCode != "0000" {
-			return nil, errors.New(fmt.Sprintf("绑定用户银行卡确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+			resp.CommonResp.ErrMsg = fmt.Sprintf("绑定用户银行卡确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
 	//更新数据
-	_ = imdb.BindUserBankcardConfirm(bankCardInfo.Id, req.UserId, accountResp.BindCardAgrNo, accountResp.BankCode)
+	err = imdb.BindUserBankcardConfirm(bankCardInfo.Id, req.UserId, accountResp.BindCardAgrNo, accountResp.BankCode)
+	if err != nil {
+		resp.CommonResp.ErrMsg = fmt.Sprintf("更新银行卡数据失败 (%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
+	}
 
 	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
 }
 
 // 解绑用户银行卡
 func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *cloud_wallet.UnBindingUserBankcardReq) (*cloud_wallet.UnBindingUserBankcardResp, error) {
+	resp := &cloud_wallet.UnBindingUserBankcardResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取绑定的银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
 	if err != nil || bankCardInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("查询银行卡数据失败,error:%s", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	}
 
 	//新生支付确定接口
@@ -437,27 +481,41 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 			UserId:           bankCardInfo.NcountUserId,
 		},
 	})
-	fmt.Println("accountResp Println", accountResp, err, bankCardInfo.BindCardAgrNo, bankCardInfo.NcountUserId)
+
+	log.Info(req.OperationID, "解绑银行卡-UnBindingUserBankcard->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("解绑银行卡失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("解绑银行卡失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
 		if accountResp.ResultCode != "0000" {
-			return nil, errors.New(fmt.Sprintf("解绑银行卡失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+			resp.CommonResp.ErrMsg = fmt.Sprintf("解绑银行卡失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
 	//更新数据库
-	_ = imdb.UnBindUserBankcard(bankCardInfo.Id, req.UserId)
+	err = imdb.UnBindUserBankcard(bankCardInfo.Id, req.UserId)
+	if err != nil {
+		resp.CommonResp.ErrMsg = fmt.Sprintf("更新银行卡数据失败 (%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
+	}
 
 	return &cloud_wallet.UnBindingUserBankcardResp{}, err
 }
 
 // 银行卡充值
 func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.UserRechargeReq) (*cloud_wallet.UserRechargeResp, error) {
+	resp := &cloud_wallet.UserRechargeResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	// 获取银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("获取银行卡信息失败%s", err.Error()))
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = fmt.Sprintf("获取银行卡信息失败%s", err.Error())
+		return resp, nil
 	}
 
 	//充值支付
@@ -473,19 +531,23 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 			SubMerchantId: "2206301126073014978", // 子商户编号
 		}})
 
-	fmt.Println("accountResp Println", accountResp, err)
+	log.Info(req.OperationID, "银行卡充值-UserRecharge->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("充值失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡充值失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
 		if accountResp.ResultCode != "0000" {
-			return nil, errors.New(fmt.Sprintf("充值失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+			resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡充值失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
 	//增加账户变更日志
 	err = AddNcountTradeLog(BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
+		log.Error(req.OperationID, "增加账户变更日志失败[%s]", err.Error(), "参数：", BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId)
 	}
 
 	return &cloud_wallet.UserRechargeResp{
@@ -495,10 +557,14 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 
 // 账户充值code 确认
 func (rpc *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_wallet.UserRechargeConfirmReq) (*cloud_wallet.UserRechargeConfirmResp, error) {
+	resp := &cloud_wallet.UserRechargeConfirmResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	// 获取记录信息
 	tradeInfo, err := imdb.GetFNcountTradeByOrderNo(req.MerOrderId, req.UserId)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("获取充值记录信息失败%s", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("获取充值记录信息失败%s", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	}
 
 	//新生支付确认接口
@@ -513,35 +579,47 @@ func (rpc *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_
 		},
 	})
 
-	fmt.Println("accountResp Println", accountResp, err)
+	log.Info(req.OperationID, "充值确认-UserRechargeConfirm->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("充值确认失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("充值确认失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
-		if accountResp.ResultCode == "4444" {
-			return nil, errors.New(fmt.Sprintf("充值确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		if accountResp.ResultCode != "0000" {
+			resp.CommonResp.ErrMsg = fmt.Sprintf("充值确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
-	return &cloud_wallet.UserRechargeConfirmResp{}, nil
+	return resp, nil
 }
 
 // 提现
 func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_wallet.DrawAccountReq) (*cloud_wallet.DrawAccountResp, error) {
+	resp := &cloud_wallet.DrawAccountResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return nil, errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("查询账户数据失败 %s,error:%s", req.UserId, err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	}
 
 	//验证支付密码
 	if len(accountInfo.PaymentPassword) == 0 || utils.Md5(req.PaymentPassword) != accountInfo.PaymentPassword {
-		return nil, errors.New("支付密码错误")
+		resp.CommonResp.ErrMsg = "支付密码错误"
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	}
 
 	// 获取银行卡信息
 	bankCardInfo, err := imdb.GetNcountBankCardByBindCardAgrNo(req.BindCardAgrNo, req.UserId)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("获取银行卡信息失败%s", err.Error()))
+		resp.CommonResp.ErrMsg = "获取银行卡信息错误"
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	}
 
 	//调用新生支付提现接口
@@ -558,22 +636,25 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 		},
 	})
 
-	fmt.Println("accountResp Println", accountResp, err)
+	log.Info(req.OperationID, "银行卡提现-UserWithdrawal->", utils.JsonFormat(accountResp), err)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("提现失败(%s)", err.Error()))
+		resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡提现失败(%s)", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
 	} else {
-		if accountResp.ResultCode == "4444" {
-			return nil, errors.New(fmt.Sprintf("提现失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
+		if accountResp.ResultCode != "0000" {
+			resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡提现失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
+			resp.CommonResp.ErrCode = 400
+			return resp, nil
 		}
 	}
 
 	//增加账户变更日志
 	err = AddNcountTradeLog(BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
+		log.Error(req.OperationID, "增加账户变更日志失败[%s]", err.Error(), "参数：", BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId)
 	}
 
-	return &cloud_wallet.DrawAccountResp{
-		OrderNo: accountResp.NcountOrderId,
-	}, nil
+	resp.OrderNo = accountResp.NcountOrderId
+	return resp, nil
 }

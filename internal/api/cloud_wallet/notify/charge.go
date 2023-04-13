@@ -56,9 +56,6 @@ func ChargeNotify(c *gin.Context) {
 
 // 提现回调
 func WithDrawNotify(c *gin.Context) {
-	//data, _ := ioutil.ReadAll(c.Request.Body)
-	//fmt.Println("WithDrawNotify Body", string(data))
-	//log.Error("0", "WithDrawNotify Body", string(data))
 	params := notify.WithdrawNotifyReq{}
 	if err := c.ShouldBind(&params); err != nil {
 		log.Error("0", "WithDrawNotify", err.Error(), params)

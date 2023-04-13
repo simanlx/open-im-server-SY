@@ -12,6 +12,7 @@ import (
 	open_im_sdk "Open_IM/pkg/proto/sdk_ws"
 	"Open_IM/pkg/utils"
 	"context"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"
@@ -1385,7 +1386,6 @@ func GetGroupAbstractInfo(c *gin.Context) {
 func GetGroupHistoryMembers(c *gin.Context) {
 	var (
 		req api.GetGroupHistoryMembersReq
-		//resp api.GetGroupHistoryMembersResp
 	)
 
 	if err := c.BindJSON(&req); err != nil {
@@ -1416,6 +1416,6 @@ func GetGroupHistoryMembers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "timestamp": time.Now().Unix(), "data": RpcResp})
 	return
 }
