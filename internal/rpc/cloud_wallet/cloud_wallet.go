@@ -256,6 +256,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	//实名数据入库
 	err = imdb.CreateNcountAccount(info)
 	if err != nil {
+		log.Error(req.OperationID, "实名认证数据入库失败:%s", err.Error())
 		resp.CommonResp.ErrCode = 400
 		resp.CommonResp.ErrMsg = fmt.Sprintf("实名认证数据入库失败:%s", err.Error())
 		return resp, nil
@@ -303,6 +304,7 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 
 	err = imdb.UpdateNcountAccountField(req.UserId, map[string]interface{}{"payment_password": secret, "open_step": 2})
 	if err != nil {
+		log.Error(req.OperationID, "保存支付密码失败:%s", err.Error())
 		resp.CommonResp.ErrCode = 400
 		resp.CommonResp.ErrMsg = fmt.Sprintf("保存支付密码失败,err:%s", err.Error())
 		return resp, nil
@@ -401,6 +403,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(_ context.Context, req *cloud_wal
 	//数据入库
 	err = imdb.BindUserBankcard(info)
 	if err != nil {
+		log.Error(req.OperationID, "银行卡数据入库失败:%s", err.Error())
 		resp.CommonResp.ErrMsg = "银行卡数据入库失败"
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
@@ -453,12 +456,14 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cl
 	//更新数据
 	err = imdb.BindUserBankcardConfirm(bankCardInfo.Id, req.UserId, accountResp.BindCardAgrNo, accountResp.BankCode)
 	if err != nil {
+		log.Error(req.OperationID, "更新银行卡数据失败:%s", err.Error())
 		resp.CommonResp.ErrMsg = fmt.Sprintf("更新银行卡数据失败 (%s)", err.Error())
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	}
 
-	return &cloud_wallet.BindUserBankcardConfirmResp{BankCardId: bankCardInfo.Id}, err
+	resp.BankCardId = bankCardInfo.Id
+	return resp, err
 }
 
 // 解绑用户银行卡
@@ -498,6 +503,7 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 	//更新数据库
 	err = imdb.UnBindUserBankcard(bankCardInfo.Id, req.UserId)
 	if err != nil {
+		log.Error(req.OperationID, "更新银行卡数据失败:%s", err.Error())
 		resp.CommonResp.ErrMsg = fmt.Sprintf("更新银行卡数据失败 (%s)", err.Error())
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
@@ -585,7 +591,7 @@ func (rpc *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode == "4444" {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("充值确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -642,7 +648,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode == "4444" {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡提现失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
