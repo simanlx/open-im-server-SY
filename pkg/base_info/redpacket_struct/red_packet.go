@@ -32,7 +32,6 @@ type ClickRedPacketReq struct {
 
 // 红包领取明细列表记录
 type RedPacketReceiveDetailReq struct {
-	UserId      string `json:"user_id"`
 	StartTime   string `json:"start_time" binding:"required"`
 	EndTime     string `json:"end_time" binding:"required"`
 	OperationID string `json:"operationID" binding:"required"`

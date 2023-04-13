@@ -1,11 +1,11 @@
 package account
 
 import (
+	"Open_IM/internal/api/common"
 	utils2 "Open_IM/internal/utils"
 	"Open_IM/pkg/base_info/account"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"context"
@@ -23,11 +23,8 @@ func Account(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), params.OperationID)
+	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 
@@ -45,6 +42,11 @@ func Account(c *gin.Context) {
 	if err != nil {
 		log.NewError(params.OperationID, "UserNcountAccount failed ", err.Error(), req.String())
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
 		return
 	}
 
@@ -71,16 +73,19 @@ func IdCardRealNameAuth(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.IdCardRealNameAuthReq{
-		UserId:      params.UserId,
+		UserId:      userId,
 		Mobile:      params.Mobile,
 		IdCard:      params.IdCard,
 		RealName:    params.RealName,
 		OperationID: params.OperationID,
 	}
-
-	//userId, _ := c.Get("userID")
-	//req.UserId = cast.ToInt32(userId)
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
 	if etcdConn == nil {
@@ -94,6 +99,11 @@ func IdCardRealNameAuth(c *gin.Context) {
 	if err != nil {
 		log.NewError(req.OperationID, "IdCardRealNameAuth failed ", err.Error(), req.String())
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
 		return
 	}
 
@@ -118,9 +128,15 @@ func SetPaymentSecret(c *gin.Context) {
 		}
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	//6位数密码
 	req := &rpc.SetPaymentSecretReq{
-		UserId:        params.UserId,
+		UserId:        userId,
 		PaymentSecret: params.PaymentSecret,
 		OperationID:   params.OperationID,
 	}
@@ -140,6 +156,11 @@ func SetPaymentSecret(c *gin.Context) {
 		return
 	}
 
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
@@ -152,9 +173,15 @@ func CheckPaymentSecret(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	//6位数密码
 	req := &rpc.CheckPaymentSecretReq{
-		UserId:        params.UserId,
+		UserId:        userId,
 		PaymentSecret: params.PaymentSecret,
 		OperationID:   params.OperationID,
 	}
@@ -174,6 +201,11 @@ func CheckPaymentSecret(c *gin.Context) {
 		return
 	}
 
+	// handle rpc err
+	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
@@ -187,11 +219,8 @@ func CloudWalletRecordList(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), params.OperationID)
+	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 
