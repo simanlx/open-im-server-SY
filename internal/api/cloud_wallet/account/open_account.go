@@ -179,7 +179,7 @@ func CloudWalletRecordList(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im_token"), params.OperationID)
+	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), params.OperationID)
 	if !ok {
 		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
 		log.NewError(params.OperationID, errMsg)
