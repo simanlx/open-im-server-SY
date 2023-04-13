@@ -22,8 +22,16 @@ func Account(c *gin.Context) {
 		return
 	}
 
-	//userId, _ := c.Get("userID")
-	req := &rpc.UserNcountAccountReq{UserId: params.UserId}
+	//解析token、获取用户id
+	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), params.OperationID)
+	if !ok {
+		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		return
+	}
+
+	req := &rpc.UserNcountAccountReq{UserId: userId, OperationID: params.OperationID}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
 	if etcdConn == nil {
@@ -181,7 +189,7 @@ func CloudWalletRecordList(c *gin.Context) {
 	//解析token、获取用户id
 	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
+		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo
 		log.NewError(params.OperationID, errMsg)
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return

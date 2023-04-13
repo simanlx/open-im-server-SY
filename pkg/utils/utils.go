@@ -190,3 +190,11 @@ func Pb2Map(pb proto.Message) (map[string]interface{}, error) {
 	err := json.Unmarshal(jsonCnt, &out)
 	return out, err
 }
+
+func JsonFormat(data interface{}) string {
+	m, err := json.Marshal(data)
+	if err != nil {
+		return ""
+	}
+	return string(m)
+}

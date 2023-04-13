@@ -116,10 +116,12 @@ func (rpc *CloudWalletServer) Run() {
 
 // 获取云账户信息
 func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
+	resp := &cloud_wallet.UserNcountAccountResp{Step: 0, BalAmount: "0"}
+
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
 	if err != nil || accountInfo.Id <= 0 {
-		return &cloud_wallet.UserNcountAccountResp{Step: 0, BalAmount: "0"}, nil
+		return resp, nil
 	}
 
 	//调新生支付接口，获取用户信息
@@ -128,8 +130,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 		UserID:  accountInfo.MainAccountId,
 	})
 
-	log.Info("0", "accountResp", &accountResp, err)
-	fmt.Println("accountResp Println", accountResp, err)
+	log.Info(req.OperationID, "获取云账户信息->", utils.JsonFormat(accountResp), err)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("查询账户信息失败(%s)", err.Error()))
 	} else {
