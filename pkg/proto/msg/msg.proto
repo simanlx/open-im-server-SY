@@ -292,6 +292,50 @@ message MsgDataToModifyByMQ{
  string triggerID = 3;
 }
 
+message MsgCollectReq{
+  int32  msgType = 1;
+  string content = 2;
+  string operationID = 3;
+  string  userId = 4;
+}
+
+message MsgCollectResp{
+  int32  errCode = 1;
+  string errMsg = 2;
+}
+
+message MsgCollectDelReq{
+  int32 collectId = 1;
+  string operationID = 2;
+  string  userId = 3;
+}
+
+message MsgCollectDelResp{
+  int32  errCode = 1;
+  string errMsg = 2;
+}
+
+message MsgCollectListReq{
+  int32  msgType = 1;
+  string keyword = 2;
+  int32  page = 3;
+  int32  size = 4;
+  string operationID = 5;
+  string  userId = 6;
+}
+
+message MsgCollectListResp{
+  int32  errCode = 1;
+  string errMsg = 2;
+  int64  total = 3;
+  repeated MsgCollectList msgCollectList = 4;
+}
+
+message MsgCollectList{
+  int32  msgType = 1;
+  string content = 2;
+  string collectTime = 3;
+}
 
 service msg {
   rpc GetMaxAndMinSeq(server_api_params.GetMaxAndMinSeqReq) returns(server_api_params.GetMaxAndMinSeqResp);
@@ -311,4 +355,12 @@ service msg {
   rpc GetMessageListReactionExtensions(GetMessageListReactionExtensionsReq) returns(GetMessageListReactionExtensionsResp);
   rpc AddMessageReactionExtensions(AddMessageReactionExtensionsReq) returns(AddMessageReactionExtensionsResp);
   rpc DeleteMessageReactionExtensions(DeleteMessageListReactionExtensionsReq) returns(DeleteMessageListReactionExtensionsResp);
+
+  //消息收藏
+  rpc MsgCollect(MsgCollectReq) returns(MsgCollectResp);
+  //删除消息收藏
+  rpc MsgCollectDel(MsgCollectDelReq) returns(MsgCollectDelResp);
+  //消息收藏列表
+  rpc MsgCollectList(MsgCollectListReq) returns(MsgCollectListResp);
+
 }

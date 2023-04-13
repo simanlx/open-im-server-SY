@@ -2096,3 +2096,35 @@ func (s *groupServer) UserIsInGroup(c context.Context, req *pbGroup.UserIsInGrou
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), "resp: ", req.String())
 	return resp, nil
 }
+
+// 获取群历史成员列表
+func (s *groupServer) GetGroupHistoryMembers(_ context.Context, req *pbGroup.GetGroupHistoryMembersReq) (*pbGroup.GetGroupHistoryMembersResp, error) {
+	resp := &pbGroup.GetGroupHistoryMembersResp{}
+
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	if req.Size <= 0 {
+		req.Size = 20
+	}
+
+	//获取历史成员列表
+	list, total, err := imdb.FindGroupMembersList(req.GroupID, req.Page, req.Size)
+	if err != nil {
+		return resp, nil
+	}
+
+	resp.Total = int32(total)
+	for _, v := range list {
+		resp.GroupHistoryMembersList = append(resp.GroupHistoryMembersList, &pbGroup.GroupHistoryMembersList{
+			UserId:          v.UserId,
+			FaceUrl:         v.FaceUrl,
+			Nickname:        v.Nickname,
+			LastSendMsgTime: v.LastSendMsgTime,
+			CreatedTime:     v.CreatedTime.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return resp, nil
+}

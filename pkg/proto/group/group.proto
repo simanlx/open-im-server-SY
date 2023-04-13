@@ -346,7 +346,7 @@ message GetJoinedSuperGroupListReq {
 
 message GetJoinedSuperGroupListResp {
   CommonResp commonResp = 1;
-  repeated server_api_params.GroupInfo GroupList = 3;
+  repeated server_api_params.GroupInfo GroupList = 2;
 }
 
 message GetSuperGroupsInfoReq {
@@ -357,7 +357,7 @@ message GetSuperGroupsInfoReq {
 
 message GetSuperGroupsInfoResp {
   CommonResp commonResp = 1;
-  repeated server_api_params.GroupInfo GroupInfoList = 3;
+  repeated server_api_params.GroupInfo GroupInfoList = 2;
 }
 
 message SetGroupMemberInfoReq{
@@ -409,6 +409,27 @@ message UserIsInGroupResp {
   map<string, bool> IsExistMap = 2;
 }
 
+message GetGroupHistoryMembersReq {
+  string groupID = 1;
+  int32  page = 2;
+  int32  size = 3;
+  string operationID = 4;
+}
+
+message GetGroupHistoryMembersResp {
+  CommonResp commonResp = 1;
+  int32  total = 2;
+  repeated GroupHistoryMembersList groupHistoryMembersList = 3;
+}
+
+message GroupHistoryMembersList {
+  string userId = 1; //用户id
+  string faceUrl = 2; //头像
+  string nickname = 3; //昵称
+  int32 lastSendMsgTime = 4; //最后发送群消息时间
+  string createdTime = 5; //加群时间
+}
+
 service group{
   rpc createGroup(CreateGroupReq) returns(CreateGroupResp);
   rpc joinGroup(JoinGroupReq) returns(JoinGroupResp);
@@ -444,6 +465,9 @@ service group{
   rpc GetGroupAbstractInfo(GetGroupAbstractInfoReq) returns (GetGroupAbstractInfoResp);
   rpc GroupIsExist(GroupIsExistReq) returns(GroupIsExistResp);
   rpc UserIsInGroup(UserIsInGroupReq) returns(UserIsInGroupResp);
+
+  //群历史成员列表
+  rpc GetGroupHistoryMembers(GetGroupHistoryMembersReq) returns(GetGroupHistoryMembersResp);
 }
 
 

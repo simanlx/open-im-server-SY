@@ -5,6 +5,7 @@ import (
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
+	"Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/token_verify"
@@ -428,6 +429,9 @@ func (rpc *rpcChat) SendMsg(_ context.Context, pb *pbChat.SendMsgReq) (*pbChat.S
 		promePkg.PromeInc(promePkg.SingleChatMsgProcessSuccessCounter)
 		return returnMsg(&replay, pb, 0, "", msgToMQSingle.MsgData.ServerMsgID, msgToMQSingle.MsgData.SendTime)
 	case constant.GroupChatType:
+		//更新群成员最新留言时间
+		_ = im_mysql_model.UpGroupMembersLastSendMsgTime(pb.MsgData.GroupID, pb.MsgData.SendID)
+
 		// callback
 		promePkg.PromeInc(promePkg.GroupChatMsgRecvSuccessCounter)
 		callbackResp := callbackBeforeSendGroupMsg(pb)

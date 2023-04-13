@@ -1380,3 +1380,42 @@ func GetGroupAbstractInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 	return
 }
+
+// 获取群历史成员列表
+func GetGroupHistoryMembers(c *gin.Context) {
+	var (
+		req api.GetGroupHistoryMembersReq
+		//resp api.GetGroupHistoryMembersResp
+	)
+
+	if err := c.BindJSON(&req); err != nil {
+		log.NewError("0", "BindJSON failed ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImGroupName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		return
+	}
+
+	client := rpc.NewGroupClient(etcdConn)
+	RpcResp, err := client.GetGroupHistoryMembers(context.Background(), &rpc.GetGroupHistoryMembersReq{
+		GroupID:     req.GroupID,
+		Page:        req.Page,
+		Size:        req.Size,
+		OperationID: req.OperationID,
+	})
+
+	if err != nil {
+		log.NewError(req.OperationID, "GetGroupHistoryMembers failed ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}

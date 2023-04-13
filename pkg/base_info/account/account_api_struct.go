@@ -2,7 +2,6 @@ package account
 
 // 账户信息
 type AccountReq struct {
-	UserId      string `json:"user_id"`
 	OperationID string `json:"operationID" binding:"required"`
 }
 
