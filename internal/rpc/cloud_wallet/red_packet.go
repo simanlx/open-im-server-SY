@@ -232,6 +232,7 @@ func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string 
 		BindCardAgrNo:   in.BindCardAgrNo,
 		RecvID:          in.RecvID, // 接收ID
 		Remain:          int64(in.Number),
+		RemainAmout:     in.Amount,
 		ExpireTime:      time.Now().Unix() + 60*60*24,
 		CreatedTime:     time.Now().Unix(),
 		UpdatedTime:     time.Now().Unix(),
