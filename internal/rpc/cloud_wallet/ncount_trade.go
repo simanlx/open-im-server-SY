@@ -40,6 +40,15 @@ func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int3
 
 // 增加账户变更日志
 func AddNcountTradeLog(businessType, amount int32, userId, mainAccountId, thirdOrderNo, packetID string) (err error) {
+	if len(mainAccountId) < 1 {
+		//获取用户账户信息
+		accountInfo, err := imdb.GetNcountAccountByUserId(userId)
+		if err != nil || accountInfo.Id <= 0 {
+			return errors.New(fmt.Sprintf("查询账户数据失败 %s,error:%s", userId, err.Error()))
+		}
+		mainAccountId = accountInfo.MainAccountId
+	}
+
 	//获取用户余额
 	accountResp, err := ncount.NewCounter().CheckUserAccountInfo(&ncount.CheckUserAccountReq{
 		OrderID: ncount.GetMerOrderID(),
