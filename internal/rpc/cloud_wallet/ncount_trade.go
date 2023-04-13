@@ -30,9 +30,9 @@ func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int3
 	case BusinessTypeBalanceSendPacket:
 		return 2, 1, balAmount, "余额支付发送红包", nil
 	case BusinessTypeReceivePacket:
-		return 1, 1, balAmount + amount, "领取红包", nil
+		return 1, 1, balAmount, "领取红包", nil
 	case BusinessTypePacketExpire:
-		return 1, 1, balAmount + amount, "红包超时退回", nil
+		return 1, 1, balAmount, "红包超时退回", nil
 	default:
 		return 0, 0, 0, "", errors.New("业务类型错误")
 	}
