@@ -7,6 +7,7 @@ import (
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	imdb2 "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -557,5 +558,13 @@ func (rpc *CloudWalletServer) ForbidGroupRedPacket(ctx context.Context, req *pb.
 		log.Error(req.OperationID, "禁止群抢红包失败", err)
 		return nil, err
 	}
+
+	// 如果ok 删除
+	err = rocksCache.DelGroupInfoFromCache(req.GroupId)
+	if err != nil {
+		log.Error(req.OperationID, "删除群缓存", err)
+		return nil, err
+	}
+
 	return result, nil
 }
