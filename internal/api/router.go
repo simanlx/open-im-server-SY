@@ -47,6 +47,50 @@ func NewGinRouter() *gin.Engine {
 		r.GET("/metrics", promePkg.PrometheusHandler())
 	}
 
+	// CloudWallet
+	cloudWalletGroup := r.Group("/cloudWallet")
+	{
+		// 用户账户管理
+		cloudWalletGroup.POST("/account", account.Account)                                //获取账户信息
+		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth)      //身份证实名认证
+		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
+		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)        // 校验支付密码
+		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
+
+		//用户银行卡管理
+		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)
+		cloudWalletGroup.POST("/bind_user_bankcard/confirm", account.BindUserBankcardConfirm) //确认绑定银行卡-code验证
+		cloudWalletGroup.POST("/unbinding/user_bankcard", account.UnBindUserBankcard)         //解绑银行卡
+
+		//账户
+		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)                //账户充值
+		cloudWalletGroup.POST("/charge_account/confirm", account.ChargeAccountConfirm) //账户充值code确认
+		cloudWalletGroup.POST("/draw_account", account.DrawAccount)                    //提现
+
+		// 回调接口
+		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify) // 充值回调
+		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)
+
+		// 红包管理
+		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
+		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                  // 抢红包接口
+		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail) // 红包领取明细
+		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                 // 红包详情
+		cloudWalletGroup.POST("ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 禁止群抢红包
+
+		// 生成声网token
+		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token
+		cloudWalletGroup.POST("/translateVideo", redpacket.TranslateVideo) // 翻译文字
+
+		// 这里临时给检测使用
+		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
+			context.JSON(200, gin.H{
+				"code": 0,
+				"msg":  "ok",
+			})
+		}) // 抢红包接口
+	}
+
 	// user routing group, which handles user registration and login services
 	userRouterGroup := r.Group("/user")
 	{
@@ -197,76 +241,6 @@ func NewGinRouter() *gin.Engine {
 		officeGroup.POST("/get_user_friend_work_moments", office.GetUserFriendWorkMoments)
 		officeGroup.POST("/set_user_work_moments_level", office.SetUserWorkMomentsLevel)
 		officeGroup.POST("/delete_comment", office.DeleteComment)
-	}
-
-	// CloudWallet
-	cloudWalletGroup := r.Group("/cloudWallet")
-	{
-		// 用户账户管理
-		cloudWalletGroup.POST("/account", account.Account)                                //获取账户信息
-		cloudWalletGroup.POST("/id_card/real_name/auth", account.IdCardRealNameAuth)      //身份证实名认证
-		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
-		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)        // 校验支付密码
-		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
-
-		//用户银行卡管理
-		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)
-		cloudWalletGroup.POST("/bind_user_bankcard/confirm", account.BindUserBankcardConfirm) //确认绑定银行卡-code验证
-		cloudWalletGroup.POST("/unbinding/user_bankcard", account.UnBindUserBankcard)         //解绑银行卡
-
-		//账户
-		cloudWalletGroup.POST("/charge_account", account.ChargeAccount)                //账户充值
-		cloudWalletGroup.POST("/charge_account/confirm", account.ChargeAccountConfirm) //账户充值code确认
-		cloudWalletGroup.POST("/draw_account", account.DrawAccount)                    //提现
-
-		// 回调接口
-		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify) // 充值回调
-		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)
-
-		// 红包管理
-		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
-		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                  // 抢红包接口
-		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail) // 红包领取明细
-		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                 // 红包详情
-		cloudWalletGroup.POST("ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 禁止群抢红包
-
-		// 生成声网token
-		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token
-		cloudWalletGroup.POST("/translateVideo", redpacket.TranslateVideo) // 翻译文字
-
-		// 这里临时给检测使用
-		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
-			context.JSON(200, gin.H{
-				"code": 0,
-				"msg":  "ok",
-			})
-		}) // 抢红包接口
-
-		/*// 账户充值提现
-		cloudWalletGroup.POST("/draw_account", cloud_wallet.DrawAccount)
-
-		//通过红包id查红包状态
-		cloudWalletGroup.POST("/get_red_packet_info", cloud_wallet.GetRedPacketInfo)
-		// 红包领取明细
-		cloudWalletGroup.POST("/red_packet_click_detail", cloud_wallet.RedPacketClickDetail)
-		// 根据日期-》 查询用户的红包记录 ： userid- red.list
-		cloudWalletGroup.POST("/list_red_packet_record", cloud_wallet.ListRedPacketRecord)
-		// 红包支付确认 ： 当需要选择银行卡支付的时候存在短信验证码
-		cloudWalletGroup.POST("/confirm_send_red_packet_code", cloud_wallet.ConfirmSendRedPacketCode)
-
-		// 回调 ： 充值是异步的，提现结果也是异步
-		cloudWalletGroup.POST("/send_red_packet_notify", cloud_wallet.SendRedPacketNotify)
-		cloudWalletGroup.POST("/draw_notify", cloud_wallet.DrawNotify)
-
-		// ====================== 规划：软删除========================
-		// 删除红包记录 : UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_red_packet_record", cloud_wallet.DelRedPacketRecord)
-		// 删除领钱明细: UserID , data range ,RedIds
-		cloudWalletGroup.POST("/del_account_change_record", cloud_wallet.DelAccountChangeRecord)*/
-
-		// ===================== 脚本 ======================
-		// 红包24小时未领取，通知
-		// 红包24小时未领取退回
 	}
 
 	organizationGroup := r.Group("/organization")
