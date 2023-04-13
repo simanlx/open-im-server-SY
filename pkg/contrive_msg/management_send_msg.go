@@ -77,14 +77,12 @@ func NewManagementSendMsg_ClickPacket(sendID, recevieID string, sessionID int32,
 	msg1 := ContriveMessage{
 		Data: RedPacketGrabMessage{
 			RedPacketID: redPacketID,
-			UserName:    clickUsername,
 		},
 		MsgType: ContriveMessageGrapRedPacket,
 	}
 	msg2 := ContriveMessage{
 		Data: RedPacketGrabMessage{
 			RedPacketID: redPacketID,
-			UserName:    sendUsername,
 		},
 		MsgType: ContriveMessageGrapRedPacket,
 	}

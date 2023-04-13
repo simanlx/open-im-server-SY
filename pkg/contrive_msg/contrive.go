@@ -43,6 +43,13 @@ type ContriveMessage struct {
 	MsgType int32       `json:"msgType" binding:"required"` // 消息类型
 }
 
+const (
+	MessageType_RedPacket = 1 + iota // 个人红包
+	MessageType_GrapRedPacket
+	MessageType_DismissGroup
+	MessageType_RedPacketLucky
+)
+
 // 发送红包消息红包结构消息
 type RedPacketMessage struct {
 	SendUserID       string `json:"sendUserID" binding:"required"`       // 发送方ID
@@ -58,11 +65,20 @@ type RedPacketMessage struct {
 
 // 抢红包消息结构体 // 谁抢了我的红包 ｜ 我抢了谁的红包
 type RedPacketGrabMessage struct {
-	RedPacketID string `json:"redPacketID" binding:"required"` // 红包ID
-	UserName    string `json:"userName" binding:"required"`    // 用户昵称
+	RedPacketID   string `json:"redPacketID" binding:"required"`   // 红包ID
+	SendUserID    string `json:"sendUserID" binding:"required"`    // 发送方ID
+	SendUserName  string `json:"sendUserName" binding:"required"`  // 发送方红包的姓名
+	ClickUserName string `json:"clickUserName" binding:"required"` // 抢红包的用户ID
 }
 
 // 群解散消息
 type GroupDismissMessage struct {
 	GroupID string `json:"groupID" binding:"required"` // 群ID
+}
+
+// 最佳手气红包消息
+type RedPacketLuckyMessage struct {
+	RedPacketID string `json:"redPacketID" binding:"required"` // 红包ID
+	UserName    string `json:"userName" binding:"required"`    // 用户昵称
+	SpendTime   int64  `json:"spendTime" binding:"required"`   // 总的花费时间
 }
