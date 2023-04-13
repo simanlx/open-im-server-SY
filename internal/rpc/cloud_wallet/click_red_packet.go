@@ -183,11 +183,14 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		err = imdb.UpdateLuckyKing(req.RedPacketID, req.UserId)
 		if err != nil {
 			log.Error(req.OperationID, "更新红包信息失败", err)
-			return res, errors.Wrap(err, "更新红包信息失败")
 		}
 	}
-	// 添加交易记录
+
+	// 8.添加交易记录
 	err = AddNcountTradeLog(BusinessTypeReceivePacket, int32(amount), req.UserId, "", respNcount.NcountOrderId, redPacketInfo.PacketID)
+	if err != nil {
+		log.Error(req.OperationID, "添加交易记录失败", err)
+	}
 
 	res.CommonResp.ErrCode = 0
 	res.CommonResp.ErrMsg = "领取成功"

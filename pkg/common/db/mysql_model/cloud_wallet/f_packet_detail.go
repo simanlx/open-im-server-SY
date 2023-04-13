@@ -2,7 +2,6 @@ package cloud_wallet
 
 import (
 	"Open_IM/pkg/common/db"
-	"gorm.io/gorm"
 )
 
 /*
@@ -113,19 +112,22 @@ func SaveRedPacketDetail(req *FPacketDetail) (bool, error) {
 		return false, result.Error
 	}
 
-	// 3.修改红包剩余数量
-	result2 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", req.PacketID).Update("remain", gorm.Expr("remain - ?", 1))
-	if result2.Error != nil {
-		tx.Rollback()
-		return false, result2.Error
-	}
-
 	// 查询当前红包的剩余数量
 	var packet = FPacket{}
 	result3 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", req.PacketID).Find(&packet)
 	if result3.Error != nil {
 		tx.Rollback()
 		return false, result3.Error
+	}
+
+	packet.Remain = packet.Remain - 1
+	packet.RemainAmout = packet.RemainAmout - req.Amount
+
+	// 3.保存红包信息
+	result2 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Save(&packet)
+	if result2.Error != nil {
+		tx.Rollback()
+		return false, result2.Error
 	}
 
 	// 4.如果红包剩余数量为0，则修改红包状态为已领完
