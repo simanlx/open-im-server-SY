@@ -7,32 +7,32 @@ import (
 	"gorm.io/gorm"
 )
 
-/*
-CREATE TABLE `f_packet` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
-  `user_id` varchar(255) NOT NULL COMMENT '红包发起者',
-  `packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
-  `is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
-  `exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
-  `packet_title` varchar(100) NOT NULL COMMENT '红包标题',
-  `amount` int(11) NOT NULL COMMENT '红包金额',
-  `number` tinyint(3) NOT NULL COMMENT '红包个数',
-  `expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
-  `mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
-  `operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
-  `recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
-  `send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
-  `bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
-  `remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
-  `created_time` int(11) DEFAULT NULL,
-  `updated_time` int(11) DEFAULT NULL,
-  `status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
-  `is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
-  PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
-*/
+//CREATE TABLE `f_packet` (
+//`id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+//`packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
+//`user_id` varchar(255) NOT NULL COMMENT '红包发起者',
+//`packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
+//`is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
+//`exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
+//`packet_title` varchar(100) NOT NULL COMMENT '红包标题',
+//`amount` int(11) NOT NULL COMMENT '红包金额',
+//`number` tinyint(3) NOT NULL COMMENT '红包个数',
+//`expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
+//`mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
+//`operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
+//`recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
+//`send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
+//`bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
+//`remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
+//`lucky_user_id` varchar(255) NOT NULL DEFAULT '' COMMENT '最佳手气红包用户ID',
+//`luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
+//`created_time` int(11) DEFAULT NULL,
+//`updated_time` int(11) DEFAULT NULL,
+//`status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
+//`is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
+//PRIMARY KEY (`id`),
+//KEY `idx_user_id` (`user_id`) USING BTREE
+//) ENGINE=InnoDB AUTO_INCREMENT=222 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 
 type FPacket struct {
 	ID              int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
@@ -50,7 +50,9 @@ type FPacket struct {
 	BindCardAgrNo   string `gorm:"column:bind_card_agr_no;not null" json:"bind_card_agr_no"`
 	OperateID       string `gorm:"column:operate_id;not null" json:"operate_id"`
 	RecvID          string `gorm:"column:recv_id;not null" json:"recv_id"`
-	Remain          int64  `gorm:"column:remain;not null" json:"remain"` // 剩余红包数量
+	Remain          int64  `gorm:"column:remain;not null" json:"remain"`                     // 剩余红包数量
+	LuckyUserID     string `gorm:"column:lucky_user_id;not null" json:"lucky_user_id"`       // 最佳手气红包用户ID
+	LuckUserAmount  int64  `gorm:"column:luck_user_amount;not null" json:"luck_user_amount"` // 最大红包的值： account amount  分为单位
 	CreatedTime     int64  `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime     int64  `gorm:"column:updated_time;not null" json:"updated_time"`
 	Status          int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
@@ -141,6 +143,15 @@ func SelectUserMainAccountByUserID(userID string) (string, error) {
 func UpdateRedPacketRemain(packetID string) error {
 	// 将红包数量减一
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Update("remain", gorm.Expr("remain - ?", 1))
+	if result.Error != nil {
+		return errors.Wrap(result.Error, "修改红包状态失败")
+	}
+	return nil
+}
+
+// 修改红包信息
+func UpdateRedPacketInfo(packetID string, req *FPacket) error {
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Updates(req)
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "修改红包状态失败")
 	}

@@ -9,13 +9,14 @@ CREATE TABLE `f_packet_detail` (
   `user_id` varchar(255) DEFAULT NULL COMMENT '用户id',
   `mer_order_id` varchar(255) DEFAULT NULL COMMENT '转账的商户id',
   `amount` int(11) NOT NULL COMMENT '领取金额分为单位',
+  `is_lucky` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为手气王',
   `receive_time` int(11) DEFAULT NULL COMMENT '领取时间',
   `created_time` int(11) DEFAULT NULL COMMENT '创建时间',
   `updated_time` int(11) DEFAULT NULL COMMENT '修改时间',
   PRIMARY KEY (`id`),
   KEY `idx_packet_id` (`packet_id`) USING BTREE,
   KEY `idx_user_id` (`user_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='红包领取记录';
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COMMENT='红包领取记录';
 */
 
 // 红包的领取记录，提供给用户查询整年的红包领取记录
@@ -25,6 +26,7 @@ type FPacketDetail struct {
 	UserID      string `gorm:"column:user_id" json:"user_id"`
 	MerOrderID  string `gorm:"column:mer_order_id" json:"mer_order_id"`
 	Amount      int64  `gorm:"column:amount;not null" json:"amount"`
+	IsLucky     int32  `gorm:"column:is_lucky;not null" json:"is_lucky"`
 	ReceiveTime int64  `gorm:"column:receive_time" json:"receive_time"`
 	CreatedTime int64  `gorm:"column:created_time" json:"created_time"`
 	UpdatedTime int64  `gorm:"column:updated_time" json:"updated_time"`
