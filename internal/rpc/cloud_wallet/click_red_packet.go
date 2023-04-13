@@ -10,7 +10,7 @@ import (
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"github.com/pkg/errors"
-	"strconv"
+	"github.com/spf13/cast"
 	"time"
 )
 
@@ -27,10 +27,6 @@ func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickR
 		return nil, err
 	}
 
-	// 返回消息
-	if resp.CommonResp.ErrMsg == "" {
-		resp.CommonResp.ErrMsg = pb.CloudWalletErrCode_name[int32(resp.CommonResp.ErrCode)]
-	}
 	return resp, nil
 }
 
@@ -154,13 +150,19 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		log.Error(req.OperationID, "获取用户转账信息失败", err)
 		return res, errors.Wrap(err, "获取转账信息失败")
 	}
-
+	amount1 := cast.ToString(cast.ToFloat64(amount) / 100)
 	// 进行转账操作
 	merOrderID := ncount.GetMerOrderID()
-	respNcount, err := h.transferRedPacketToUser(amount, sendAccount, receiveAccount, merOrderID)
+
+	respNcount, err := h.transferRedPacketToUser(amount1, sendAccount, receiveAccount, merOrderID)
 	if err != nil {
-		log.Error(req.OperationID, "转账失败", err)
+		log.Error(req.OperationID, "转账失败", err, respNcount)
 		return res, errors.Wrap(err, "转账失败")
+	}
+
+	if respNcount.ResultCode != "0000" {
+		log.Error(req.OperationID, "转账失败", err, respNcount)
+		return nil, errors.Wrap(err, "转账失败")
 	}
 
 	// 5.更新红包领取记录 ，todo 这里可以重复保存 如果保存失败应该需要去重试机制
@@ -288,13 +290,13 @@ func (h *handlerClickRedPacket) getRedPacketByUser(GrapRedPacketUserID, packetID
 }
 
 // 发起转账 红包账户对具体用户进行转账，并调用红包消息发送
-func (h *handlerClickRedPacket) transferRedPacketToUser(Amount int, payUserID, ReceiveUserID, merOrder string) (*ncount.TransferResp, error) {
+func (h *handlerClickRedPacket) transferRedPacketToUser(Amount string, payUserID, ReceiveUserID, merOrder string) (*ncount.TransferResp, error) {
 	request := &ncount.TransferReq{
 		MerOrderId: merOrder,
 		TransferMsgCipher: ncount.TransferMsgCipher{
 			PayUserId:     payUserID,
 			ReceiveUserId: ReceiveUserID,
-			TranAmount:    strconv.Itoa(int(Amount)),
+			TranAmount:    Amount,
 		},
 	}
 	return h.count.Transfer(request)
