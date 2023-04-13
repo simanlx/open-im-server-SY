@@ -1,6 +1,9 @@
 package cloud_wallet
 
-import "Open_IM/pkg/common/db"
+import (
+	"Open_IM/pkg/common/db"
+	"gorm.io/gorm"
+)
 
 /*
 CREATE TABLE `f_packet_detail` (
@@ -95,4 +98,78 @@ func ReceiveListByPacketId(packetId string) (list []*RedPacketReceive, err error
 		Joins("left join users u on pd.user_id = u.user_id").
 		Scan(&list).Error
 	return
+}
+
+// 保存用户的红包领取记录
+func SaveRedPacketDetail(req *FPacketDetail) (bool, error) {
+	islastOne := false
+	// 1.开启事务
+	tx := db.DB.MysqlDB.DefaultGormDB().Begin()
+
+	// 2.保存红包领取记录
+	result := tx.Table("f_packet_detail").Save(req)
+	if result.Error != nil {
+		tx.Rollback()
+		return false, result.Error
+	}
+
+	// 3.修改红包剩余数量
+	result2 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", req.PacketID).Update("remain", gorm.Expr("remain - ?", 1))
+	if result2.Error != nil {
+		tx.Rollback()
+		return false, result2.Error
+	}
+
+	// 查询当前红包的剩余数量
+	var packet = FPacket{}
+	result3 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", req.PacketID).Find(&packet)
+	if result3.Error != nil {
+		tx.Rollback()
+		return false, result3.Error
+	}
+
+	// 4.如果红包剩余数量为0，则修改红包状态为已领完
+	if packet.Remain == 0 {
+		result4 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", req.PacketID).Update("status", 2)
+		if result4.Error != nil {
+			tx.Rollback()
+			return false, result4.Error
+		}
+		islastOne = true
+	}
+
+	// 5.提交事务
+	tx.Commit()
+	return islastOne, nil
+}
+
+// 修改运气王、
+
+func UpdateLuckyKing(packetId string, userId string) error {
+	// 查询红包领取记录的最大金额
+	var maxAmount = FPacketDetail{}
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet_detail").Where("packet_id = ?", packetId).Order("amount desc").First(&maxAmount)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// 开启事务
+	tx := db.DB.MysqlDB.DefaultGormDB().Begin()
+
+	// 修改f_packet 表中的 lucky_user_id、luck_user_amount 两个字段
+	result2 := tx.Table("f_packet").Where("packet_id = ?", packetId).Update("lucky_user_id", userId)
+	if result2.Error != nil {
+		tx.Rollback()
+		return result2.Error
+	}
+
+	// 保存f_packet_detail 表中的 is_lucky 字段
+	result3 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetId).Update("is_lucky", 1)
+	if result3.Error != nil {
+		return result3.Error
+	}
+
+	// 提交事务
+	tx.Commit()
+	return nil
 }

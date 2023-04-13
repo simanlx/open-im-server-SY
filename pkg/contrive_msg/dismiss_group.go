@@ -35,10 +35,11 @@ func DismissGroup(OperateID, UserID, GroupID string) error {
 }
 
 // 群聊： 推送抢红包消息
-func RedPacketGrabPushToGroup(OperateID, SendPacketUserID, RedPacketID, SendUserName, ClickUserName, GroupID string) error {
+func RedPacketGrabPushToGroup(OperateID, SendPacketUserID, ClickPacketUserID, RedPacketID, SendUserName, ClickUserName, GroupID string) error {
 	GroupDismissMsg := &ContriveMessage{
 		Data: &RedPacketGrabMessage{
 			RedPacketID:   RedPacketID,
+			ClickUserID:   ClickPacketUserID,
 			SendUserID:    SendPacketUserID,
 			SendUserName:  SendUserName,
 			ClickUserName: ClickUserName,
@@ -68,7 +69,7 @@ func RedPacketGrabPushToGroup(OperateID, SendPacketUserID, RedPacketID, SendUser
 }
 
 // 个人： 推送抢红包消息
-func RedPacketGrabPushToUser(OperateID, SendPacketUserID, RedPacketID, SendUserName, ClickUserName, ReceiveID string) error {
+func RedPacketGrabPushToUser(OperateID, SendMessageUserID, SendPacketUserID, RedPacketID, SendUserName, ClickUserName, ReceiveID string) error {
 	GroupDismissMsg := &ContriveMessage{
 		Data: &RedPacketGrabMessage{
 			RedPacketID:   RedPacketID,
@@ -82,7 +83,7 @@ func RedPacketGrabPushToUser(OperateID, SendPacketUserID, RedPacketID, SendUserN
 	res := &ManagementSendMsg{
 		OperationID:         OperateID,
 		BusinessOperationID: OperateID,
-		SendID:              SendPacketUserID,
+		SendID:              SendMessageUserID,
 		SenderPlatformID:    1,
 		Content: ContriveData{
 			Data:        string(co),
@@ -131,5 +132,3 @@ func SendRedPacketLuckyMessage(OperateID, SendPacketUserID, RedPacketID, LuckyUs
 	coo, _ := json.Marshal(res)
 	return SendMessage(OperateID, coo)
 }
-
-// 推送群聊消息：

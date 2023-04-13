@@ -24,6 +24,7 @@ import (
 //`send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
 //`bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
 //`remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
+//`remain_amout` varchar(255) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
 //`lucky_user_id` varchar(255) NOT NULL DEFAULT '' COMMENT '最佳手气红包用户ID',
 //`luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
 //`created_time` int(11) DEFAULT NULL,
@@ -32,7 +33,7 @@ import (
 //`is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
 //PRIMARY KEY (`id`),
 //KEY `idx_user_id` (`user_id`) USING BTREE
-//) ENGINE=InnoDB AUTO_INCREMENT=222 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
+//) ENGINE=InnoDB AUTO_INCREMENT=223 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 
 type FPacket struct {
 	ID              int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
@@ -51,6 +52,7 @@ type FPacket struct {
 	OperateID       string `gorm:"column:operate_id;not null" json:"operate_id"`
 	RecvID          string `gorm:"column:recv_id;not null" json:"recv_id"`
 	Remain          int64  `gorm:"column:remain;not null" json:"remain"`                     // 剩余红包数量
+	RemainAmout     int64  `gorm:"column:remain_amout;not null" json:"remain_amout"`         // 剩余红包金额
 	LuckyUserID     string `gorm:"column:lucky_user_id;not null" json:"lucky_user_id"`       // 最佳手气红包用户ID
 	LuckUserAmount  int64  `gorm:"column:luck_user_amount;not null" json:"luck_user_amount"` // 最大红包的值： account amount  分为单位
 	CreatedTime     int64  `gorm:"column:created_time;not null" json:"created_time"`
@@ -139,7 +141,7 @@ func SelectUserMainAccountByUserID(userID string) (string, error) {
 	return fAccount.MainAccountId, nil
 }
 
-// 更新红包的剩余数量
+// 更新红包的剩余数量 （如果红包数量没有了）
 func UpdateRedPacketRemain(packetID string) error {
 	// 将红包数量减一
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Update("remain", gorm.Expr("remain - ?", 1))

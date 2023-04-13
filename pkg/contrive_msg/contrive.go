@@ -67,6 +67,7 @@ type RedPacketMessage struct {
 type RedPacketGrabMessage struct {
 	RedPacketID   string `json:"redPacketID" binding:"required"`   // 红包ID
 	SendUserID    string `json:"sendUserID" binding:"required"`    // 发送方ID
+	ClickUserID   string `json:"clickUserID" binding:"required"`   // 抢红包的用户ID
 	SendUserName  string `json:"sendUserName" binding:"required"`  // 发送方红包的姓名
 	ClickUserName string `json:"clickUserName" binding:"required"` // 抢红包的用户ID
 }
