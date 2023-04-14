@@ -159,6 +159,7 @@ type config struct {
 		OpenImCachePort          []int `yaml:"openImCachePort"`
 		OpenImRealTimeCommPort   []int `yaml:"openImRealTimeCommPort"`
 		OpenImCloudWalletPort    []int `yaml:"openImCloudWalletPort"`
+		OpenImChatPort           []int `yaml:"openImChatPort"`
 	}
 	RpcRegisterName struct {
 		OpenImUserName   string `yaml:"openImUserName"`
@@ -176,6 +177,7 @@ type config struct {
 		OpenImCacheName        string `yaml:"openImCacheName"`
 		OpenImRealTimeCommName string `yaml:"openImRealTimeCommName"`
 		OpenImCloudWalletName  string `yaml:"openImCloudWalletName"`
+		OpenImChatName         string `yaml:"openImChatName"`
 	}
 	Etcd struct {
 		EtcdSchema string   `yaml:"etcdSchema"`

@@ -131,9 +131,11 @@ message UnBindingUserBankcardResp{
 
 // 7.设置用户支付密码
 message SetPaymentSecretReq{
-  string userId = 1; //用户id
-  string paymentSecret = 2; //密码
-  string operationID = 3; //链路跟踪id
+  int32 type = 1; //类型(1设置密码、2忘记密码smsCode设置)
+  string code = 2; //验证码
+  string paymentSecret = 3; //密码
+  string operationID = 4; //链路跟踪id
+  string userId = 5; //用户id
 }
 message SetPaymentSecretResp{
   int32 step = 1;
