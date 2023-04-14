@@ -120,12 +120,9 @@ func SetPaymentSecret(c *gin.Context) {
 	}
 
 	//设置类型(1设置密码、2忘记密码smsCode设置)
-	if params.Type == 2 {
-		//验证cmscode
-		if params.Code != "666666" {
-			c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "验证码错误"})
-			return
-		}
+	if params.Type == 2 && len(params.Code) != 6 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "验证码参数错误"})
+		return
 	}
 
 	//解析token、获取用户id
@@ -134,11 +131,12 @@ func SetPaymentSecret(c *gin.Context) {
 		return
 	}
 
-	//6位数密码
 	req := &rpc.SetPaymentSecretReq{
 		UserId:        userId,
 		PaymentSecret: params.PaymentSecret,
 		OperationID:   params.OperationID,
+		Type:          params.Type,
+		Code:          params.Code,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)

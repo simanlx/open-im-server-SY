@@ -16,14 +16,14 @@ type IdCardRealNameAuthReq struct {
 // 设置支付密码
 type SetPaymentSecretReq struct {
 	Code          string `json:"code"`
-	Type          int32  `json:"type" binding:"required"` //设置类型(1设置密码、2忘记密码smsCode设置)
-	PaymentSecret string `json:"payment_secret" binding:"required"`
+	Type          int32  `json:"type" binding:"required"`           //设置类型(1设置密码、2忘记密码smsCode设置)
+	PaymentSecret string `json:"payment_secret" binding:"required"` //MD5加密
 	OperationID   string `json:"operationID" binding:"required"`
 }
 
 // 校验支付密码
 type CheckPaymentSecretReq struct {
-	PaymentSecret string `json:"payment_secret" binding:"required"`
+	PaymentSecret string `json:"payment_secret" binding:"required"` //MD5加密
 	OperationID   string `json:"operationID" binding:"required"`
 }
 
@@ -68,7 +68,7 @@ type UserRechargeConfirmReq struct {
 type DrawAccountReq struct {
 	BindCardAgrNo   string `json:"bindCardAgrNo"  binding:"required"`
 	Amount          int32  `json:"amount"  binding:"required"`
-	PaymentPassword string `json:"payment_password"  binding:"required"`
+	PaymentPassword string `json:"payment_password"  binding:"required"` //MD5加密
 	OperationID     string `json:"operationID" binding:"required"`
 }
 
