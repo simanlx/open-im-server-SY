@@ -5,6 +5,7 @@ import (
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	imdb2 "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
@@ -76,6 +77,24 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		res.CommonResp.ErrMsg = "网络错误"
 		return res, err
 	}
+
+	// 3. 群红包是否设置了禁止抢红包
+	if redPacketInfo.PacketType == 2 { // 群红包
+		groupInfo, err := rocksCache.GetGroupInfoFromCache(redPacketInfo.RecvID)
+		if err != nil || groupInfo.GroupID == "" {
+			log.Info(req.OperationID, "获取群信息失败", err)
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
+			res.CommonResp.ErrMsg = "获取群信息失败"
+			return res, errors.Wrap(err, "获取群信息失败")
+		}
+
+		if groupInfo.BanClickPacket == 1 {
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsBan
+			res.CommonResp.ErrMsg = "该群禁止抢红包"
+			return res, nil
+		}
+	}
+
 	if redPacketInfo.Status == imdb.RedPacketStatusCreate {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsCreate
 		res.CommonResp.ErrMsg = "红包状态错误"
@@ -103,23 +122,6 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsFinish
 		res.CommonResp.ErrMsg = "红包已经被抢完"
 		return res, nil
-	}
-
-	// 3. 群红包是否设置了禁止抢红包
-	if redPacketInfo.PacketType == 2 { // 群红包
-		groupInfo, err := imdb2.GetGroupInfoByGroupID(redPacketInfo.RecvID)
-		if err != nil || groupInfo.GroupID == "" {
-			log.Info(req.OperationID, "获取群信息失败", err)
-			res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
-			res.CommonResp.ErrMsg = "获取群信息失败"
-			return res, errors.Wrap(err, "获取群信息失败")
-		}
-
-		if groupInfo.BanClickPacket == 1 {
-			res.CommonResp.ErrCode = pb.CloudWalletErrCode_PacketStatusIsBan
-			res.CommonResp.ErrMsg = "该群禁止抢红包"
-			return res, nil
-		}
 	}
 
 	// 5. 根据红包的
