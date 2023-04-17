@@ -46,14 +46,15 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		}
 	)
 
-	// 如果用户没实名认证就不能进行抢红包
-	if err := h.checkUserAuthStatus(req.UserId); err != nil {
+	// 如果用户没实名认证就不能进行抢红包 sql 1
+	ClickerUserNcountInfo, err := h.checkUserAuthStatus(req.UserId)
+	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
 		res.CommonResp.ErrMsg = "您的帐号没有实名认证,请尽快去实名认证"
 		return res, nil
 	}
 
-	// 检测红包领取记录
+	// 检测红包领取记录 sql 2
 	fp, err := imdb.FPacketDetailGetByPacketID(req.RedPacketID, req.UserId)
 	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
@@ -67,7 +68,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, nil
 	}
 
-	// 1. 检测红包的状态
+	// 1. 检测红包的状态 sql 3
 	// ======================================================== 进行红包状态的校验========================================================
 
 	redPacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
@@ -129,8 +130,8 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	var amount int
 	// 4. 判断红包的类型
 	if (redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1) || redPacketInfo.Number == 1 {
-		// 直接查询数据库
-		amount, err = h.getRedPacketAmount(req.RedPacketID)
+		// 直接查询数据库 		sql 4
+		amount = int(redPacketInfo.Amount)
 	} else {
 		// 通过查询redis
 		amount, err = h.getRedPacketByGroup(req)
@@ -147,8 +148,8 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, nil
 	}
 
-	// 获取发送用户的账户和接受用户的账户 ： 查询预备数据
-	sendAccount, receiveAccount, err := h.getRedPacketByUser(req.UserId, req.RedPacketID)
+	// 发送账户和接受账户
+	sendAccount, receiveAccount := redPacketInfo.UserRedpacketAccount, ClickerUserNcountInfo.MainAccountId
 	if err != nil {
 		log.Error(req.OperationID, "网络错误：获取用户转账信息失败", err)
 		res.CommonResp.ErrMsg = "网络错误：获取用户转账信息失败,操作ID:" + req.OperationID
@@ -218,13 +219,13 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 }
 
 // 检查用户实名认证状态
-func (h *handlerClickRedPacket) checkUserAuthStatus(userID string) error {
+func (h *handlerClickRedPacket) checkUserAuthStatus(userID string) (*db.FNcountAccount, error) {
 	// 判断用户是否实名注册
-	_, err := imdb.GetNcountAccountByUserId(userID)
+	info, err := imdb.GetNcountAccountByUserId(userID)
 	if err != nil {
-		return errors.Wrap(err, "查询用户实名认证状态失败")
+		return nil, errors.Wrap(err, "查询用户实名认证状态失败")
 	}
-	return nil
+	return info, nil
 }
 
 // 如果红包是群聊红包， 直接redis的set集合进行获取红包
@@ -290,21 +291,6 @@ func (h *handlerClickRedPacket) getRedPacketAmount(redID string) (int, error) {
 		return 0, err
 	}
 	return int(redPacketInfo.Amount), nil
-}
-
-// 通过红包ID 倒查红包发送者的红包账户
-func (h *handlerClickRedPacket) getRedPacketByUser(GrapRedPacketUserID, packetID string) (string, string, error) {
-	//  获取到发红包的用户ID
-	senderAccount, err := imdb.SelectRedPacketSenderRedPacketAccountByPacketID(packetID)
-	if err != nil {
-		return "", "", errors.Wrap(err, "查询红包发送用户失败")
-	}
-	recieveAccount, err := imdb.SelectUserMainAccountByUserID(GrapRedPacketUserID)
-	if err != nil {
-		return "", "", err
-	}
-
-	return senderAccount, recieveAccount, nil
 }
 
 // 发起转账 红包账户对具体用户进行转账，并调用红包消息发送

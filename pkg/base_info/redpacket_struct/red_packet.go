@@ -14,7 +14,7 @@ type SendRedPacket struct {
 	BankCardID      int64  `json:"BankCardID"`                     //银行卡id
 	OperationID     string `json:"operationID" binding:"required"` //链路跟踪id
 	RecvID          string `json:"recvID" binding:"required"`      //接收者id
-	PayPassword     string `json:"payPassword" binding:"required"` //支付密码
+	Password        string `json:"password" binding:"required"`    //支付密码
 
 	// 	BindCardAgrNo string `protobuf:"bytes,13,opt,name=bindCardAgrNo,proto3" json:"bindCardAgrNo,omitempty"` //绑卡协议号
 	BindCardAgrNo string `json:"bindCardAgrNo"` //绑卡协议号

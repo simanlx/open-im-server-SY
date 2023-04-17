@@ -111,7 +111,7 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 	}
 
 	// ========================================= 创建红包记录 =========================================
-	redpacketID, err := h.recordRedPacket(req)
+	redpacketID, err := h.recordRedPacket(req, userAC.PacketAccountId)
 	if err != nil {
 		log.Error(req.OperationID, "record red packet error", zap.Error(err))
 		return nil, err
@@ -238,30 +238,31 @@ func (h *handlerSendRedPacket) checkGroupPacketState(req *pb.SendRedPacketReq) s
 }
 
 // 创建红包信息
-func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string /* red packet ID */, error) {
+func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq, packetID /*发红包的用户ID*/ string) (string /* red packet ID */, error) {
 	rand.Seed(time.Now().UnixNano())
 	redID := fmt.Sprintf("%v%v%v%v", in.PacketType, in.UserId, time.Now().Unix(), rand.Intn(100000))
 	redPacket := &imdb.FPacket{
-		PacketID:        redID,
-		UserID:          in.UserId,
-		PacketType:      in.PacketType,
-		IsLucky:         in.IsLucky,
-		ExclusiveUserID: in.ExclusiveUserID,
-		PacketTitle:     in.PacketTitle,
-		Amount:          in.Amount,
-		Number:          in.Number,
-		MerOrderID:      h.merOrderID,
-		OperateID:       h.OperateID,
-		SendType:        in.SendType,
-		BindCardAgrNo:   in.BindCardAgrNo,
-		RecvID:          in.RecvID, // 接收ID
-		Remain:          int64(in.Number),
-		RemainAmout:     in.Amount,
-		ExpireTime:      time.Now().Unix() + 60*60*24,
-		CreatedTime:     time.Now().Unix(),
-		UpdatedTime:     time.Now().Unix(),
-		Status:          0, // 红包被创建，但是还未掉第三方的内容
-		IsExclusive:     in.IsExclusive,
+		PacketID:             redID,
+		UserID:               in.UserId,
+		UserRedpacketAccount: packetID,
+		PacketType:           in.PacketType,
+		IsLucky:              in.IsLucky,
+		ExclusiveUserID:      in.ExclusiveUserID,
+		PacketTitle:          in.PacketTitle,
+		Amount:               in.Amount,
+		Number:               in.Number,
+		MerOrderID:           h.merOrderID,
+		OperateID:            h.OperateID,
+		SendType:             in.SendType,
+		BindCardAgrNo:        in.BindCardAgrNo,
+		RecvID:               in.RecvID, // 接收ID
+		Remain:               int64(in.Number),
+		RemainAmout:          in.Amount,
+		ExpireTime:           time.Now().Unix() + 60*60*24,
+		CreatedTime:          time.Now().Unix(),
+		UpdatedTime:          time.Now().Unix(),
+		Status:               0, // 红包被创建，但是还未掉第三方的内容
+		IsExclusive:          in.IsExclusive,
 	}
 	return redID, imdb.RedPacketCreateData(redPacket)
 }
@@ -396,6 +397,8 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 		UpdatedTime:     redpacketInfo.UpdatedTime,
 		IsExclusive:     redpacketInfo.IsExclusive,
 	}
+
+	// 发送红包消息
 	return contrive_msg.SendSendRedPacket(freq, int(redpacketInfo.PacketType))
 }
 

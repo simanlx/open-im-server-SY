@@ -44,8 +44,9 @@ type ContriveMessage struct {
 }
 
 const (
-	MessageType_RedPacket = 1 + iota // 个人红包
-	MessageType_GrapRedPacket
+	MessageType_GrapRedPacket = 1 + iota
+	MessageType_RedPacket
+
 	MessageType_DismissGroup
 	MessageType_RedPacketLucky
 )

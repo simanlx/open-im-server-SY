@@ -93,7 +93,7 @@ func TestRedPacketGrabPushToGroup(t *testing.T) {
 				RedPacketID:       "123",
 				SendUserName:      "steven2",
 				ClickUserName:     "steven2",
-				GroupID:           "3255667469",
+				GroupID:           "3483462779",
 			},
 			wantErr: false,
 		},
