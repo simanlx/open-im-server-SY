@@ -9,6 +9,7 @@ import (
 	"Open_IM/pkg/common/log"
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
+	"Open_IM/pkg/proto/chat"
 	"Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/utils"
 	"context"
@@ -279,7 +280,7 @@ func (rpc *CloudWalletServer) CheckPaymentSecret(_ context.Context, req *cloud_w
 	}
 
 	//验证支付密码
-	if len(accountInfo.PaymentPassword) == 0 || utils.Md5(req.PaymentSecret) != accountInfo.PaymentPassword {
+	if len(accountInfo.PaymentPassword) == 0 || req.PaymentSecret != accountInfo.PaymentPassword {
 		resp.CommonResp.ErrCode = 400
 		resp.CommonResp.ErrMsg = "支付密码错误"
 		return resp, nil
@@ -291,18 +292,15 @@ func (rpc *CloudWalletServer) CheckPaymentSecret(_ context.Context, req *cloud_w
 func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.SetPaymentSecretResp, error) {
 	resp := &cloud_wallet.SetPaymentSecretResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
 
-	//获取用户账户信息
-	accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
-	if err != nil || accountInfo.Id <= 0 {
+	//忘记支付密码、校验验证码
+	if req.Type == 2 && !RpcForgetPayPasswordVerifyCode(req.UserId, req.Code, req.OperationID) {
 		resp.CommonResp.ErrCode = 400
-		resp.CommonResp.ErrMsg = "账户信息不存在"
+		resp.CommonResp.ErrMsg = "验证码错误"
 		return resp, nil
 	}
 
-	//md5 加密密码
-	secret := utils.Md5(req.PaymentSecret)
-
-	err = imdb.UpdateNcountAccountField(req.UserId, map[string]interface{}{"payment_password": secret, "open_step": 2})
+	//修改支付密码
+	err := imdb.UpdateNcountAccountField(req.UserId, map[string]interface{}{"payment_password": req.PaymentSecret, "open_step": 2})
 	if err != nil {
 		log.Error(req.OperationID, "保存支付密码失败:%s", err.Error())
 		resp.CommonResp.ErrCode = 400
@@ -312,6 +310,31 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 
 	resp.Step = 2
 	return resp, nil
+}
+
+// rpc 调用Open-IM-Enterprise --> ForgetPayPasswordVerifyCode 接口
+func RpcForgetPayPasswordVerifyCode(userId, code, operationID string) bool {
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImChatName, operationID)
+	if etcdConn == nil {
+		errMsg := operationID + "getcdv3.GetDefaultConn RpcForgetPayPasswordVerifyCode == nil"
+		log.NewError(operationID, errMsg)
+		return false
+	}
+
+	chatReq := &chat.ForgetPayPasswordVerifyCodeReq{
+		UserId:      userId,
+		Code:        code,
+		OperationID: operationID,
+	}
+
+	client := chat.NewChatClient(etcdConn)
+	rpcResp, _ := client.ForgetPayPasswordVerifyCode(context.Background(), chatReq)
+	if rpcResp.CommonResp == nil || rpcResp.CommonResp.ErrCode == 0 {
+		return true
+	}
+	log.NewError(operationID, "client.ForgetPayPasswordVerifyCode 验证失败:", rpcResp.CommonResp.ErrMsg)
+
+	return false
 }
 
 // 云钱包收支明细
@@ -614,7 +637,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 	}
 
 	//验证支付密码
-	if len(accountInfo.PaymentPassword) == 0 || utils.Md5(req.PaymentPassword) != accountInfo.PaymentPassword {
+	if len(accountInfo.PaymentPassword) < 10 || req.PaymentPassword != accountInfo.PaymentPassword {
 		resp.CommonResp.ErrMsg = "支付密码错误"
 		resp.CommonResp.ErrCode = 400
 		return resp, nil

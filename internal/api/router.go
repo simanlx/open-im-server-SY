@@ -69,7 +69,7 @@ func NewGinRouter() *gin.Engine {
 
 		// 回调接口
 		cloudWalletGroup.POST("/charge_account_callback", notify.ChargeNotify) // 充值回调
-		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify)
+		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify) //提现回调
 
 		// 红包管理
 		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)
