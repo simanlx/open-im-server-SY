@@ -52,17 +52,32 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 	if err := h.validateParam(req); err != nil {
 		return nil, err
 	}
-	// 首先生成红包ID 生成规则：红包类型+用户ID+时间戳+随机数
-	// 2. 生成红包ID后，发送红包，记录红包发送记录
+
+	// ========================================= 验证发送用户的信息=========================================
+	userAC, err := imdb.GetNcountAccountByUserId(req.UserId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			result.CommonResp.ErrMsg = "账户信息错误"
+			result.CommonResp.ErrCode = 400
+			return result, nil
+		}
+		return nil, errors.New("网络错误：当前账户信息错误")
+	}
+
+	if req.Password != userAC.PaymentPassword {
+		result.CommonResp.ErrMsg = "支付密码错误"
+		result.CommonResp.ErrCode = 400
+		return result, nil
+	}
 
 	// todo 暂时这么处理
 	if checkGroupValidate := h.checkGroupPacketState(req); checkGroupValidate != "" {
 		return nil, errors.New(checkGroupValidate)
 	}
 
-	// 如果发送给用户，判断用户是否存在
+	// ========================================= 查看发送用户ID是否存在 =========================================
 	if req.PacketType == 1 {
-		// 判断用户是否存在
+		// 单聊红包
 		user, err := imdb2.GetUserByUserID(req.RecvID)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -78,6 +93,7 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 			return result, nil
 		}
 	} else {
+		// 群聊红包
 		group, err := imdb2.GetGroupInfoByGroupID(req.RecvID)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -85,7 +101,7 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 				result.CommonResp.ErrCode = 400
 				return result, nil
 			}
-			return nil, errors.New("查询用户信息失败")
+			return nil, errors.New("查询群信息失败")
 		}
 		if group.GroupID == "" {
 			result.CommonResp.ErrMsg = "您发送的红包群不存在"
@@ -94,6 +110,7 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 		}
 	}
 
+	// ========================================= 创建红包记录 =========================================
 	redpacketID, err := h.recordRedPacket(req)
 	if err != nil {
 		log.Error(req.OperationID, "record red packet error", zap.Error(err))
@@ -105,17 +122,17 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 
 	// 3. 判断支付类型
 	if req.SendType == 1 {
-		// 钱包转账,是同步的
-		commonResp, err := h.walletTransfer(redpacketID, req)
+		transferMssgae, err := h.walletTransfer(redpacketID, req)
 		if err != nil {
 			log.Error(req.OperationID, "转账失败", err)
 			return nil, err
 		}
-		if commonResp.ErrCode != 0 {
-			log.Error(req.OperationID, "钱包转账失败", zap.String("err_msg", commonResp.ErrMsg))
-			return nil, errors.New(commonResp.ErrMsg)
+
+		if transferMssgae != "" {
+			result.CommonResp.ErrMsg = transferMssgae
+			result.CommonResp.ErrCode = 400
+			return result, nil
 		}
-		// 记录转账信息
 
 		// 回调处理红包
 		err = HandleSendPacketResult(redpacketID, req.OperationID)
@@ -124,11 +141,17 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 			return nil, err
 		}
 	} else {
-		err = h.bankTransfer(redpacketID, req)
+		// 走银行卡转账
+		transferMsg, err := h.bankTransfer(redpacketID, req)
 		// 这里是调用银行卡转账接口
 		if err != nil {
 			log.Error(req.OperationID, "bankTransfer error", zap.Error(err))
 			return nil, err
+		}
+		if transferMsg != "" {
+			result.CommonResp.ErrMsg = transferMsg
+			result.CommonResp.ErrCode = 400
+			return result, nil
 		}
 	}
 	return res, nil
@@ -243,12 +266,17 @@ func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq) (string 
 	return redID, imdb.RedPacketCreateData(redPacket)
 }
 
-// 钱包转账
-func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRedPacketReq) (*pb.CommonResp, error) {
+// 走用户的钱包转账
+func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRedPacketReq) (string, error) {
+	var res string
 	// 1. 获取用户的钱包账户
 	fncount, err := imdb.FNcountAccountGetUserAccountID(in.UserId)
 	if err != nil {
-		return nil, errors.Wrap(err, "用户没有实名注册")
+		if err == sql.ErrNoRows {
+			res = "用户没有实名注册"
+			return res, nil
+		}
+		return "", errors.Wrap(err, "查询用户信息错误")
 	}
 	req := &ncount.TransferReq{
 		MerOrderId: h.merOrderID,
@@ -261,51 +289,54 @@ func (h *handlerSendRedPacket) walletTransfer(redPacketID string, in *pb.SendRed
 
 	log.Info(in.OperationID, "transfer req", req)
 	transferResult, err := h.count.Transfer(req)
-	log.Info(in.OperationID, "transfer res", transferResult)
 	if err != nil {
-		return nil, errors.Wrap(err, "调用新生支付出现错误")
+		log.Error(in.OperationID, "调用新生支付出现错误", transferResult)
+		res = "第三方支付出现错误 ，操作：" + h.OperateID
+		return res, nil
 	}
 
-	commonResp := &pb.CommonResp{
-		ErrMsg:  "发送成功",
-		ErrCode: 0,
-	}
+	// ========================================================下面是成功返回  =========================================
 	if transferResult.ResultCode != ncount.ResultCodeSuccess {
 		// 如果转账失败，需要给用户提示发送失败，并将红包状态修改为发送失败
 		err := imdb.UpdateRedPacketStatus(redPacketID, 2 /* 发送失败 */)
 		if err != nil {
 			log.Error(in.OperationID, zap.Error(err))
-			return nil, errors.Wrap(err, "修改红包状态失败 2 ")
 			// todo 记录到死信队列中，后续监控处理 ，不需要人工介入
 		}
 		// 记录操作失败日志 ，提供后续给客服人员核对
-		commonResp.ErrCode = 1
-		commonResp.ErrMsg = transferResult.ErrorMsg
-		return commonResp, nil
+		res = transferResult.ErrorMsg + "，操作：" + h.OperateID
+		return res, nil
 	}
 	// 如果转账成功，需要将红包状态修改为发送成功
 	err = imdb.UpdateRedPacketStatus(redPacketID, 1 /* 发送成功 */)
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是修改红包状态失败，需要人工介入
 		log.Error(in.OperationID, zap.Error(err))
-		return nil, errors.Wrap(err, "修改红包状态失败 1")
+		return "", errors.Wrap(err, "修改红包状态失败 1")
 	}
 
 	//增加账户变更日志
-	err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, transferResult.MerOrderId, redPacketID)
-	if err != nil {
-		return nil, errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
-	}
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error(in.OperationID, "增加账户变更日志失败:Panic", zap.Any("err", err))
+			}
+		}()
+		err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, transferResult.MerOrderId, redPacketID)
+		if err != nil {
+			log.Error(in.OperationID, "增加账户变更日志失败", zap.Error(err))
+		}
+	}()
 
-	return commonResp, nil
+	return res, nil
 }
 
 // 银行卡转账
-func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) error {
+func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) (string, error) {
 	//银行卡充值到红包账户
 	err := BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount), redPacketID)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// 如果转账成功，需要将红包状态修改为发送成功
@@ -313,9 +344,9 @@ func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPa
 	if err != nil {
 		// todo 记录到死信队列中，后续监控处理， 如果转账成功，但是修改红包状态失败，需要人工介入
 		log.Error(in.OperationID, zap.Error(err))
-		return errors.Wrap(err, "修改红包状态失败 1")
+		return "", errors.Wrap(err, "修改红包状态失败 1")
 	}
-	return nil
+	return "", nil
 }
 
 // 当用户发布红包发送成功的时候，调用这个回调函数进行发布红包的后续处理

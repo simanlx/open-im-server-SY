@@ -199,6 +199,7 @@ message SendRedPacketReq {
   string recvID = 12; //接收者id (如果是群则是群聊红包，如果是用户是用户红包)
   // 发送一个银行卡协议号
   string bindCardAgrNo = 13; //绑卡协议号
+  string password = 14; //支付密码
 }
 message SendRedPacketResp {
   string redPacketID = 1;

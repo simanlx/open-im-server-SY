@@ -138,6 +138,8 @@ func NewManagementSendMsg_RedMsg(f *FPacket, OperateID string, sessionID int) ([
 		BusinessOperationID: OperateID,
 		SendID:              f.UserID,
 		SenderPlatformID:    1,
+		SenderFaceURL:       usr.FaceURL,
+		SenderNickname:      usr.Nickname,
 		Content: ContriveData{
 			Data:        string(co),
 			Description: "红包消息",
