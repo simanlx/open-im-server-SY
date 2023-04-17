@@ -124,6 +124,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, nil
 	}
 
+	// ===========================================================红包状态如果是OK的，进行抢红包操作==================================================
 	// 5. 根据红包的
 	var amount int
 	// 4. 判断红包的类型
@@ -136,8 +137,8 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
-		res.CommonResp.ErrMsg = "获取红包金额失败"
-		return res, errors.Wrap(err, "获取红包金额失败")
+		res.CommonResp.ErrMsg = "服务器错误：获取红包金额失败"
+		return res, nil
 	}
 
 	if amount == 0 {
@@ -149,13 +150,16 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	// 获取发送用户的账户和接受用户的账户 ： 查询预备数据
 	sendAccount, receiveAccount, err := h.getRedPacketByUser(req.UserId, req.RedPacketID)
 	if err != nil {
-		log.Error(req.OperationID, "获取用户转账信息失败", err)
-		return res, errors.Wrap(err, "获取转账信息失败")
+		log.Error(req.OperationID, "网络错误：获取用户转账信息失败", err)
+		res.CommonResp.ErrMsg = "网络错误：获取用户转账信息失败,操作ID:" + req.OperationID
+		return res, nil
 	}
 	amount1 := cast.ToString(cast.ToFloat64(amount) / 100)
-	// 进行转账操作
 	merOrderID := ncount.GetMerOrderID()
 
+	// ========================================================第三方转账操作========================================================
+
+	// todo 这里可能出现问题，没有进行补偿操作
 	respNcount, err := h.transferRedPacketToUser(amount1, sendAccount, receiveAccount, merOrderID)
 	if err != nil {
 		log.Error(req.OperationID, "转账失败", err, respNcount)
@@ -163,8 +167,10 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	}
 
 	if respNcount.ResultCode != "0000" {
+		// 所有新生支付的错误都进行暴露，这样处理不太规范，但是前期方便核对错误
 		log.Error(req.OperationID, "转账失败", err, respNcount)
-		return nil, errors.Wrap(err, "转账失败")
+		res.CommonResp.ErrMsg = respNcount.ErrorMsg
+		return res, nil
 	}
 
 	// 5.更新红包领取记录 ，todo 这里可以重复保存 如果保存失败应该需要去重试机制
@@ -174,7 +180,9 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		return res, errors.Wrap(err, "更新红包领取记录失败")
 	}
 
-	// 6.发送红包领取通知 todo 这里可以重复保存 如果保存失败应该需要去重试机制
+	// ========================================================发送抢红包结果操作========================================================
+
+	// 6.todo 这里可以重复保存 如果保存失败应该需要去重试机制
 	if redPacketInfo.PacketType == 1 {
 		SendRedPacketMsg(redPacketInfo, req.OperationID, req.UserId)
 	} else {
@@ -190,11 +198,19 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		}
 	}
 
+	// ========================================================添加交易记录操作========================================================
 	// 8.添加交易记录
-	err = AddNcountTradeLog(BusinessTypeReceivePacket, int32(amount), req.UserId, "", respNcount.NcountOrderId, redPacketInfo.PacketID)
-	if err != nil {
-		log.Error(req.OperationID, "添加交易记录失败", err)
-	}
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error(req.OperationID, "Panic: 添加交易记录失败", err)
+			}
+		}()
+		err = AddNcountTradeLog(BusinessTypeReceivePacket, int32(amount), req.UserId, "", respNcount.NcountOrderId, redPacketInfo.PacketID)
+		if err != nil {
+			log.Error(req.OperationID, "添加交易记录失败", err)
+		}
+	}()
 
 	res.CommonResp.ErrCode = 0
 	res.CommonResp.ErrMsg = "领取成功"

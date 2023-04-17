@@ -145,8 +145,6 @@ func SaveRedPacketDetail(req *FPacketDetail) (bool, error) {
 	return islastOne, nil
 }
 
-// 修改运气王、
-
 func UpdateLuckyKing(packetId string, userId string) error {
 	// 查询红包领取记录的最大金额
 	var maxAmount = FPacketDetail{}
@@ -166,8 +164,9 @@ func UpdateLuckyKing(packetId string, userId string) error {
 	}
 
 	// 保存f_packet_detail 表中的 is_lucky 字段
-	result3 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetId).Update("is_lucky", 1)
+	result3 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("id = ?", maxAmount.ID).Update("is_lucky", 1)
 	if result3.Error != nil {
+		tx.Rollback()
 		return result3.Error
 	}
 
