@@ -15,10 +15,11 @@ type IdCardRealNameAuthReq struct {
 
 // 设置支付密码
 type SetPaymentSecretReq struct {
-	Code          string `json:"code"`
-	Type          int32  `json:"type" binding:"required"`           //设置类型(1设置密码、2忘记密码smsCode设置)
-	PaymentSecret string `json:"payment_secret" binding:"required"` //MD5加密
-	OperationID   string `json:"operationID" binding:"required"`
+	Code                  string `json:"code"`
+	Type                  int32  `json:"type" binding:"required"`           //设置类型(1设置密码、2忘记密码smsCode设置、3修改密码)
+	OriginalPaymentSecret string `json:"original_payment_secret"`           //原支付密码MD5加密
+	PaymentSecret         string `json:"payment_secret" binding:"required"` //MD5加密
+	OperationID           string `json:"operationID" binding:"required"`
 }
 
 // 校验支付密码
