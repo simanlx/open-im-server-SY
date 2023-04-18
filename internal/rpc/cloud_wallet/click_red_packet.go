@@ -4,12 +4,12 @@ import (
 	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
-	imdb2 "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"time"
@@ -18,13 +18,13 @@ import (
 // 抢红包
 func (rpc *CloudWalletServer) ClickRedPacket(ctx context.Context, req *pb.ClickRedPacketReq) (*pb.ClickRedPacketResp, error) {
 	handler := &handlerClickRedPacket{
-		OperateID: req.OperationID,
+		OperateID: req.OperateID,
 		count:     rpc.count,
 	}
 
 	resp, err := handler.ClickRedPacket(req)
 	if err != nil {
-		log.Error(req.OperationID, "抢红包失败", err)
+		log.Error(req.OperateID, "抢红包失败", err)
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	if redPacketInfo.PacketType == 2 { // 群红包
 		groupInfo, err := rocksCache.GetGroupInfoFromCache(redPacketInfo.RecvID)
 		if err != nil || groupInfo.GroupID == "" {
-			log.Info(req.OperationID, "获取群信息失败", err)
+			log.Info(req.OperateID, "获取群信息失败", err)
 			res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
 			res.CommonResp.ErrMsg = "获取群信息失败"
 			return res, errors.Wrap(err, "获取群信息失败")
@@ -151,8 +151,8 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	// 发送账户和接受账户
 	sendAccount, receiveAccount := redPacketInfo.UserRedpacketAccount, ClickerUserNcountInfo.MainAccountId
 	if err != nil {
-		log.Error(req.OperationID, "网络错误：获取用户转账信息失败", err)
-		res.CommonResp.ErrMsg = "网络错误：获取用户转账信息失败,操作ID:" + req.OperationID
+		log.Error(req.OperateID, "网络错误：获取用户转账信息失败", err)
+		res.CommonResp.ErrMsg = "网络错误：获取用户转账信息失败,操作ID:" + req.OperateID
 		return res, nil
 	}
 	amount1 := cast.ToString(cast.ToFloat64(amount) / 100)
@@ -163,13 +163,13 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	// todo 这里可能出现问题，没有进行补偿操作
 	respNcount, err := h.transferRedPacketToUser(amount1, sendAccount, receiveAccount, merOrderID)
 	if err != nil {
-		log.Error(req.OperationID, "转账失败", err, respNcount)
+		log.Error(req.OperateID, "转账失败", err, respNcount)
 		return res, errors.Wrap(err, "转账失败")
 	}
 
 	if respNcount.ResultCode != "0000" {
 		// 所有新生支付的错误都进行暴露，这样处理不太规范，但是前期方便核对错误
-		log.Error(req.OperationID, "转账失败", err, respNcount)
+		log.Error(req.OperateID, "转账失败", err, respNcount)
 		res.CommonResp.ErrMsg = respNcount.ErrorMsg
 		return res, nil
 	}
@@ -177,39 +177,38 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	// 5.更新红包领取记录 ，todo 这里可以重复保存 如果保存失败应该需要去重试机制
 	islastOne, err := h.RecodeRedPacket(req, amount, merOrderID)
 	if err != nil {
-		log.Error(req.OperationID, "更新红包领取记录失败", err)
+		log.Error(req.OperateID, "更新红包领取记录失败", err)
 		return res, errors.Wrap(err, "更新红包领取记录失败")
 	}
 
 	// ========================================================发送抢红包结果操作========================================================
-
-	// 6.todo 这里可以重复保存 如果保存失败应该需要去重试机制
-	if redPacketInfo.PacketType == 1 {
-		SendRedPacketMsg(redPacketInfo, req.OperationID, req.UserId)
-	} else {
-		SendRedPacketMsg(redPacketInfo, req.OperationID)
-	}
 
 	// 7. 如果这个红包是最后一个红包 需要更新运气王的信息、修改红包的状态
 	if islastOne && redPacketInfo.PacketType == 2 {
 		// 修改用户运气王的信息
 		err = imdb.UpdateLuckyKing(req.RedPacketID, req.UserId)
 		if err != nil {
-			log.Error(req.OperationID, "更新红包信息失败", err)
+			log.Error(req.OperateID, "更新红包信息失败", err)
 		}
 	}
 
 	// ========================================================添加交易记录操作========================================================
-	// 8.添加交易记录
+	// // todo 这里可以重复保存 如果保存失败应该需要去重试机制
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Error(req.OperationID, "Panic: 添加交易记录失败", err)
+				log.Error(req.OperateID, "Panic: 添加交易记录失败", err)
 			}
 		}()
+		if redPacketInfo.PacketType == 1 {
+			SendRedPacketMsg(redPacketInfo, req.OperateID)
+		} else {
+			SendRedPacketMsg(redPacketInfo, req.OperateID, req.UserId)
+		}
+
 		err = AddNcountTradeLog(BusinessTypeReceivePacket, int32(amount), req.UserId, "", respNcount.NcountOrderId, redPacketInfo.PacketID)
 		if err != nil {
-			log.Error(req.OperationID, "添加交易记录失败", err)
+			log.Error(req.OperateID, "添加交易记录失败", err)
 		}
 	}()
 
@@ -239,16 +238,17 @@ func (h *handlerClickRedPacket) getRedPacketByGroup(req *pb.ClickRedPacketReq) (
 
 // 发送红包领取消息
 func SendRedPacketMsg(redpacketInfo *imdb.FPacket, operationID string, clickUserID ...string) error {
-
 	// 这里判断群红包是单人红包还是群聊红包 ： 单人红包需要推送两条领取消息，群聊红包需要推送一条领取消息
+
+	fmt.Printf("\n这里走到发送红包领取消息了 红包： %+v \n, 操作ID ：%s 	\n ,抢红包ID%v  \n：", redpacketInfo, operationID, clickUserID)
 	if redpacketInfo.PacketType == 1 {
 		// 获取发送用户信息
-		userInfo, err := imdb2.GetUserByUserID(redpacketInfo.UserID)
+		userInfo, err := rocksCache.GetUserInfoFromCache(redpacketInfo.UserID)
 		if err != nil {
 			return err
 		}
 		// 获取到抢红包用户的信息
-		recvUserInfo, err := imdb2.GetUserByUserID(redpacketInfo.RecvID)
+		recvUserInfo, err := rocksCache.GetUserInfoFromCache(redpacketInfo.RecvID)
 		if err != nil {
 			return err
 		}
@@ -267,17 +267,21 @@ func SendRedPacketMsg(redpacketInfo *imdb.FPacket, operationID string, clickUser
 			return errors.New("群聊红包需要传入点击用户ID")
 		}
 		clickID := clickUserID[0]
-		recvUserInfo, err := imdb2.GetUserByUserID(clickID)
+		recvUserInfo, err := rocksCache.GetUserInfoFromCache(clickID)
 		if err != nil {
 			return err
 		}
-		userInfo, err := imdb2.GetUserByUserID(redpacketInfo.UserID)
+		userInfo, err := rocksCache.GetUserInfoFromCache(redpacketInfo.UserID)
 		if err != nil {
 			return err
 		}
+
+		fmt.Println("走到发红包消息的这里来了\n")
 		// 这里是群聊红包逻辑
 		err = contrive_msg.RedPacketGrabPushToGroup(operationID, redpacketInfo.UserID, recvUserInfo.UserID, redpacketInfo.PacketID, userInfo.Nickname, recvUserInfo.Nickname, redpacketInfo.RecvID)
 		if err != nil {
+			fmt.Println("发送红包消息失败\n")
+			fmt.Println(err)
 			return err
 		}
 	}

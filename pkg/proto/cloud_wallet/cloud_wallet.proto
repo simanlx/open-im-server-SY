@@ -230,7 +230,7 @@ message RedPackageClickedNotify{
 message ClickRedPacketReq {
   string  userId = 1; //用户id
   string redPacketID = 2; //红包id
-  string operationID = 3; //链路跟踪id
+  string operateID = 3; //链路跟踪id
 }
 message ClickRedPacketResp {
   string userId = 1; //用户id

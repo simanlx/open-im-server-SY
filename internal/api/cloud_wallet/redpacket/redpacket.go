@@ -95,10 +95,10 @@ func ClickRedPacket(c *gin.Context) {
 	utils.CopyStructFields(req, &params)
 
 	//调用rpc
-	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperateID)
 	if etcdConn == nil {
-		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
-		log.NewError(req.OperationID, errMsg)
+		errMsg := req.OperateID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperateID, errMsg)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
 		return
 	}
@@ -107,7 +107,7 @@ func ClickRedPacket(c *gin.Context) {
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
 	RpcResp, err := client.ClickRedPacket(context.Background(), req)
 	if err != nil {
-		log.NewError(req.OperationID, "BindUserBankcard failed ", err.Error(), req.String())
+		log.NewError(req.OperateID, "BindUserBankcard failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
 		return
 	}
