@@ -292,11 +292,35 @@ func (rpc *CloudWalletServer) CheckPaymentSecret(_ context.Context, req *cloud_w
 func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wallet.SetPaymentSecretReq) (*cloud_wallet.SetPaymentSecretResp, error) {
 	resp := &cloud_wallet.SetPaymentSecretResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
 
-	//忘记支付密码、校验验证码
-	if req.Type == 2 && !RpcForgetPayPasswordVerifyCode(req.UserId, req.Code, req.OperationID) {
-		resp.CommonResp.ErrCode = 400
-		resp.CommonResp.ErrMsg = "验证码错误"
-		return resp, nil
+	if req.Type == 2 {
+		//忘记支付密码、校验验证码
+		if !RpcForgetPayPasswordVerifyCode(req.UserId, req.Code, req.OperationID) {
+			resp.CommonResp.ErrCode = 400
+			resp.CommonResp.ErrMsg = "验证码错误"
+			return resp, nil
+		}
+	} else {
+		//获取用户账户信息
+		accountInfo, err := imdb.GetNcountAccountByUserId(req.UserId)
+		if err != nil || accountInfo.Id <= 0 {
+			resp.CommonResp.ErrCode = 400
+			resp.CommonResp.ErrMsg = "账户信息不存在"
+			return resp, nil
+		}
+
+		if req.Type == 1 {
+			if len(accountInfo.PaymentPassword) > 1 {
+				resp.CommonResp.ErrCode = 400
+				resp.CommonResp.ErrMsg = "调用接口错误"
+				return resp, nil
+			}
+		} else {
+			if req.OriginalPaymentSecret != accountInfo.PaymentPassword {
+				resp.CommonResp.ErrCode = 400
+				resp.CommonResp.ErrMsg = "原支付密码错误"
+				return resp, nil
+			}
+		}
 	}
 
 	//修改支付密码

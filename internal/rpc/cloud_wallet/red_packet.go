@@ -490,7 +490,7 @@ func (rpc *CloudWalletServer) RedPacketInfo(_ context.Context, req *pb.RedPacket
 
 	//补充发红包人的用户信息
 	nickname, faceUrl := "", ""
-	userInfo, err := im_mysql_model.GetUserByUserID(req.UserId)
+	userInfo, err := im_mysql_model.GetUserByUserID(redPacketInfo.UserID)
 	if err == nil {
 		nickname = userInfo.Nickname
 		faceUrl = userInfo.FaceURL
