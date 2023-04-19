@@ -1,6 +1,7 @@
 package user
 
 import (
+	"Open_IM/internal/api/common"
 	jsonData "Open_IM/internal/utils"
 	api "Open_IM/pkg/base_info"
 	"Open_IM/pkg/common/config"
@@ -394,13 +395,19 @@ func GetUsersOnlineStatus(c *gin.Context) {
 	req := &pbRelay.GetUsersOnlineStatusReq{}
 	utils.CopyStructFields(req, &params)
 
-	var ok bool
-	var errInfo string
-	ok, req.OpUserID, errInfo = token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), req.OperationID)
+	//var ok bool
+	//var errInfo string
+	//ok, req.OpUserID, errInfo = token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), req.OperationID)
+	//if !ok {
+	//	errMsg := req.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("im-token")
+	//	log.NewError(req.OperationID, errMsg)
+	//	c.JSON(http.StatusOK, gin.H{"errCode": 500, "errMsg": errMsg})
+	//	return
+	//}
+
+	//解析token、获取用户id
+	_, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := req.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-		log.NewError(req.OperationID, errMsg)
-		c.JSON(http.StatusOK, gin.H{"errCode": 500, "errMsg": errMsg})
 		return
 	}
 
