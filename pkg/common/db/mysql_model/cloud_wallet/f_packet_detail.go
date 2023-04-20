@@ -113,7 +113,7 @@ func SaveRedPacketDetail(req *FPacketDetail) (bool, error) {
 	}
 
 	// 查询当前红包的剩余数量
-	var packet = FPacket{}
+	var packet = db.FPacket{}
 	result3 := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", req.PacketID).Find(&packet)
 	if result3.Error != nil {
 		tx.Rollback()

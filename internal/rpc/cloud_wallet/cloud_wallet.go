@@ -195,7 +195,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 
 	//组装数据
 	info := &db.FNcountAccount{
-		UserId:      req.UserId,
+		UserID:      req.UserId,
 		Mobile:      req.Mobile,
 		RealName:    req.RealName,
 		IdCard:      req.IdCard,
@@ -207,8 +207,8 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 	//调新生支付接口-开户
 	errGroup := new(errgroup.Group)
 	accountIds := []string{
-		fmt.Sprintf("%s%s", UserMainAccountPrefix, info.UserId),
-		fmt.Sprintf("%s%s", UserPacketAccountPrefix, info.UserId),
+		fmt.Sprintf("%s%s", UserMainAccountPrefix, info.UserID),
+		fmt.Sprintf("%s%s", UserPacketAccountPrefix, info.UserID),
 	}
 	for _, account := range accountIds {
 		id := account
@@ -233,7 +233,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 			}
 
 			//主账户
-			if id == fmt.Sprintf("%s%s", UserMainAccountPrefix, info.UserId) {
+			if id == fmt.Sprintf("%s%s", UserMainAccountPrefix, info.UserID) {
 				info.MainAccountId = accountResp.UserId
 			} else {
 				info.PacketAccountId = accountResp.UserId

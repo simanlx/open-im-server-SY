@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func CreateErrorLog(Remark, MerOrderId, ErrMsg, ErrCode, AllMsg string) error {
+func CreateErrorLog(Remark, OperationID, MerOrderId, ErrMsg, ErrCode, AllMsg string) error {
 	log := &db.FErrorLog{
 		Remark:     Remark,
 		MerOrderId: MerOrderId,
