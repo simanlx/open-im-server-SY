@@ -10,6 +10,7 @@ import (
 //CREATE TABLE `f_packet` (
 //`id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
 //`packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
+//`submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
 //`user_id` varchar(255) NOT NULL COMMENT '红包发起者',
 //`user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
 //`packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
@@ -35,34 +36,7 @@ import (
 //PRIMARY KEY (`id`),
 //KEY `idx_user_id` (`user_id`) USING BTREE,
 //KEY `idx_packet_id` (`packet_id`) USING BTREE
-//) ENGINE=InnoDB AUTO_INCREMENT=278 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
-
-type FPacket struct {
-	ID                   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
-	PacketID             string `gorm:"column:packet_id;not null" json:"packet_id"`
-	UserID               string `gorm:"column:user_id;not null" json:"user_id"`
-	UserRedpacketAccount string `gorm:"column:user_redpacket_account;not null" json:"user_redpacket_account"`
-	PacketType           int32  `gorm:"column:packet_type;not null" json:"packet_type"`
-	IsLucky              int32  `gorm:"column:is_lucky;not null" json:"is_lucky"`
-	ExclusiveUserID      string `gorm:"column:exclusive_user_id;not null" json:"exclusive_user_id"`
-	PacketTitle          string `gorm:"column:packet_title;not null" json:"packet_title"`
-	Amount               int64  `gorm:"column:amount;not null" json:"amount"`
-	Number               int32  `gorm:"column:number;not null" json:"number"`
-	ExpireTime           int64  `gorm:"column:expire_time;not null" json:"expire_time"`
-	MerOrderID           string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
-	SendType             int32  `gorm:"column:send_type;not null" json:"send_type"`
-	BindCardAgrNo        string `gorm:"column:bind_card_agr_no;not null" json:"bind_card_agr_no"`
-	OperateID            string `gorm:"column:operate_id;not null" json:"operate_id"`
-	RecvID               string `gorm:"column:recv_id;not null" json:"recv_id"`
-	Remain               int64  `gorm:"column:remain;not null" json:"remain"`                     // 剩余红包数量
-	RemainAmout          int64  `gorm:"column:remain_amout;not null" json:"remain_amout"`         // 剩余红包金额
-	LuckyUserID          string `gorm:"column:lucky_user_id;not null" json:"lucky_user_id"`       // 最佳手气红包用户ID
-	LuckUserAmount       int64  `gorm:"column:luck_user_amount;not null" json:"luck_user_amount"` // 最大红包的值： account amount  分为单位
-	CreatedTime          int64  `gorm:"column:created_time;not null" json:"created_time"`
-	UpdatedTime          int64  `gorm:"column:updated_time;not null" json:"updated_time"`
-	Status               int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
-	IsExclusive          int32  `gorm:"column:is_exclusive;not null" json:"is_exclusive"`
-}
+//) ENGINE=InnoDB AUTO_INCREMENT=294 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 
 const (
 	RedPacketStatusCreate   = iota // 0 创建未生效
@@ -87,7 +61,7 @@ type RedPacketDetail struct {
 }
 
 // 保存到红包到数据库
-func RedPacketCreateData(req *FPacket) error {
+func RedPacketCreateData(req *db.FPacket) error {
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Create(req)
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "创建红包失败")
@@ -105,8 +79,8 @@ func UpdateRedPacketStatus(packetID string, status int64) error {
 }
 
 // 根据红包ID获取红包信息
-func GetRedPacketInfo(packetID string) (*FPacket, error) {
-	var fPacket FPacket
+func GetRedPacketInfo(packetID string) (*db.FPacket, error) {
+	var fPacket db.FPacket
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).First(&fPacket)
 	if result.Error != nil {
 		return nil, errors.Wrap(result.Error, "获取红包信息失败")
@@ -117,7 +91,7 @@ func GetRedPacketInfo(packetID string) (*FPacket, error) {
 // 通过红包ID获取红包发送者的红包账户
 func SelectRedPacketSenderRedPacketAccountByPacketID(packetID string) (string, error) {
 	// 查询到发送红包的信息
-	var fPacket FPacket
+	var fPacket db.FPacket
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).First(&fPacket)
 	if result.Error != nil {
 		log.Debug("查询红包信息: ", packetID)
@@ -126,7 +100,7 @@ func SelectRedPacketSenderRedPacketAccountByPacketID(packetID string) (string, e
 	sendUserID := fPacket.UserID
 
 	// 查询用户的红包账户 : 查找用户的ID
-	var fAccount FNcountAccount
+	var fAccount db.FNcountAccount
 	result = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", sendUserID).First(&fAccount)
 	if result.Error != nil {
 		return "", errors.Wrap(result.Error, "获取红包信息失败")
@@ -136,7 +110,7 @@ func SelectRedPacketSenderRedPacketAccountByPacketID(packetID string) (string, e
 
 // 通过红包ID查询到 发送者的用户ID
 func SelectUserMainAccountByUserID(userID string) (string, error) {
-	var fAccount FNcountAccount
+	var fAccount db.FNcountAccount
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", userID).First(&fAccount)
 	if result.Error != nil {
 		return "", errors.Wrap(result.Error, "获取红包信息失败")
@@ -155,7 +129,7 @@ func UpdateRedPacketRemain(packetID string) error {
 }
 
 // 修改红包信息
-func UpdateRedPacketInfo(packetID string, req *FPacket) error {
+func UpdateRedPacketInfo(packetID string, req *db.FPacket) error {
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Updates(req)
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "修改红包状态失败")

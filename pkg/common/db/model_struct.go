@@ -378,20 +378,20 @@ func (ClientInitConfig) TableName() string {
 }
 
 type FNcountAccount struct {
-	Id              int32     `gorm:"column:id" json:"id"`
-	UserId          string    `gorm:"column:user_id" json:"user_id"`                     //用户id
-	MainAccountId   string    `gorm:"column:main_account_id" json:"main_account_id"`     //主账号id
-	PacketAccountId string    `gorm:"column:packet_account_id" json:"packet_account_id"` //红包账户id
-	Mobile          string    `gorm:"column:mobile" json:"mobile"`                       //手机号码
-	RealName        string    `gorm:"column:realname" json:"realname"`                   //身份证
-	IdCard          string    `gorm:"column:id_card" json:"id_card"`                     //身份证
-	PaySwitch       int32     `gorm:"column:pay_switch" json:"pay_switch"`               //支付开关(0关闭、1默认开启)
-	BodPaySwitch    int32     `gorm:"column:bod_pay_switch" json:"bod_pay_switch"`       //指纹支付/人脸支付开关(0默认关闭、1开启)
-	PaymentPassword string    `gorm:"column:payment_password" json:"payment_password"`   //支付密码(md5加密)
-	OpenStatus      int32     `gorm:"column:open_status" json:"open_status"`             //开通状态
-	OpenStep        int32     `gorm:"column:open_step" json:"open_step"`                 //开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)
-	CreatedTime     time.Time `gorm:"column:created_time" json:"created_time"`           //
-	UpdatedTime     time.Time `gorm:"column:updated_time" json:"updated_time"`           //
+	Id              int32  `gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment;comment:'主键'" json:"id"`
+	UserID          string `gorm:"column:user_id;type:varchar(64);not null;comment:'用户id'" json:"userID"`
+	MainAccountId   string `gorm:"column:main_account_id;type:varchar(20);default:null;comment:'新生支付主账号id'" json:"mainAccountId"`
+	PacketAccountId string `gorm:"column:packet_account_id;type:varchar(20);default:null;comment:'新生支付红包账户id'" json:"packetAccountId"`
+	Mobile          string `gorm:"column:mobile;type:varchar(15);not null;comment:'手机号码'" json:"mobile"`
+	RealName        string `gorm:"column:realname;type:varchar(20);not null;comment:'真实姓名'" json:"realName"`
+	IdCard          string `gorm:"column:id_card;type:varchar(30);not null;comment:'身份证'" json:"idCard"`
+	PaySwitch       int32  `gorm:"column:pay_switch;type:tinyint(4);default:1;comment:'支付开关(0关闭、1默认开启)'" json:"paySwitch"`
+	BodPaySwitch    int32  `gorm:"column:bod_pay_switch;type:tinyint(4);default:0;comment:'指纹支付/人脸支付开关(0默认关闭、1开启)'" json:"bodPaySwitch"`
+	PaymentPassword string `gorm:"column:payment_password;type:varchar(32);default:null;comment:'支付密码(md5加密)'" json:"paymentPassword"`
+	OpenStatus      int32  `gorm:"column:open_status;type:tinyint(4);default:0;comment:'开通状态'" json:"openStatus"`
+	OpenStep        int32  `gorm:"column:open_step;type:tinyint(4);default:1;comment:'开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)'" json:"openStep"`
+	CreatedTime     string `gorm:"column:created_time;type:datetime;default:null" json:"createdTime"`
+	UpdatedTime     string `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
 }
 
 func (FNcountAccount) TableName() string {
@@ -465,4 +465,61 @@ type UserCollect struct {
 
 func (UserCollect) TableName() string {
 	return "user_collect"
+}
+
+//CREATE TABLE `f_error_log` (
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`remark` varchar(255) DEFAULT NULL COMMENT '我们的备注，',
+//`mer_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付那边的订单',
+//`err_msg` varchar(255) DEFAULT NULL COMMENT '新生支付的错误',
+//`err_code` varchar(255) DEFAULT NULL COMMENT '错误码',
+//`all_msg` text COMMENT '完整信息集合',
+//`create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+//PRIMARY KEY (`id`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+type FErrorLog struct {
+	Id         int32  `gorm:"column:id" json:"id"`                     //id
+	Remark     string `gorm:"column:remark" json:"remark"`             //我们的备注，
+	MerOrderId string `gorm:"column:mer_order_id" json:"mer_order_id"` //新生支付那边的订单
+	ErrMsg     string `gorm:"column:err_msg" json:"err_msg"`           //新生支付的错误
+	ErrCode    string `gorm:"column:err_code" json:"err_code"`         //错误码
+	AllMsg     string `gorm:"column:all_msg" json:"all_msg"`           //完整信息集合
+	CreateTime int64  `gorm:"column:create_time" json:"create_time"`   //创建时间
+}
+
+func (FErrorLog) TableName() string {
+	return "f_error_log"
+}
+
+type FPacket struct {
+	ID                   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	PacketID             string `gorm:"column:packet_id;not null" json:"packet_id"`
+	SubmitTime           string `gorm:"column:submit_time;not null" json:"submit_time"` // 调用新生支付的时间
+	UserID               string `gorm:"column:user_id;not null" json:"user_id"`
+	UserRedpacketAccount string `gorm:"column:user_redpacket_account;not null" json:"user_redpacket_account"`
+	PacketType           int32  `gorm:"column:packet_type;not null" json:"packet_type"`
+	IsLucky              int32  `gorm:"column:is_lucky;not null" json:"is_lucky"`
+	ExclusiveUserID      string `gorm:"column:exclusive_user_id;not null" json:"exclusive_user_id"`
+	PacketTitle          string `gorm:"column:packet_title;not null" json:"packet_title"`
+	Amount               int64  `gorm:"column:amount;not null" json:"amount"`
+	Number               int32  `gorm:"column:number;not null" json:"number"`
+	ExpireTime           int64  `gorm:"column:expire_time;not null" json:"expire_time"`
+	MerOrderID           string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	SendType             int32  `gorm:"column:send_type;not null" json:"send_type"`
+	BindCardAgrNo        string `gorm:"column:bind_card_agr_no;not null" json:"bind_card_agr_no"`
+	OperateID            string `gorm:"column:operate_id;not null" json:"operate_id"`
+	RecvID               string `gorm:"column:recv_id;not null" json:"recv_id"`
+	Remain               int64  `gorm:"column:remain;not null" json:"remain"`                     // 剩余红包数量
+	RemainAmout          int64  `gorm:"column:remain_amout;not null" json:"remain_amout"`         // 剩余红包金额
+	LuckyUserID          string `gorm:"column:lucky_user_id;not null" json:"lucky_user_id"`       // 最佳手气红包用户ID
+	LuckUserAmount       int64  `gorm:"column:luck_user_amount;not null" json:"luck_user_amount"` // 最大红包的值： account amount  分为单位
+	CreatedTime          int64  `gorm:"column:created_time;not null" json:"created_time"`
+	UpdatedTime          int64  `gorm:"column:updated_time;not null" json:"updated_time"`
+	Status               int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
+	IsExclusive          int32  `gorm:"column:is_exclusive;not null" json:"is_exclusive"`
+}
+
+func (FPacket) TableName() string {
+	return "f_packet"
 }

@@ -27,23 +27,6 @@ CREATE TABLE `f_ncount_account` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COMMENT='云钱包账户表';
 */
 
-type FNcountAccount struct {
-	Id              int32  `gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment;comment:'主键'" json:"id"`
-	UserID          string `gorm:"column:user_id;type:varchar(64);not null;comment:'用户id'" json:"userID"`
-	MainAccountId   string `gorm:"column:main_account_id;type:varchar(20);default:null;comment:'新生支付主账号id'" json:"mainAccountId"`
-	PacketAccountId string `gorm:"column:packet_account_id;type:varchar(20);default:null;comment:'新生支付红包账户id'" json:"packetAccountId"`
-	Mobile          string `gorm:"column:mobile;type:varchar(15);not null;comment:'手机号码'" json:"mobile"`
-	RealName        string `gorm:"column:realname;type:varchar(20);not null;comment:'真实姓名'" json:"realName"`
-	IdCard          string `gorm:"column:id_card;type:varchar(30);not null;comment:'身份证'" json:"idCard"`
-	PaySwitch       int32  `gorm:"column:pay_switch;type:tinyint(4);default:1;comment:'支付开关(0关闭、1默认开启)'" json:"paySwitch"`
-	BodPaySwitch    int32  `gorm:"column:bod_pay_switch;type:tinyint(4);default:0;comment:'指纹支付/人脸支付开关(0默认关闭、1开启)'" json:"bodPaySwitch"`
-	PaymentPassword string `gorm:"column:payment_password;type:varchar(32);default:null;comment:'支付密码(md5加密)'" json:"paymentPassword"`
-	OpenStatus      int32  `gorm:"column:open_status;type:tinyint(4);default:0;comment:'开通状态'" json:"openStatus"`
-	OpenStep        int32  `gorm:"column:open_step;type:tinyint(4);default:1;comment:'开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)'" json:"openStep"`
-	CreatedTime     string `gorm:"column:created_time;type:datetime;default:null" json:"createdTime"`
-	UpdatedTime     string `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
-}
-
 func FNcountAccountGetUserAccountID(userId string) (*db.FNcountAccount, error) {
 	var account *db.FNcountAccount
 	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").
@@ -79,5 +62,5 @@ func UpdateNcountAccountField(userId string, m map[string]interface{}) error {
 }
 
 func UpdateNcountAccountInfo(info *db.FNcountAccount) error {
-	return db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", info.UserId).Updates(&info).Error
+	return db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", info.UserID).Updates(&info).Error
 }
