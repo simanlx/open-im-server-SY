@@ -261,3 +261,42 @@ func CloudWalletRecordList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }
+
+// 删除云钱包明细
+func CloudWalletRecordDel(c *gin.Context) {
+	params := account.CloudWalletRecordDel{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
+	req := &rpc.CloudWalletRecordDelReq{
+		UserId:      userId,
+		RecordId:    params.RecordId,
+		OperationID: params.OperationID,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.CloudWalletRecordDel(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, "CloudWalletRecordDel failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	return
+}
