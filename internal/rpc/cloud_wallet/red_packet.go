@@ -163,7 +163,7 @@ func (h *handlerSendRedPacket) SendRedPacket(req *pb.SendRedPacketReq) (*pb.Send
 			return nil, err
 		}
 	} else {
-		redpacket, err := h.recordRedPacket(req, userAC.PacketAccountId)
+		redpacket, err := h.recordRedPacket(req, amount, userAC.PacketAccountId)
 		if err != nil {
 			log.Error(req.OperationID, "record red packet error", zap.Error(err))
 			return nil, err
@@ -282,7 +282,7 @@ func (h handlerSendRedPacket) createRedpacketID(packetType int32, UserID string)
 }
 
 // 创建红包信息
-func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq, packetID /*发红包的用户ID*/ string) (*db.FPacket /* red packet ID */, error) {
+func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq, amount int64, packetID /*发红包的用户ID*/ string) (*db.FPacket /* red packet ID */, error) {
 
 	redPacket := &db.FPacket{
 		PacketID:             h.createRedpacketID(in.PacketType, in.UserId),
@@ -294,13 +294,14 @@ func (h *handlerSendRedPacket) recordRedPacket(in *pb.SendRedPacketReq, packetID
 		PacketTitle:          in.PacketTitle,
 		Amount:               in.Amount,
 		Number:               in.Number,
+		TotalAmount:          amount,
 		MerOrderID:           h.merOrderID,
 		OperateID:            h.OperateID,
 		SendType:             in.SendType,
 		BindCardAgrNo:        in.BindCardAgrNo,
 		RecvID:               in.RecvID, // 接收ID
 		Remain:               int64(in.Number),
-		RemainAmout:          in.Amount,
+		RemainAmout:          amount,
 		ExpireTime:           time.Now().Unix() + 60*60*24,
 		CreatedTime:          time.Now().Unix(),
 		UpdatedTime:          time.Now().Unix(),
@@ -437,7 +438,7 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 	}
 
 	// 2. 生成红包
-	if redpacketInfo.PacketType == 2 && redpacketInfo.Number > 1 {
+	if redpacketInfo.PacketType == 2 || redpacketInfo.IsExclusive != 1 {
 		// 群红包
 		err = GroupPacket(redpacketInfo, redPacketID)
 		if err != nil {

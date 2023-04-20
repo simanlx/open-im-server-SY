@@ -192,7 +192,7 @@ func GetUserAccountInfoFromCache(userID string) (*db.FNcountAccount, error) {
 		}
 		return string(bytes), nil
 	}
-	userInfoStr, err := db.DB.Rc.Fetch(fAccountCache+userID, time.Second*30*60, getAccountInfo)
+	userInfoStr, err := db.DB.Rc.Fetch(fAccountCache+userID, time.Second*60*60*24, getAccountInfo)
 	if err != nil {
 		return nil, utils.Wrap(err, "")
 	}

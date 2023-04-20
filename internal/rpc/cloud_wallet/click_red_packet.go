@@ -46,7 +46,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 		}
 	)
 
-	// 如果用户没实名认证就不能进行抢红包 sql 1
+	// 如果用户没实名认证就不能进行抢红包 cache 1
 	ClickerUserNcountInfo, err := h.checkUserAuthStatus(req.UserId)
 	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
@@ -129,13 +129,18 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 	// 5. 根据红包的
 	var amount int
 	// 4. 判断红包的类型
-	if (redPacketInfo.PacketType == 1 && redPacketInfo.IsExclusive != 1) || redPacketInfo.Number == 1 {
+	if redPacketInfo.PacketType == 1 || redPacketInfo.IsExclusive == 1 {
+		// 这里还是会有问题，很多人同时抢红包，还是会走mysql
 		// 直接查询数据库 		sql 4
-		amount = int(redPacketInfo.Amount)
+		amount = int(redPacketInfo.RemainAmout)
 	} else {
-		// 通过查询redis
+		// 群红包一个的话还是要走redis查询 ，不然的话很多人请求都会走mysql
+
 		amount, err = h.getRedPacketByGroup(req)
 	}
+
+	fmt.Println("打印领取红包", amount, err, "\n")
+
 	if err != nil {
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_ServerError
 		res.CommonResp.ErrMsg = "服务器错误：获取红包金额失败"
@@ -220,7 +225,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 // 检查用户实名认证状态
 func (h *handlerClickRedPacket) checkUserAuthStatus(userID string) (*db.FNcountAccount, error) {
 	// 判断用户是否实名注册
-	info, err := imdb.GetNcountAccountByUserId(userID)
+	info, err := rocksCache.GetUserAccountInfoFromCache(userID)
 	if err != nil {
 		return nil, errors.Wrap(err, "查询用户实名认证状态失败")
 	}
@@ -230,10 +235,7 @@ func (h *handlerClickRedPacket) checkUserAuthStatus(userID string) (*db.FNcountA
 // 如果红包是群聊红包， 直接redis的set集合进行获取红包
 func (h *handlerClickRedPacket) getRedPacketByGroup(req *pb.ClickRedPacketReq) (int, error) {
 	amount, err := db.DB.GetRedPacket(req.RedPacketID)
-	if err != nil {
-		return 0, err
-	}
-	return amount, nil
+	return amount, err
 }
 
 // 发送红包领取消息
