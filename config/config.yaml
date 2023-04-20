@@ -266,7 +266,8 @@ manager:
   secrets: [ ]
   appSysNotificationName: "系统通知"
 
-secret:
+secret: "xingdong8888"
+
 # 多端互踢策略
 # 1：多平台登录：Android、iOS、Windows、Mac 每种平台只能一个在线，web端可以多个同时在线
 multiloginpolicy: 1
