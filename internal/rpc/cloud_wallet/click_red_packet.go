@@ -237,7 +237,7 @@ func (h *handlerClickRedPacket) getRedPacketByGroup(req *pb.ClickRedPacketReq) (
 }
 
 // 发送红包领取消息
-func SendRedPacketMsg(redpacketInfo *imdb.FPacket, operationID string, clickUserID ...string) error {
+func SendRedPacketMsg(redpacketInfo *db.FPacket, operationID string, clickUserID ...string) error {
 	// 这里判断群红包是单人红包还是群聊红包 ： 单人红包需要推送两条领取消息，群聊红包需要推送一条领取消息
 
 	fmt.Printf("\n这里走到发送红包领取消息了 红包： %+v \n, 操作ID ：%s 	\n ,抢红包ID%v  \n：", redpacketInfo, operationID, clickUserID)

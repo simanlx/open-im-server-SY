@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-func GetRedPacket(count, amount int) []int {
-	if count == amount {
-		result := make([]int, count)
-		for i := 0; i < count; i++ {
+func GetRedPacket(amount, number int) []int {
+	if number == amount {
+		result := make([]int, number)
+		for i := 0; i < number; i++ {
 			result = append(result, 1)
 		}
 		return result
@@ -17,8 +17,8 @@ func GetRedPacket(count, amount int) []int {
 	remain := amount
 	var result []int
 	sum := 0
-	for i := 0; i < count; i++ {
-		x := DoubleAverage(count-i, remain)
+	for i := 0; i < number; i++ {
+		x := DoubleAverage(number-i, remain)
 		//金额减去
 		remain -= x
 		//发了多少钱

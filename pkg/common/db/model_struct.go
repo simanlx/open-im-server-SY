@@ -378,20 +378,20 @@ func (ClientInitConfig) TableName() string {
 }
 
 type FNcountAccount struct {
-	Id              int32  `gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment;comment:'主键'" json:"id"`
-	UserID          string `gorm:"column:user_id;type:varchar(64);not null;comment:'用户id'" json:"userID"`
-	MainAccountId   string `gorm:"column:main_account_id;type:varchar(20);default:null;comment:'新生支付主账号id'" json:"mainAccountId"`
-	PacketAccountId string `gorm:"column:packet_account_id;type:varchar(20);default:null;comment:'新生支付红包账户id'" json:"packetAccountId"`
-	Mobile          string `gorm:"column:mobile;type:varchar(15);not null;comment:'手机号码'" json:"mobile"`
-	RealName        string `gorm:"column:realname;type:varchar(20);not null;comment:'真实姓名'" json:"realName"`
-	IdCard          string `gorm:"column:id_card;type:varchar(30);not null;comment:'身份证'" json:"idCard"`
-	PaySwitch       int32  `gorm:"column:pay_switch;type:tinyint(4);default:1;comment:'支付开关(0关闭、1默认开启)'" json:"paySwitch"`
-	BodPaySwitch    int32  `gorm:"column:bod_pay_switch;type:tinyint(4);default:0;comment:'指纹支付/人脸支付开关(0默认关闭、1开启)'" json:"bodPaySwitch"`
-	PaymentPassword string `gorm:"column:payment_password;type:varchar(32);default:null;comment:'支付密码(md5加密)'" json:"paymentPassword"`
-	OpenStatus      int32  `gorm:"column:open_status;type:tinyint(4);default:0;comment:'开通状态'" json:"openStatus"`
-	OpenStep        int32  `gorm:"column:open_step;type:tinyint(4);default:1;comment:'开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)'" json:"openStep"`
-	CreatedTime     string `gorm:"column:created_time;type:datetime;default:null" json:"createdTime"`
-	UpdatedTime     string `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
+	Id              int32     `gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment;comment:'主键'" json:"id"`
+	UserID          string    `gorm:"column:user_id;type:varchar(64);not null;comment:'用户id'" json:"userID"`
+	MainAccountId   string    `gorm:"column:main_account_id;type:varchar(20);default:null;comment:'新生支付主账号id'" json:"mainAccountId"`
+	PacketAccountId string    `gorm:"column:packet_account_id;type:varchar(20);default:null;comment:'新生支付红包账户id'" json:"packetAccountId"`
+	Mobile          string    `gorm:"column:mobile;type:varchar(15);not null;comment:'手机号码'" json:"mobile"`
+	RealName        string    `gorm:"column:realname;type:varchar(20);not null;comment:'真实姓名'" json:"realName"`
+	IdCard          string    `gorm:"column:id_card;type:varchar(30);not null;comment:'身份证'" json:"idCard"`
+	PaySwitch       int32     `gorm:"column:pay_switch;type:tinyint(4);default:1;comment:'支付开关(0关闭、1默认开启)'" json:"paySwitch"`
+	BodPaySwitch    int32     `gorm:"column:bod_pay_switch;type:tinyint(4);default:0;comment:'指纹支付/人脸支付开关(0默认关闭、1开启)'" json:"bodPaySwitch"`
+	PaymentPassword string    `gorm:"column:payment_password;type:varchar(32);default:null;comment:'支付密码(md5加密)'" json:"paymentPassword"`
+	OpenStatus      int32     `gorm:"column:open_status;type:tinyint(4);default:0;comment:'开通状态'" json:"openStatus"`
+	OpenStep        int32     `gorm:"column:open_step;type:tinyint(4);default:1;comment:'开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)'" json:"openStep"`
+	CreatedTime     time.Time `gorm:"column:created_time;type:datetime;default:null" json:"createdTime"`
+	UpdatedTime     time.Time `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
 }
 
 func (FNcountAccount) TableName() string {
@@ -470,17 +470,19 @@ func (UserCollect) TableName() string {
 //CREATE TABLE `f_error_log` (
 //`id` int(11) NOT NULL AUTO_INCREMENT,
 //`remark` varchar(255) DEFAULT NULL COMMENT '我们的备注，',
+//`oprationID` varchar(255) DEFAULT NULL COMMENT '平台唯一操作ID',
 //`mer_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付那边的订单',
 //`err_msg` varchar(255) DEFAULT NULL COMMENT '新生支付的错误',
 //`err_code` varchar(255) DEFAULT NULL COMMENT '错误码',
 //`all_msg` text COMMENT '完整信息集合',
 //`create_time` int(11) DEFAULT NULL COMMENT '创建时间',
 //PRIMARY KEY (`id`)
-//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+//) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 type FErrorLog struct {
 	Id         int32  `gorm:"column:id" json:"id"`                     //id
 	Remark     string `gorm:"column:remark" json:"remark"`             //我们的备注，
+	OprationID string `gorm:"column:oprationID" json:"oprationID"`     //平台唯一操作ID
 	MerOrderId string `gorm:"column:mer_order_id" json:"mer_order_id"` //新生支付那边的订单
 	ErrMsg     string `gorm:"column:err_msg" json:"err_msg"`           //新生支付的错误
 	ErrCode    string `gorm:"column:err_code" json:"err_code"`         //错误码
@@ -492,6 +494,37 @@ func (FErrorLog) TableName() string {
 	return "f_error_log"
 }
 
+//CREATE TABLE `f_packet` (
+//`id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+//`packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
+//`submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
+//`user_id` varchar(255) NOT NULL COMMENT '红包发起者',
+//`user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
+//`packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
+//`is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
+//`exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
+//`packet_title` varchar(100) NOT NULL COMMENT '红包标题',
+//`amount` int(11) NOT NULL COMMENT '单个红包金额，如果说是',
+//`number` tinyint(3) NOT NULL COMMENT '红包个数',
+//`total_amount` int(11) DEFAULT NULL COMMENT '发红包的总金额 == remain_amount的初始值',
+//`expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
+//`mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
+//`operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
+//`recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
+//`send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
+//`bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
+//`remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
+//`remain_amout` int(11) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
+//`lucky_user_id` varchar(255) NOT NULL DEFAULT '' COMMENT '最佳手气红包用户ID',
+//`luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
+//`created_time` int(11) DEFAULT NULL,
+//`updated_time` int(11) DEFAULT NULL,
+//`status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
+//`is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
+//PRIMARY KEY (`id`),
+//KEY `idx_user_id` (`user_id`) USING BTREE,
+//KEY `idx_packet_id` (`packet_id`) USING BTREE
+//) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 type FPacket struct {
 	ID                   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID             string `gorm:"column:packet_id;not null" json:"packet_id"`
@@ -504,6 +537,7 @@ type FPacket struct {
 	PacketTitle          string `gorm:"column:packet_title;not null" json:"packet_title"`
 	Amount               int64  `gorm:"column:amount;not null" json:"amount"`
 	Number               int32  `gorm:"column:number;not null" json:"number"`
+	TotalAmount          int64  `gorm:"column:total_amount;not null" json:"total_amount"`
 	ExpireTime           int64  `gorm:"column:expire_time;not null" json:"expire_time"`
 	MerOrderID           string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
 	SendType             int32  `gorm:"column:send_type;not null" json:"send_type"`

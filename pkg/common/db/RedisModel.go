@@ -55,7 +55,9 @@ func (d *DataBases) SetRedPacket(packetID string, values []int) error {
 	for _, v := range values {
 		a = append(a, v)
 	}
-	err := d.RDB.SAdd(context.Background(), key, a...).Err()
+
+	fmt.Println("\n", "这里是收到的 a", a, "\n")
+	err := d.RDB.SAdd(context.Background(), key, 1, 2, 3, 4, 5).Err()
 	if err != nil {
 		return err
 	}
