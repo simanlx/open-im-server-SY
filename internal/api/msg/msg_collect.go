@@ -1,10 +1,10 @@
 package msg
 
 import (
+	"Open_IM/internal/api/common"
 	api "Open_IM/pkg/base_info"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	pbChat "Open_IM/pkg/proto/msg"
 	"context"
@@ -22,11 +22,8 @@ func MsgCollectList(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 
@@ -67,11 +64,8 @@ func MsgCollect(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 
@@ -109,11 +103,8 @@ func MsgCollectDel(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
 		return
 	}
 
