@@ -374,7 +374,7 @@ func (h *handlerSendRedPacket) walletTransfer(fncount *db.FNcountAccount, in *pb
 		BindCardAgrNo:        in.BindCardAgrNo,
 		RecvID:               in.RecvID, // 接收ID
 		Remain:               int64(in.Number),
-		RemainAmout:          in.Amount,
+		RemainAmout:          tAmount,
 		ExpireTime:           time.Now().Unix() + 60*60*24,
 		CreatedTime:          time.Now().Unix(),
 		UpdatedTime:          time.Now().Unix(),
