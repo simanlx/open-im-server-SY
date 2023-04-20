@@ -69,11 +69,12 @@ message CloudWalletRecordListResp{
 
 message RecordList{
   string describe = 1; //明细描述
-  int32 amount = 2; //变动金额
+  int32  amount = 2; //变动金额
   string createdTime = 3; //时间
   string relevancePacketId = 4; //关联红包id
-  int32 afterAmount = 5; //变更后余额
-  int32 type = 6; //收支类型(1收入、2支出)
+  int32  afterAmount = 5; //变更后余额
+  int32  type = 6; //收支类型(1收入、2支出)
+  int32  id = 7; //记录id
 }
 
 // 6.绑定用户银行卡
@@ -406,8 +407,9 @@ message ForbidGroupRedPacketResp {
 
 message CloudWalletRecordDelReq{
   string userId = 1; //用户id
-  int32 recordId = 2; //记录id
+  int32  recordId = 2; //记录id
   string operationID = 3; //链路跟踪id
+  int32  delType = 4; //删除类型(0单条、1全部)
 }
 
 message CloudWalletRecordDelResp {

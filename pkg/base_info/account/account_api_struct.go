@@ -84,6 +84,7 @@ type CloudWalletRecordListReq struct {
 
 // 软删除账户变更记录
 type CloudWalletRecordDel struct {
-	RecordId    int32  `json:"record_id" binding:"required"`
+	DelType     int32  `json:"del_type"` //删除类型(0单条、1全部)
+	RecordId    int32  `json:"record_id"`
 	OperationID string `json:"operationID" binding:"required"`
 }

@@ -380,6 +380,7 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 	recordList := make([]*cloud_wallet.RecordList, 0)
 	for _, v := range list {
 		recordList = append(recordList, &cloud_wallet.RecordList{
+			Id:                v.ID,
 			Describe:          v.Describe,
 			Amount:            v.Amount,
 			CreatedTime:       v.CreatedTime.Format("2006-01-02 15:04:05"),
@@ -716,7 +717,7 @@ func (rpc *CloudWalletServer) CloudWalletRecordDel(_ context.Context, req *cloud
 	resp := &cloud_wallet.CloudWalletRecordDelResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
 
 	//软删除记录
-	err := imdb.DelNcountTradeRecord(req.RecordId, req.UserId)
+	err := imdb.DelNcountTradeRecord(req.DelType, req.RecordId, req.UserId)
 	if err != nil {
 		resp.CommonResp.ErrMsg = fmt.Sprintf("删除记录失败,%s", err.Error())
 		resp.CommonResp.ErrCode = 400

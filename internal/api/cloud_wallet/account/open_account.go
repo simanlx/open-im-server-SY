@@ -270,6 +270,12 @@ func CloudWalletRecordDel(c *gin.Context) {
 		return
 	}
 
+	//验证参数
+	if params.DelType == 0 && params.RecordId == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "参数错误"})
+		return
+	}
+
 	//解析token、获取用户id
 	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
@@ -278,6 +284,7 @@ func CloudWalletRecordDel(c *gin.Context) {
 
 	req := &rpc.CloudWalletRecordDelReq{
 		UserId:      userId,
+		DelType:     params.DelType,
 		RecordId:    params.RecordId,
 		OperationID: params.OperationID,
 	}

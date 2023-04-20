@@ -70,7 +70,13 @@ func FindNcountTradeList(userId, startTime, endTime string, page, size int32) (l
 }
 
 // 软删除账户记录
-func DelNcountTradeRecord(recordId int32, userId string) error {
-	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where(" id = ? and user_id = ? ", recordId, userId).Update("is_delete", 1).Error
+func DelNcountTradeRecord(delType, recordId int32, userId string) error {
+	var err error
+	if delType == 0 {
+		err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where(" id = ? and user_id = ? ", recordId, userId).Update("is_delete", 1).Error
+	} else {
+		//删除全部记录
+		err = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where("user_id = ? ", userId).Update("is_delete", 1).Error
+	}
 	return err
 }
