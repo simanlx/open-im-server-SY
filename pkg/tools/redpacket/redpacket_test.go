@@ -6,10 +6,10 @@ import (
 )
 
 func TestDoubleAverage(t *testing.T) {
-	fmt.Println(GetRedPacket(10, 100))
-	fmt.Println(GetRedPacket(4, 100))
-	fmt.Println(GetRedPacket(4, 12))
-	fmt.Println(GetRedPacket(4, 12))
-	fmt.Println(GetRedPacket(4, 12))
-	fmt.Println(GetRedPacket(9, 100))
+	fmt.Println(GetRedPacket(2, 2))
+	fmt.Println(GetRedPacket(40, 2))
+	fmt.Println(GetRedPacket(50, 1))
+	fmt.Println(GetRedPacket(50, 12))
+	fmt.Println(GetRedPacket(60, 12))
+	fmt.Println(GetRedPacket(2, 2))
 }

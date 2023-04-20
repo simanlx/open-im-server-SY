@@ -6,8 +6,11 @@ import (
 )
 
 func GetRedPacket(amount, number int) []int {
+	if amount < number {
+		return nil
+	}
 	if number == amount {
-		result := make([]int, number)
+		result := []int{}
 		for i := 0; i < number; i++ {
 			result = append(result, 1)
 		}

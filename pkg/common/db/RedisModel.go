@@ -55,9 +55,7 @@ func (d *DataBases) SetRedPacket(packetID string, values []int) error {
 	for _, v := range values {
 		a = append(a, v)
 	}
-
-	fmt.Println("\n", "这里是收到的 a", a, "\n")
-	err := d.RDB.SAdd(context.Background(), key, 1, 2, 3, 4, 5).Err()
+	err := d.RDB.LPush(context.Background(), key, a...).Err()
 	if err != nil {
 		return err
 	}
@@ -68,7 +66,7 @@ func (d *DataBases) SetRedPacket(packetID string, values []int) error {
 // 获取群红包
 func (d *DataBases) GetRedPacket(redPacketID string) (int, error) {
 	key := redPacket + redPacketID
-	amount, err := d.RDB.SPop(context.Background(), key).Int()
+	amount, err := d.RDB.LPop(context.Background(), key).Int()
 	if err != nil {
 		if errors.Is(err, go_redis.Nil) {
 			return 0, nil // 红包已经被抢完

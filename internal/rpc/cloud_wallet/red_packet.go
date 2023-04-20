@@ -503,7 +503,10 @@ func spareRedPacket(packetID string, amount, number int) error {
 			log.Error("spareRedPacket panic", zap.Any("err", err))
 		}
 	}()
-	// 将发送的红包进行计算
+	// 将发送的红包进行计算 : 注意  amount > number
+	if amount < number {
+		return errors.New(" amount 必须大于 number")
+	}
 	result := redpacket.GetRedPacket(amount, number)
 	err := commonDB.DB.SetRedPacket(packetID, result)
 	if err != nil {
