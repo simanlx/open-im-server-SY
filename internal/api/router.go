@@ -56,6 +56,7 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/set_payment_secret", account.SetPaymentSecret)            // 设置支付密码
 		cloudWalletGroup.POST("/check_payment_secret", account.CheckPaymentSecret)        // 校验支付密码
 		cloudWalletGroup.POST("/cloud_wallet/record_list", account.CloudWalletRecordList) // 云钱包明细：云钱包收支情况
+		cloudWalletGroup.POST("/cloud_wallet/record_del", account.CloudWalletRecordDel)   // 删除云钱包明细
 
 		//用户银行卡管理
 		cloudWalletGroup.POST("/bind_user_bankcard", account.BindUserBankCard)                //绑定银行卡(预提交)

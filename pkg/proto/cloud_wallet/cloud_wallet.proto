@@ -404,6 +404,15 @@ message ForbidGroupRedPacketResp {
   CommonResp commonResp = 1;
 }
 
+message CloudWalletRecordDelReq{
+  string userId = 1; //用户id
+  int32 recordId = 2; //记录id
+  string operationID = 3; //链路跟踪id
+}
+
+message CloudWalletRecordDelResp {
+  CommonResp commonResp = 1;
+}
 
 // 钱包服务
 service CloudWalletService {
@@ -461,5 +470,8 @@ service CloudWalletService {
 
   //红包详情
   rpc RedPacketInfo(RedPacketInfoReq)returns(RedPacketInfoResp);
+
+  //软删除云钱包收支明细记录
+  rpc CloudWalletRecordDel(CloudWalletRecordDelReq)returns(CloudWalletRecordDelResp);
 
 }

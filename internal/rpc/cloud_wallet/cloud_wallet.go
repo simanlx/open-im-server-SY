@@ -6,6 +6,7 @@ import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
@@ -132,7 +133,7 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode != ncount.ResultCodeSuccess {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("查询账户信息失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -167,6 +168,9 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 			}
 		}
 	}
+
+	//删除缓存
+	_ = rocksCache.DeleteAccountInfoFromCache(req.UserId)
 
 	//精度
 	balAmount, _ := decimal.NewFromString(accountResp.BalAmount)
@@ -227,7 +231,7 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 			if err != nil {
 				return errors.New(fmt.Sprintf("实名认证失败(%s)", err.Error()))
 			} else {
-				if accountResp.ResultCode != "0000" {
+				if accountResp.ResultCode != ncount.ResultCodeSuccess {
 					return errors.New(fmt.Sprintf("实名认证失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg))
 				}
 			}
@@ -421,7 +425,7 @@ func (rpc *CloudWalletServer) BindUserBankcard(_ context.Context, req *cloud_wal
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode != ncount.ResultCodeSuccess {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("绑定银行卡失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -488,7 +492,7 @@ func (rpc *CloudWalletServer) BindUserBankcardConfirm(_ context.Context, req *cl
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode != ncount.ResultCodeSuccess {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("绑定用户银行卡确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -535,7 +539,7 @@ func (rpc *CloudWalletServer) UnBindingUserBankcard(_ context.Context, req *clou
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode != ncount.ResultCodeSuccess {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("解绑银行卡失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -585,7 +589,7 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode != "0000" {
+		if accountResp.ResultCode != ncount.ResultCodeSuccess {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡充值失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -633,7 +637,7 @@ func (rpc *CloudWalletServer) UserRechargeConfirm(_ context.Context, req *cloud_
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode == "4444" {
+		if accountResp.ResultCode == ncount.ResultCodeFail {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("充值确认失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -690,7 +694,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	} else {
-		if accountResp.ResultCode == "4444" {
+		if accountResp.ResultCode == ncount.ResultCodeFail {
 			resp.CommonResp.ErrMsg = fmt.Sprintf("银行卡提现失败 (%s,%s)", accountResp.ErrorCode, accountResp.ErrorMsg)
 			resp.CommonResp.ErrCode = 400
 			return resp, nil
@@ -704,5 +708,20 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 	}
 
 	resp.OrderNo = accountResp.NcountOrderId
+	return resp, nil
+}
+
+// 删除云钱包明细
+func (rpc *CloudWalletServer) CloudWalletRecordDel(_ context.Context, req *cloud_wallet.CloudWalletRecordDelReq) (*cloud_wallet.CloudWalletRecordDelResp, error) {
+	resp := &cloud_wallet.CloudWalletRecordDelResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
+	//软删除记录
+	err := imdb.DelNcountTradeRecord(req.RecordId, req.UserId)
+	if err != nil {
+		resp.CommonResp.ErrMsg = fmt.Sprintf("删除记录失败,%s", err.Error())
+		resp.CommonResp.ErrCode = 400
+		return resp, nil
+	}
+
 	return resp, nil
 }

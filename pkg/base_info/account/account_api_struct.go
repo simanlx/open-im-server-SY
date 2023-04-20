@@ -82,9 +82,8 @@ type CloudWalletRecordListReq struct {
 	OperationID string `json:"operationID" binding:"required"`
 }
 
-// 一键登录
-type UserOneClickLoginReq struct {
-	UserId      string `json:"user_id"`
-	Token       string `json:"token" binding:"required"`
+// 软删除账户变更记录
+type CloudWalletRecordDel struct {
+	RecordId    int32  `json:"record_id" binding:"required"`
 	OperationID string `json:"operationID" binding:"required"`
 }

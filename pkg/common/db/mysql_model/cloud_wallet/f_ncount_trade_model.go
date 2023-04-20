@@ -55,7 +55,7 @@ func GetFNcountTradeByOrderNo(orderNo, userId string) (info *db.FNcountTrade, er
 // 获取账户变更列表
 func FindNcountTradeList(userId, startTime, endTime string, page, size int32) (list []*db.FNcountTrade, count int64, err error) {
 	model := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").
-		Where(" user_id = ? and ncount_status = ?", userId, 1)
+		Where(" user_id = ? and ncount_status = ? and is_delete = ?", userId, 1, 0)
 
 	if len(startTime) > 0 {
 		model = model.Where("created_time >= ?", fmt.Sprintf("%s 00:00:00", startTime))
@@ -67,4 +67,10 @@ func FindNcountTradeList(userId, startTime, endTime string, page, size int32) (l
 
 	err = model.Count(&count).Limit(int(size)).Offset(int(size * (page - 1))).Order("id desc").Find(&list).Error
 	return
+}
+
+// 软删除账户记录
+func DelNcountTradeRecord(recordId int32, userId string) error {
+	err := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").Where(" id = ? and user_id = ? ", recordId, userId).Update("is_delete", 1).Error
+	return err
 }
