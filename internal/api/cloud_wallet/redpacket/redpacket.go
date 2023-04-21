@@ -6,7 +6,6 @@ import (
 	"Open_IM/pkg/base_info/redpacket_struct"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"Open_IM/pkg/tencent_cloud"
@@ -167,8 +166,14 @@ func GetRedPacketInfo(c *gin.Context) {
 		return
 	}
 
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
 	req := &rpc.RedPacketInfoReq{
-		UserId:      params.UserId,
+		UserId:      userId,
 		PacketId:    params.PacketId,
 		OperationID: params.OperationID,
 	}
@@ -255,12 +260,9 @@ func GetAgoraToken(c *gin.Context) {
 		return
 	}
 
-	// 获取用户token
-	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
-		errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-		log.NewError(params.OperationID, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
 		return
 	}
 
@@ -273,7 +275,7 @@ func GetAgoraToken(c *gin.Context) {
 	}
 
 	// 生成token
-	result, err := agora.GenerateRtcToken(UserID, params.OperationID, params.Channel_name, role)
+	result, err := agora.GenerateRtcToken(userId, params.OperationID, params.Channel_name, role)
 	if err != nil {
 		log.NewError(params.OperationID, "RedPacketInfo failed ", err.Error(), params)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
@@ -291,12 +293,9 @@ func TranslateVideo(c *gin.Context) {
 		return
 	}
 
-	// 获取用户token
-	//ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
+	//解析token、获取用户id
+	//userId, ok := common.ParseImToken(c, params.OperationID)
 	//if !ok {
-	//	errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-	//	log.NewError(params.OperationID, errMsg)
-	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
 	//	return
 	//}
 
