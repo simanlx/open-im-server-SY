@@ -519,3 +519,81 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 	return
 }
+
+// 获取用户属性开关配置
+func AttributeSwitch(c *gin.Context) {
+	params := api.AttributeSwitchReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusOK, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
+	req := &rpc.AttributeSwitchReq{UserId: userId, OperationID: params.OperationID}
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImUserName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewUserClient(etcdConn)
+	resp, err := client.AttributeSwitch(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": resp})
+	return
+}
+
+// 获取用户属性开关配置
+func AttributeSwitchSet(c *gin.Context) {
+	var (
+		params api.AttributeSwitchSetReq
+		resp   api.AttributeSwitchSetResp
+	)
+
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusOK, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
+	req := &rpc.AttributeSwitchSetReq{
+		SetType:     params.SetType,
+		SetValue:    params.SetValue,
+		UserId:      userId,
+		OperationID: params.OperationID,
+	}
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImUserName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewUserClient(etcdConn)
+	rpcResp, err := client.AttributeSwitchSet(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	resp.CommResp.ErrCode = rpcResp.CommonResp.ErrCode
+	resp.CommResp.ErrMsg = rpcResp.CommonResp.ErrMsg
+	c.JSON(http.StatusOK, resp)
+	return
+}

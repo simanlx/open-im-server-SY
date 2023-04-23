@@ -130,3 +130,17 @@ type GetUsersResp struct {
 		ShowNumber  int32      `json:"showNumber"`
 	} `json:"data"`
 }
+
+type AttributeSwitchReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type AttributeSwitchSetReq struct {
+	SetType     int32  `json:"set_type"`
+	SetValue    int32  `json:"set_value"`
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type AttributeSwitchSetResp struct {
+	CommResp
+}

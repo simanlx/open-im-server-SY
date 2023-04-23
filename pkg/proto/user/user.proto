@@ -205,6 +205,28 @@ message GetBlockUsersResp{
   int32 UserNums = 4;
 }
 
+message AttributeSwitchReq {
+  string userId = 1;
+  string operationID = 2;
+}
+
+message AttributeSwitchResp {
+  int32  add_friend_verify_switch = 1;
+  int32  add_friend_group_switch = 2;
+  int32  add_friend_qrcode_switch = 3;
+  int32  add_friend_card_switch = 4;
+}
+
+message AttributeSwitchSetReq {
+  int32  setType = 1;
+  int32  setValue = 2;
+  string userId = 3;
+  string operationID = 4;
+}
+
+message AttributeSwitchSetResp {
+  CommonResp  CommonResp = 1;
+}
 
 service user {
   rpc GetUserInfo(GetUserInfoReq) returns(GetUserInfoResp);
@@ -228,5 +250,8 @@ service user {
   rpc BlockUser(BlockUserReq) returns (BlockUserResp);
   rpc UnBlockUser(UnBlockUserReq) returns (UnBlockUserResp);
   rpc GetBlockUsers(GetBlockUsersReq) returns (GetBlockUsersResp);
+
+  rpc AttributeSwitch(AttributeSwitchReq) returns (AttributeSwitchResp); //用户属性开关配置
+  rpc AttributeSwitchSet(AttributeSwitchSetReq) returns (AttributeSwitchSetResp); //用户属性开关配置
 }
 
