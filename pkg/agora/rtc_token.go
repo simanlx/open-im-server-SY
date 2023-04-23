@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	tokenExpireTime     = 40
-	privelegeExpireTime = 40
+	tokenExpireTime     = 3600
+	privelegeExpireTime = 3600
 )
 
 // 使用 RtcTokenBuilder 来生成 RTC Token
