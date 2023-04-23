@@ -18,6 +18,7 @@ import (
 	"Open_IM/pkg/utils"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -772,5 +773,60 @@ func (s *userServer) GetBlockUsers(ctx context.Context, req *pbUser.GetBlockUser
 		})
 	}
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), "resp: ", resp)
+	return resp, nil
+}
+
+// 获取用户属性开关配置
+func (s *userServer) AttributeSwitch(_ context.Context, req *pbUser.AttributeSwitchReq) (*pbUser.AttributeSwitchResp, error) {
+	resp := &pbUser.AttributeSwitchResp{}
+
+	//获取数据
+	info, _ := imdb.GetUserAttributeSwitch(req.UserId)
+
+	resp.AddFriendVerifySwitch = info.AddFriendVerifySwitch
+	resp.AddFriendGroupSwitch = info.AddFriendGroupSwitch
+	resp.AddFriendQrcodeSwitch = info.AddFriendQrcodeSwitch
+	resp.AddFriendCardSwitch = info.AddFriendCardSwitch
+	return resp, nil
+}
+
+// 设置用户属性开关配置
+func (s *userServer) AttributeSwitchSet(_ context.Context, req *pbUser.AttributeSwitchSetReq) (*pbUser.AttributeSwitchSetResp, error) {
+	resp := &pbUser.AttributeSwitchSetResp{CommonResp: &pbUser.CommonResp{}}
+
+	//获取数据
+	info, _ := imdb.GetUserAttributeSwitch(req.UserId)
+	if info.Id == 0 {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "设置失败"
+		return resp, nil
+	}
+
+	//设置数据
+	setData := map[string]interface{}{}
+	switch req.SetType {
+	case 1: //加好友验证开关
+		setData["add_friend_verify_switch"] = req.SetValue
+	case 2: //加好友群组开关
+		setData["add_friend_group_switch"] = req.SetValue
+	case 3: //加好友二维码开关
+		setData["add_friend_qrcode_switch"] = req.SetValue
+	case 4: //加好友名片开关
+		setData["add_friend_card_switch"] = req.SetValue
+	default:
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "设置类型参数错误"
+		return resp, nil
+	}
+
+	//更新数据
+	err := imdb.SetUserAttributeSwitch(info.Id, setData)
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), "SetUserAttributeSwitch failed", err.Error())
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = fmt.Sprintf("设置失败,err:%s", err.Error())
+		return resp, nil
+	}
+
 	return resp, nil
 }

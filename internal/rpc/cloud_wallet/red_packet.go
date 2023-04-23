@@ -703,10 +703,10 @@ func (rpc *CloudWalletServer) GetVersion(in context.Context, req *pb.GetVersionR
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			resp.CommonResp.ErrCode = 400
-			resp.CommonResp.ErrMsg = "版本信息不存在"
-			return resp, nil
+			resp.CommonResp.ErrMsg = "上报的版本号不存在"
+		} else {
+			return nil, err
 		}
-		return nil, err
 	}
 
 	// 获取最新版本信息
@@ -714,7 +714,7 @@ func (rpc *CloudWalletServer) GetVersion(in context.Context, req *pb.GetVersionR
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			resp.CommonResp.ErrCode = 400
-			resp.CommonResp.ErrMsg = "未查找到版本信息"
+			resp.CommonResp.ErrMsg = "版本库信息错误"
 			return resp, nil
 		}
 		return nil, err
@@ -737,5 +737,5 @@ func (rpc *CloudWalletServer) GetVersion(in context.Context, req *pb.GetVersionR
 	}
 
 	// 第三种情况，如果中间存在多个版本，那么就强制更新 （3个以上的版本）
-	return nil, nil
+	return resp, nil
 }

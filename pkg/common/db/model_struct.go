@@ -580,3 +580,17 @@ type FVersion struct {
 func (FVersion) TableName() string {
 	return "f_version"
 }
+
+type UserAttributeSwitch struct {
+	Id                    int32     `gorm:"column:id" json:"id"`                                             //id
+	UserId                string    `gorm:"column:user_id" json:"user_id"`                                   //用户id
+	AddFriendVerifySwitch int32     `gorm:"column:add_friend_verify_switch" json:"add_friend_verify_switch"` //加好友验证开关
+	AddFriendGroupSwitch  int32     `gorm:"column:add_friend_group_switch" json:"add_friend_group_switch"`   //加好友群组开关
+	AddFriendQrcodeSwitch int32     `gorm:"column:add_friend_qrcode_switch" json:"add_friend_qrcode_switch"` //加好友二维码开关
+	AddFriendCardSwitch   int32     `gorm:"column:add_friend_card_switch" json:"add_friend_card_switch"`     //加好友名片开关
+	UpdatedTime           time.Time `gorm:"column:updated_time" json:"updated_time"`                         //时间
+}
+
+func (UserAttributeSwitch) TableName() string {
+	return "user_attribute_switch"
+}

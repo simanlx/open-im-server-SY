@@ -107,6 +107,9 @@ func NewGinRouter() *gin.Engine {
 		userRouterGroup.POST("/account_check", manage.AccountCheck)       //1
 		//	userRouterGroup.POST("/get_users_online_status", manage.GetUsersOnlineStatus) //1
 		userRouterGroup.POST("/get_users", user.GetUsers)
+
+		userRouterGroup.POST("/attribute_switch", user.AttributeSwitch)        //获取用户属性开关配置
+		userRouterGroup.POST("/attribute_switch/set", user.AttributeSwitchSet) //用户属性开关设置
 	}
 	//friend routing group
 	friendRouterGroup := r.Group("/friend")
