@@ -4,6 +4,7 @@ import (
 	"Open_IM/pkg/common/log"
 	"fmt"
 	rtctokenbuilder "github.com/AgoraIO/Tools/DynamicKey/AgoraDynamicKey/go/src/rtctokenbuilder2"
+	"strconv"
 )
 
 const (
@@ -25,7 +26,13 @@ func GenerateRtcToken(int_uid, OperationID string, channelName string, role rtct
 	// 权限过期时会触发 token-privilege-did-expire 回调。
 	// 为作演示，在此将过期时间设为 40 秒。你可以看到客户端自动更新 Token 的过程
 	privilegeExpireTimeInSeconds := uint32(privelegeExpireTime)
-	result, err := rtctokenbuilder.BuildTokenWithUserAccount(appID, appCertificate, channelName, int_uid, role, tokenExpireTimeInSeconds, privilegeExpireTimeInSeconds)
+
+	userID, err := strconv.Atoi(int_uid)
+	if err != nil {
+		log.Error(OperationID, fmt.Sprintf("strconv.Atoi error: %v", err))
+		return "", "", err
+	}
+	result, err := rtctokenbuilder.BuildTokenWithUid(appID, appCertificate, channelName, uint32(userID), role, tokenExpireTimeInSeconds, privilegeExpireTimeInSeconds)
 	if err != nil {
 		log.Error(OperationID, fmt.Sprintf("build token with user account error: %v", err))
 		return "", "", err
