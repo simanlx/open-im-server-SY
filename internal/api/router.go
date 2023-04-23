@@ -82,7 +82,7 @@ func NewGinRouter() *gin.Engine {
 		// 生成声网token
 		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token
 		cloudWalletGroup.POST("/translateVideo", redpacket.TranslateVideo) // 翻译文字
-
+		cloudWalletGroup.POST("/getVersion", redpacket.GetVersion)         // 获取版本
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
 			context.JSON(200, gin.H{

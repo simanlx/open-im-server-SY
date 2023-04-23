@@ -62,8 +62,19 @@ type AgoraTokenReq struct {
 	OperationID  string `json:"operationID"` // 链路跟踪id
 }
 
+type AgoraTokenResp struct {
+	Token string `json:"token"`
+	AppID string `json:"appID"`
+}
+
 // 腾讯云进行消息转义 (腾讯云进行消息转义： 未做)
 type TencentMsgEscapeReq struct {
 	ContentUrl  string `json:"content_url" binding:"required"` //消息内容
 	OperationID string `json:"operationID"`                    // 链路跟踪id
+}
+
+type GetVersionReq struct {
+	// param out : 最新版本号、下载地址、更新内容、是否强制更新
+	VersionCode string `json:"version_code" binding:"required"` //版本号
+	OperationID string `json:"operationID" binding:"required"`  // 链路跟踪id
 }

@@ -12,7 +12,7 @@ const (
 )
 
 // 使用 RtcTokenBuilder 来生成 RTC Token
-func GenerateRtcToken(int_uid, OperationID string, channelName string, role rtctokenbuilder.Role) (string, error) {
+func GenerateRtcToken(int_uid, OperationID string, channelName string, role rtctokenbuilder.Role) (string, string, error) {
 
 	appID := "7ab956ddab30495e85dab000ce22f77d"
 	appCertificate := "49642a91127249619a730e9ac4db75ff"
@@ -28,7 +28,7 @@ func GenerateRtcToken(int_uid, OperationID string, channelName string, role rtct
 	result, err := rtctokenbuilder.BuildTokenWithUserAccount(appID, appCertificate, channelName, int_uid, role, tokenExpireTimeInSeconds, privilegeExpireTimeInSeconds)
 	if err != nil {
 		log.Error(OperationID, fmt.Sprintf("build token with user account error: %v", err))
-		return "", err
+		return "", "", err
 	}
-	return result, err
+	return result, appID, err
 }

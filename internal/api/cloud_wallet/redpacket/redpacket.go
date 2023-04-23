@@ -275,14 +275,18 @@ func GetAgoraToken(c *gin.Context) {
 	}
 
 	// 生成token
-	result, err := agora.GenerateRtcToken(userId, params.OperationID, params.Channel_name, role)
+	result, appid, err := agora.GenerateRtcToken(userId, params.OperationID, params.Channel_name, role)
 	if err != nil {
 		log.NewError(params.OperationID, "RedPacketInfo failed ", err.Error(), params)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
 		return
 	}
+	resp := redpacket_struct.AgoraTokenResp{
+		Token: result,
+		AppID: appid,
+	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "msg": "获取成功", "data": result})
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "msg": "获取成功", "data": resp})
 }
 
 // 翻译音频 （完成）
@@ -294,10 +298,10 @@ func TranslateVideo(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	//userId, ok := common.ParseImToken(c, params.OperationID)
-	//if !ok {
-	//	return
-	//}
+	_, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
 
 	// 消息翻译
 	result, err := tencent_cloud.GetTencentCloudTranslate(params.ContentUrl, params.OperationID)
@@ -307,4 +311,41 @@ func TranslateVideo(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "errMsg": "获取成功", "data": result})
+}
+
+// 获取版本号
+func GetVersion(c *gin.Context) {
+	// param in : 版本号
+	// param out : 最新版本号、下载地址、更新内容、是否强制更新
+
+	params := redpacket_struct.GetVersionReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	rpcReq := rpc.GetVersionReq{
+		Version:     params.VersionCode,
+		OperationID: params.OperationID,
+	}
+
+	// etcdConn
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
+	if etcdConn == nil {
+		errMsg := params.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.GetVersion(context.Background(), &rpcReq)
+	if err != nil {
+		log.NewError(params.OperationID, "GetVersion failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 }

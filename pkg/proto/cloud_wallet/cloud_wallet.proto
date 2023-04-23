@@ -321,6 +321,9 @@ message confirmSendRedPacketCodeResp {
   CommonResp commonResp = 1;
 }
 
+
+
+
 // ==============================================回调 ===================
 // 16. 用户从银行卡充值到红包、充值到主账户都需要进行回调
 message chargeNotifyReq {
@@ -416,6 +419,22 @@ message CloudWalletRecordDelResp {
   CommonResp commonResp = 1;
 }
 
+
+// 16.获取版本
+message getVersionReq {
+  string version = 1;
+  string operationID = 2; //链路跟踪id
+}
+
+// param out : 最新版本号、下载地址、更新内容、是否强制更新
+message getVersionResp {
+  string version = 1;
+  string downloadUrl = 2;
+  string updateContent = 3;
+  int32 isForceUpdate = 4;
+  CommonResp commonResp = 5;
+}
+
 // 钱包服务
 service CloudWalletService {
   // ==================================云钱包管理 ========
@@ -475,5 +494,8 @@ service CloudWalletService {
 
   //软删除云钱包收支明细记录
   rpc CloudWalletRecordDel(CloudWalletRecordDelReq)returns(CloudWalletRecordDelResp);
+
+  // 获取版本
+  rpc GetVersion(getVersionReq)returns(getVersionResp);
 
 }

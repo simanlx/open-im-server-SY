@@ -20,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"math/rand"
 	"time"
 )
@@ -681,4 +682,60 @@ func (rpc *CloudWalletServer) ForbidGroupRedPacket(ctx context.Context, req *pb.
 	}
 
 	return result, nil
+}
+
+// 获取版本
+func (rpc *CloudWalletServer) GetVersion(in context.Context, req *pb.GetVersionReq) (*pb.GetVersionResp, error) {
+	var (
+		resp = &pb.GetVersionResp{
+			Version:       "",
+			DownloadUrl:   "",
+			UpdateContent: "",
+			IsForceUpdate: 0,
+			CommonResp: &pb.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "获取版本成功",
+			},
+		}
+	)
+	// 获取版本信息
+	UserVersion, err := imdb.GetFVersion(req.Version)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.CommonResp.ErrCode = 400
+			resp.CommonResp.ErrMsg = "版本信息不存在"
+			return resp, nil
+		}
+		return nil, err
+	}
+
+	// 获取最新版本信息
+	NewVersion, err := imdb.GetLastedFVersion()
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.CommonResp.ErrCode = 400
+			resp.CommonResp.ErrMsg = "未查找到版本信息"
+			return resp, nil
+		}
+		return nil, err
+	}
+
+	// 这里逻辑是如果当前版本远小于最新版本，就强制更新
+	if NewVersion.IsForce == 1 {
+		resp.Version = NewVersion.VersionCode
+		resp.DownloadUrl = NewVersion.DownloadUrl
+		resp.UpdateContent = NewVersion.UpdateContent
+		resp.IsForceUpdate = NewVersion.IsForce
+	}
+
+	// 第二种情况： 如果当前版本落后时间太多，也强制更新 (3个月)
+	if NewVersion.CreateTime-UserVersion.CreateTime > 60*60*24*30*3 {
+		resp.Version = NewVersion.VersionCode
+		resp.DownloadUrl = NewVersion.DownloadUrl
+		resp.UpdateContent = NewVersion.UpdateContent
+		resp.IsForceUpdate = 1 // 强制更新
+	}
+
+	// 第三种情况，如果中间存在多个版本，那么就强制更新 （3个以上的版本）
+	return nil, nil
 }

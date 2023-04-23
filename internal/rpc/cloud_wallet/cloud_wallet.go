@@ -41,6 +41,7 @@ type CloudWalletServer struct {
 
 	// 依赖钱包服务
 	count ncount.NCounter
+	cloud_wallet.UnsafeCloudWalletServiceServer
 }
 
 func NewRpcCloudWalletServer(port int) *CloudWalletServer {

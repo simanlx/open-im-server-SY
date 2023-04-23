@@ -1,14 +1,14 @@
 package cloud_wallet
 
 import (
-	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	"Open_IM/pkg/common/db"
 	"testing"
 )
 
 // 测试发送红包消息
 func TestSendRedPacketMsg(t *testing.T) {
 	type args struct {
-		redpacketInfo *imdb.FPacket
+		redpacketInfo *db.FPacket
 		operationID   string
 		clickUserID   []string
 	}
