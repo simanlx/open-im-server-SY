@@ -34,6 +34,7 @@ type AddFriendReq struct {
 	ReqMsg string `json:"reqMsg"`
 }
 type AddFriendResp struct {
+	VerifySwitch int32 `json:"verifySwitch"`
 	CommResp
 }
 

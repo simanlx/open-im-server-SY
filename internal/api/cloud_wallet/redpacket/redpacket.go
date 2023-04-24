@@ -15,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // 发送红包接口
@@ -196,7 +197,7 @@ func GetRedPacketInfo(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "timestamp": time.Now().Unix(), "data": RpcResp})
 	return
 }
 
