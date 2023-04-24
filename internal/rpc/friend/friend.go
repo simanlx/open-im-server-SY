@@ -202,7 +202,27 @@ func (s *friendServer) AddFriend(ctx context.Context, req *pbFriend.AddFriendReq
 			return &pbFriend.AddFriendResp{CommonResp: &pbFriend.CommonResp{ErrCode: constant.ErrDB.ErrCode, ErrMsg: constant.ErrDB.ErrMsg}}, nil
 		}
 
-		chat.FriendApplicationNotification(req)
+		//加好友验证
+		userSwitch, _ := imdb.GetUserAttributeSwitch(req.CommID.ToUserID)
+		if userSwitch.AddFriendVerifySwitch == 0 {
+			//调用确认接口
+			friendResponse, _ := s.AddFriendResponse(ctx, &pbFriend.AddFriendResponseReq{
+				CommID: &pbFriend.CommID{
+					OpUserID:    req.CommID.ToUserID,
+					OperationID: req.CommID.ToUserID,
+					ToUserID:    req.CommID.FromUserID,
+					FromUserID:  req.CommID.ToUserID,
+				},
+				HandleResult: 1,
+				HandleMsg:    "",
+			})
+			if friendResponse.CommonResp.ErrCode != 0 {
+				log.NewError(req.CommID.OperationID, "AddFriendResponse failed ", err.Error(), friendResponse)
+				return &pbFriend.AddFriendResp{CommonResp: friendResponse.CommonResp}, nil
+			}
+		} else {
+			chat.FriendApplicationNotification(req)
+		}
 	}
 	//Establish a latest relationship in the friend request table
 
@@ -316,7 +336,7 @@ func (s *friendServer) ImportFriend(ctx context.Context, req *pbFriend.ImportFri
 	return &resp, nil
 }
 
-//process Friend application
+// process Friend application
 func (s *friendServer) AddFriendResponse(ctx context.Context, req *pbFriend.AddFriendResponseReq) (*pbFriend.AddFriendResponseResp, error) {
 	log.NewInfo(req.CommID.OperationID, "AddFriendResponse args ", req.String())
 	if !token_verify.CheckAccess(req.CommID.OpUserID, req.CommID.FromUserID) {
@@ -615,7 +635,7 @@ func (s *friendServer) GetFriendList(ctx context.Context, req *pbFriend.GetFrien
 	return &pbFriend.GetFriendListResp{FriendInfoList: userInfoList}, nil
 }
 
-//received
+// received
 func (s *friendServer) GetFriendApplyList(ctx context.Context, req *pbFriend.GetFriendApplyListReq) (*pbFriend.GetFriendApplyListResp, error) {
 	log.NewInfo(req.CommID.OperationID, "GetFriendApplyList args ", req.String())
 	//Parse token, to find current user information
