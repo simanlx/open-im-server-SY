@@ -11,7 +11,6 @@ import (
 	"Open_IM/pkg/tencent_cloud"
 	"Open_IM/pkg/utils"
 	"context"
-	rtctokenbuilder "github.com/AgoraIO/Tools/DynamicKey/AgoraDynamicKey/go/src/rtctokenbuilder2"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
@@ -265,17 +264,17 @@ func GetAgoraToken(c *gin.Context) {
 	if !ok {
 		return
 	}
-
-	var role rtctokenbuilder.Role
-	switch params.Role {
-	case 1:
-		role = rtctokenbuilder.RolePublisher
-	case 2:
-		role = rtctokenbuilder.RoleSubscriber
-	}
+	//
+	//var role rtctokenbuilder.Role
+	//switch params.Role {
+	//case 1:
+	//	role = rtctokenbuilder.RolePublisher
+	//case 2:
+	//	role = rtctokenbuilder.RoleSubscriber
+	//}
 
 	// 生成token
-	result, appid, err := agora.GenerateRtcToken("0", params.OperationID, params.Channel_name, role)
+	result, appid, err := agora.GenerateRtcToken("0", params.OperationID, params.Channel_name, int(params.Role))
 	if err != nil {
 		log.NewError(params.OperationID, "RedPacketInfo failed ", err.Error(), params)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
