@@ -261,7 +261,7 @@ func GetAgoraToken(c *gin.Context) {
 	}
 
 	//解析token、获取用户id
-	userId, ok := common.ParseImToken(c, params.OperationID)
+	_, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {
 		return
 	}
@@ -275,7 +275,7 @@ func GetAgoraToken(c *gin.Context) {
 	}
 
 	// 生成token
-	result, appid, err := agora.GenerateRtcToken(userId, params.OperationID, params.Channel_name, role)
+	result, appid, err := agora.GenerateRtcToken("0", params.OperationID, params.Channel_name, role)
 	if err != nil {
 		log.NewError(params.OperationID, "RedPacketInfo failed ", err.Error(), params)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
