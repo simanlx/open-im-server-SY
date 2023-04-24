@@ -171,7 +171,7 @@ func AddFriend(c *gin.Context) {
 		return
 	}
 
-	resp := api.AddFriendResp{CommResp: api.CommResp{ErrCode: RpcResp.CommonResp.ErrCode, ErrMsg: RpcResp.CommonResp.ErrMsg}}
+	resp := api.AddFriendResp{VerifySwitch: RpcResp.VerifySwitch, CommResp: api.CommResp{ErrCode: RpcResp.CommonResp.ErrCode, ErrMsg: RpcResp.CommonResp.ErrMsg}}
 	log.NewInfo(req.CommID.OperationID, "AddFriend api return ", resp)
 	c.JSON(http.StatusOK, resp)
 }

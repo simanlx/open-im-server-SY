@@ -32,9 +32,9 @@ message AddFriendReq{
   string ReqMsg = 2;
 }
 message AddFriendResp{
-    CommonResp CommonResp = 1;
+    int32 verifySwitch = 1; //验证开关
+    CommonResp CommonResp = 2;
 }
-
 
 message ImportFriendReq{
   repeated string FriendUserIDList = 1;

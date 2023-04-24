@@ -182,7 +182,8 @@ func (s *friendServer) AddFriend(ctx context.Context, req *pbFriend.AddFriendReq
 	}
 
 	//Cannot add non-existent users
-
+	var verifySwitch int32 //加好友验证开关
+	verifySwitch = 1       //加好友验证开关
 	if isSend {
 		if _, err := imdb.GetUserByUserID(req.CommID.ToUserID); err != nil {
 			log.NewError(req.CommID.OperationID, "GetUserByUserID failed ", err.Error(), req.CommID.ToUserID)
@@ -220,13 +221,14 @@ func (s *friendServer) AddFriend(ctx context.Context, req *pbFriend.AddFriendReq
 				log.NewError(req.CommID.OperationID, "AddFriendResponse failed ", err.Error(), friendResponse)
 				return &pbFriend.AddFriendResp{CommonResp: friendResponse.CommonResp}, nil
 			}
+			verifySwitch = 0
 		} else {
 			chat.FriendApplicationNotification(req)
 		}
 	}
 	//Establish a latest relationship in the friend request table
 
-	return &pbFriend.AddFriendResp{CommonResp: &pbFriend.CommonResp{}}, nil
+	return &pbFriend.AddFriendResp{CommonResp: &pbFriend.CommonResp{}, VerifySwitch: verifySwitch}, nil
 }
 
 func (s *friendServer) ImportFriend(ctx context.Context, req *pbFriend.ImportFriendReq) (*pbFriend.ImportFriendResp, error) {
