@@ -183,6 +183,12 @@ func CheckPaymentSecret(c *gin.Context) {
 		return
 	}
 
+	//密码
+	if len(params.PaymentSecret) < 10 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "支付密码参数错误"})
+		return
+	}
+
 	//解析token、获取用户id
 	userId, ok := common.ParseImToken(c, params.OperationID)
 	if !ok {

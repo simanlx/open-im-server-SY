@@ -198,6 +198,14 @@ func (rpc *CloudWalletServer) IdCardRealNameAuth(_ context.Context, req *cloud_w
 		return resp, nil
 	}
 
+	//一个身份证最多只能实名2个用户
+	authNumber := imdb.IdCardRealNameAuthNumber(req.IdCard)
+	if authNumber >= 2 {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "身份证已被其他用户实名"
+		return resp, nil
+	}
+
 	//组装数据
 	info := &db.FNcountAccount{
 		UserID:      req.UserId,

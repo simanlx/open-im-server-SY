@@ -22,10 +22,10 @@ func ChargeAccount(c *gin.Context) {
 	}
 
 	//校验金额
-	//if params.Amount%100 != 0 {
-	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "充值金额以元为单位"})
-	//	return
-	//}
+	if params.Amount%100 != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "充值金额错误"})
+		return
+	}
 
 	//解析token、获取用户id
 	userId, ok := common.ParseImToken(c, params.OperationID)
@@ -162,7 +162,7 @@ func DrawAccount(c *gin.Context) {
 	if common.HandleCommonRespErr(RpcResp.CommonResp, c) {
 		return
 	}
-	
+
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 	return
 }

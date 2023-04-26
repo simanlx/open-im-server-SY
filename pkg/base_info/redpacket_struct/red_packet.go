@@ -41,7 +41,7 @@ type RedPacketReceiveDetailReq struct {
 // 红包详情接口
 type RedPacketInfoReq struct {
 	UserId      string `json:"user_id"`                        //用户id
-	PacketId    string `json:"packet_id"`                      //红包id
+	PacketId    string `json:"packet_id"  binding:"required"`  //红包id
 	OperationID string `json:"operationID" binding:"required"` //链路跟踪id
 }
 

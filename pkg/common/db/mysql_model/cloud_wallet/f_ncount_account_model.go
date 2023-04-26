@@ -61,6 +61,8 @@ func UpdateNcountAccountField(userId string, m map[string]interface{}) error {
 	return err
 }
 
-func UpdateNcountAccountInfo(info *db.FNcountAccount) error {
-	return db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("user_id = ?", info.UserID).Updates(&info).Error
+// 单个身份证实名总数
+func IdCardRealNameAuthNumber(idCard string) (count int64) {
+	_ = db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_account").Where("id_card = ?", idCard).Count(&count).Error
+	return
 }
