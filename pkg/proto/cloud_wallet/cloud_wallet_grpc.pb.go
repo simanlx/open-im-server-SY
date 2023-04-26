@@ -39,6 +39,7 @@ const (
 	CloudWalletService_RedPacketInfo_FullMethodName           = "/cloud_wallet.CloudWalletService/RedPacketInfo"
 	CloudWalletService_CloudWalletRecordDel_FullMethodName    = "/cloud_wallet.CloudWalletService/CloudWalletRecordDel"
 	CloudWalletService_GetVersion_FullMethodName              = "/cloud_wallet.CloudWalletService/GetVersion"
+	CloudWalletService_RefoundPacket_FullMethodName           = "/cloud_wallet.CloudWalletService/RefoundPacket"
 )
 
 // CloudWalletServiceClient is the client API for CloudWalletService service.
@@ -86,6 +87,8 @@ type CloudWalletServiceClient interface {
 	CloudWalletRecordDel(ctx context.Context, in *CloudWalletRecordDelReq, opts ...grpc.CallOption) (*CloudWalletRecordDelResp, error)
 	// 获取版本
 	GetVersion(ctx context.Context, in *GetVersionReq, opts ...grpc.CallOption) (*GetVersionResp, error)
+	// 红包退还
+	RefoundPacket(ctx context.Context, in *RefoundPacketReq, opts ...grpc.CallOption) (*RefoundPacketResp, error)
 }
 
 type cloudWalletServiceClient struct {
@@ -276,6 +279,15 @@ func (c *cloudWalletServiceClient) GetVersion(ctx context.Context, in *GetVersio
 	return out, nil
 }
 
+func (c *cloudWalletServiceClient) RefoundPacket(ctx context.Context, in *RefoundPacketReq, opts ...grpc.CallOption) (*RefoundPacketResp, error) {
+	out := new(RefoundPacketResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_RefoundPacket_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudWalletServiceServer is the server API for CloudWalletService service.
 // All implementations must embed UnimplementedCloudWalletServiceServer
 // for forward compatibility
@@ -321,6 +333,8 @@ type CloudWalletServiceServer interface {
 	CloudWalletRecordDel(context.Context, *CloudWalletRecordDelReq) (*CloudWalletRecordDelResp, error)
 	// 获取版本
 	GetVersion(context.Context, *GetVersionReq) (*GetVersionResp, error)
+	// 红包退还
+	RefoundPacket(context.Context, *RefoundPacketReq) (*RefoundPacketResp, error)
 	mustEmbedUnimplementedCloudWalletServiceServer()
 }
 
@@ -387,6 +401,9 @@ func (UnimplementedCloudWalletServiceServer) CloudWalletRecordDel(context.Contex
 }
 func (UnimplementedCloudWalletServiceServer) GetVersion(context.Context, *GetVersionReq) (*GetVersionResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetVersion not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) RefoundPacket(context.Context, *RefoundPacketReq) (*RefoundPacketResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefoundPacket not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) mustEmbedUnimplementedCloudWalletServiceServer() {}
 
@@ -761,6 +778,24 @@ func _CloudWalletService_GetVersion_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudWalletService_RefoundPacket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefoundPacketReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).RefoundPacket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_RefoundPacket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).RefoundPacket(ctx, req.(*RefoundPacketReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudWalletService_ServiceDesc is the grpc.ServiceDesc for CloudWalletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -847,6 +882,10 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetVersion",
 			Handler:    _CloudWalletService_GetVersion_Handler,
+		},
+		{
+			MethodName: "RefoundPacket",
+			Handler:    _CloudWalletService_RefoundPacket_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -132,3 +132,34 @@ func SendRedPacketLuckyMessage(OperateID, SendPacketUserID, RedPacketID, LuckyUs
 	coo, _ := json.Marshal(res)
 	return SendMessage(OperateID, coo)
 }
+
+// 发送红包退回消息
+func SendRebackMessage(OperationID, redPacketID, content string, sessionID int, SenderID, ReciveID string) error {
+	msg := ContriveMessage{
+		Data: RedPacketBackMessage{
+			RedPacketID: redPacketID,
+			Content:     content,
+		},
+		MsgType: MessageType_RedPacketReturn,
+	}
+	co, _ := json.Marshal(msg)
+	res := &ManagementSendMsg{
+		OperationID:         OperationID,
+		BusinessOperationID: OperationID,
+		SendID:              SenderID,
+		SenderPlatformID:    1,
+		Content: ContriveData{
+			Data:        string(co),
+			Description: "红包退回消息",
+			Extension:   "",
+		},
+		ContentType:     110,              // 自定义消息
+		SessionType:     int32(sessionID), // 1 单聊 2 群聊
+		IsOnlineOnly:    false,
+		NotOfflinePush:  false,
+		GroupID:         ReciveID, // 接收方ID 群聊
+		OfflinePushInfo: &server_api_params.OfflinePushInfo{},
+	}
+	coo, _ := json.Marshal(res)
+	return SendMessage(OperationID, coo)
+}

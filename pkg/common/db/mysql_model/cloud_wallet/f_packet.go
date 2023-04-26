@@ -5,6 +5,7 @@ import (
 	"Open_IM/pkg/common/log"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"time"
 )
 
 //CREATE TABLE `f_packet` (
@@ -135,4 +136,14 @@ func UpdateRedPacketInfo(packetID string, req *db.FPacket) error {
 		return errors.Wrap(result.Error, "修改红包状态失败")
 	}
 	return nil
+}
+
+// 查询过期红包
+func GetExpiredRedPacketList() ([]*db.FPacket, error) {
+	var fPacketList []*db.FPacket
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("expire_time < ? and status = ?", time.Now().Unix(), RedPacketStatusNormal).Find(&fPacketList)
+	if result.Error != nil {
+		return nil, errors.Wrap(result.Error, "查询过期红包失败")
+	}
+	return fPacketList, nil
 }

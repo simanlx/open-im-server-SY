@@ -145,3 +145,28 @@ func TestRedPacketGrabPushToUser(t *testing.T) {
 		})
 	}
 }
+
+func TestSendRebackMessage(t *testing.T) {
+	type args struct {
+		OperationID string
+		redPacketID string
+		content     string
+		sessionID   int
+		SenderID    string
+		ReciveID    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := SendRebackMessage(tt.args.OperationID, tt.args.redPacketID, tt.args.content, tt.args.sessionID, tt.args.SenderID, tt.args.ReciveID); (err != nil) != tt.wantErr {
+				t.Errorf("SendRebackMessage() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

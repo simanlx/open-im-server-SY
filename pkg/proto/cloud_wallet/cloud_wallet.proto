@@ -435,6 +435,20 @@ message getVersionResp {
   CommonResp commonResp = 5;
 }
 
+// 红包退还
+message RefoundPacketReq {
+  string IP = 1; //红包id
+  string operationID = 2; //链路跟踪id
+}
+
+message RefoundPacketResp {
+  int32  expireList = 1 ; // 本次查询到的过期红包总数量
+  int32  refundSuccess = 2 ; // 本次退还红包的总数量
+  int32  UpdateStatus = 3;  // 用户红包被抢完，但是状态为修改，需要修改状态
+  int32  refundFailed = 4 ; // 本次退还失败的红包总数量（前期可能测试阶段，导致用户红包账户金额不足，转账失败，转账失败错误码：3，需要对账）
+  CommonResp commonResp = 5;
+}
+
 // 钱包服务
 service CloudWalletService {
   // ==================================云钱包管理 ========
@@ -497,5 +511,8 @@ service CloudWalletService {
 
   // 获取版本
   rpc GetVersion(getVersionReq)returns(getVersionResp);
+
+  // 红包退还
+  rpc RefoundPacket(RefoundPacketReq)returns(RefoundPacketResp);
 
 }

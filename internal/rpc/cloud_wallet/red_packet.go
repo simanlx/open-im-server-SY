@@ -739,3 +739,124 @@ func (rpc *CloudWalletServer) GetVersion(in context.Context, req *pb.GetVersionR
 	// 第三种情况，如果中间存在多个版本，那么就强制更新 （3个以上的版本）
 	return resp, nil
 }
+
+// 红包退还情况
+func (rpc *CloudWalletServer) RefoundPacket(ctx context.Context, in *pb.RefoundPacketReq) (*pb.RefoundPacketResp, error) {
+	var (
+		resp = &pb.RefoundPacketResp{
+			CommonResp: &pb.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "红包退还成功",
+			},
+		}
+	)
+
+	// todo 这里需要注意的是：红包并发处理问题，所以需要引入互斥锁
+	// 查询红包状态为1(正常) ，但是超时时间小于当前的红包
+	collection, err := imdb.GetExpiredRedPacketList()
+	if err != nil {
+		return nil, err
+	}
+	if len(collection) == 0 {
+		return resp, nil
+	}
+	resp.ExpireList = int32(len(collection)) // 查询到的过期红包总数量
+
+	// 红包实际逻辑
+	reback := func(packet *db.FPacket, userAccount *db.FNcountAccount, OperationID string) error {
+
+		// 获取实际的金额
+		totalAmount := cast.ToString(cast.ToFloat64(packet.RemainAmout) / 100)
+		merID := ncount.GetMerOrderID()
+		packet.Status = 2 // 红包退回状态
+
+		// 开始转账
+		transerMsg := ncount.TransferReq{
+			MerOrderId: merID,
+			TransferMsgCipher: ncount.TransferMsgCipher{
+				PayUserId:     userAccount.PacketAccountId,
+				ReceiveUserId: userAccount.MainAccountId,
+				TranAmount:    totalAmount,
+			},
+		}
+		transferResult, err := rpc.count.Transfer(&transerMsg)
+		if err != nil {
+			log.Error(OperationID, "转账失败", err)
+			return err
+		}
+
+		// ======================= 新生返回参数=======================
+		if transferResult.ResultCode != ncount.ResultCodeSuccess {
+			remark := "余额发送红包失败： "
+			co, _ := json.Marshal(transferResult)
+			err := imdb.CreateErrorLog(remark, in.OperationID, merID, transferResult.ErrorMsg, transferResult.ErrorCode, string(co))
+			if err != nil {
+				log.Error(in.OperationID, "创建错误日志失败", err)
+				return err
+			}
+			packet.Status = 3 // 红包退回失败
+		}
+		// 修改红包状态
+		err = imdb.UpdateRedPacketInfo(packet.PacketID, packet)
+		if err != nil {
+			log.Error(OperationID, "修改红包状态失败", err)
+			return err
+		}
+		return nil // 红包退还成功
+	}
+
+	// 红包退回消息
+	rebackMessage := func(packet *db.FPacket) error {
+		return nil
+	}
+
+	for _, redPacket := range collection {
+
+		if redPacket.Remain == 0 { // 红包剩余金额为0，且红包过期
+			err = imdb.UpdateRedPacketStatus(redPacket.PacketID, 2)
+			if err != nil {
+				log.Error(in.OperationID, "修改红包状态失败", err)
+				resp.RefundFailed++
+				continue
+			}
+		}
+
+		if redPacket.Remain > 0 && redPacket.RemainAmout > 0 { // 红包存在剩余金额，且红包过期
+			// 1.调用第三方的转账接口：参照小q
+			// 2.修改红包状态
+			// 3.发送红包退还消息
+			// 获取发送红包的信息
+			userAcount, err := rocksCache.GetUserAccountInfoFromCache(redPacket.UserID)
+			if err != nil {
+				log.Error(in.OperationID, "获取用户信息失败", err)
+				continue
+			}
+
+			err = reback(redPacket, userAcount, in.OperationID)
+			if err != nil {
+				log.Error(in.OperationID, "红包退还失败", err)
+				resp.RefundFailed++
+				continue
+			}
+
+			err = rebackMessage(redPacket)
+			if err != nil {
+				log.Error(in.OperationID, "红包退还失败", err)
+				resp.RefundFailed++
+				continue
+			}
+
+			// 判断此时红包状态
+			if redPacket.Status == 2 {
+				resp.RefundSuccess++ // 红包退还成功
+
+				// 发送红包退还消息
+			} else {
+				resp.RefundFailed++
+			}
+		}
+
+	}
+	return nil, nil
+
+}

@@ -49,6 +49,7 @@ const (
 
 	MessageType_DismissGroup
 	MessageType_RedPacketLucky
+	MessageType_RedPacketReturn
 )
 
 // 发送红包消息红包结构消息
@@ -83,4 +84,10 @@ type RedPacketLuckyMessage struct {
 	RedPacketID string `json:"redPacketID" binding:"required"` // 红包ID
 	UserName    string `json:"userName" binding:"required"`    // 用户昵称
 	SpendTime   int64  `json:"spendTime" binding:"required"`   // 总的花费时间
+}
+
+// 红包退回消息
+type RedPacketBackMessage struct {
+	RedPacketID string `json:"redPacketID" binding:"required"` // 红包ID
+	Content     string `json:"content" binding:"required"`     // 退回原因
 }

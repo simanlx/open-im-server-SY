@@ -78,3 +78,13 @@ type GetVersionReq struct {
 	VersionCode string `json:"version_code" binding:"required"` //版本号
 	OperationID string `json:"operationID" binding:"required"`  // 链路跟踪id
 }
+
+const (
+	ReFoundPacketSecret = "dksidaksdkxhdkd"
+)
+
+type ReFoundPacketReq struct {
+	// 红包退还接口，不对外开放
+	Secret      string `json:"secret" binding:"required"`      //秘钥
+	OperationID string `json:"operationID" binding:"required"` // 链路跟踪id
+}

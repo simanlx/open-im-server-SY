@@ -349,3 +349,45 @@ func GetVersion(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 }
+
+// 红包退还
+func RefoundPacket(c *gin.Context) {
+	// param in : 版本号
+	// param out : 最新版本号、下载地址、更新内容、是否强制更新
+
+	params := redpacket_struct.ReFoundPacketReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	if params.Secret != redpacket_struct.ReFoundPacketSecret {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "秘钥错误"})
+		return
+	}
+
+	rpcReq := rpc.RefoundPacketReq{
+		IP:          c.Request.RemoteAddr,
+		OperationID: params.OperationID,
+	}
+
+	// etcdConn
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
+	if etcdConn == nil {
+		errMsg := params.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.RefoundPacket(context.Background(), &rpcReq)
+	if err != nil {
+		log.NewError(params.OperationID, "GetVersion failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+}

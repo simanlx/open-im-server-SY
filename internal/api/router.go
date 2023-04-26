@@ -73,11 +73,12 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify) //提现回调
 
 		// 红包管理
-		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)                    //发送红包
-		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                  // 抢红包接口
-		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail) // 红包领取明细
-		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                 // 红包详情
-		cloudWalletGroup.POST("ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 禁止群抢红包
+		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)                     //发送红包
+		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                   // 抢红包接口
+		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail)  // 红包领取明细
+		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                  // 红包详情
+		cloudWalletGroup.POST("/ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 禁止群抢红包
+		cloudWalletGroup.POST("/refound_packet", redpacket.RefoundPacket)                      // 红包退款，退款到云钱包
 
 		// 生成声网token
 		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token

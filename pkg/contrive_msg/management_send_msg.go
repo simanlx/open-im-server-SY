@@ -38,8 +38,6 @@ const (
 func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark_click, remark_send, redPacketID string) {
 	// 发送红包消息
 	content1, content2 := NewManagementSendMsg_ClickPacket(sendID, recevieID, sessionID, OperateID, remark_click, remark_send, redPacketID)
-	fmt.Println(string(content1))
-	fmt.Println(string(content2))
 	// 将消息发送给用户
 	err := SendMessage(OperateID, content1)
 	if err != nil {
@@ -54,6 +52,7 @@ func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark
 	}
 }
 
+// 发送红包消息
 func SendSendRedPacket(f *FPacket, sessionID int) error {
 	content, err := NewManagementSendMsg_RedMsg(f, f.OperateID, sessionID)
 	if err != nil {
