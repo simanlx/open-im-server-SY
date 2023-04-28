@@ -1,0 +1,278 @@
+syntax = "proto3";
+option go_package = ".;agent";
+package agent;
+
+// 通用返回
+message CommonResp {
+  int32  errCode = 1; //非0既有异常
+  string errMsg  = 2;
+}
+
+message GetUserAgentInfoReq{
+  string userId = 1; //用户id
+  int32 chessUserId = 2; //互娱用户id
+}
+
+message GetUserAgentInfoResp{
+  bool   isAgent = 1; //是否为推广员
+  int32  agentNumber = 2; //推广员编号
+  string agentName = 3; //推广员名称
+  int32  bindAgentNumber = 4; //绑定的推广员编号
+  CommonResp commonResp = 5;
+}
+
+message AgentApplyReq{
+  string userId = 1; //用户id
+  string name = 2; //用户姓名
+  string mobile = 3; //用户手机号码
+  int32 chessUserId = 4; //互娱用户id
+}
+
+message AgentApplyResp{
+  CommonResp commonResp = 1;
+}
+
+message BindAgentNumberReq{
+  string userId = 1; //用户id
+  int32 agentNumber = 2; //推广员编号
+  int32 chessUserId = 3; //互娱用户id
+}
+
+message BindAgentNumberResp{
+  CommonResp commonResp = 1;
+}
+
+message WebBeanRechargeReq{
+  string userId = 1; //用户id
+  int32  configId = 2; //配置id
+}
+
+message WebBeanRechargeResp{
+  string orderNo = 1; //平台订单号
+  CommonResp commonResp = 2;
+}
+
+message ChessBeanRechargeReq{
+  string chessOrderNo = 1; //互娱订单号
+  int32  chessUserId = 2; //互娱用户id
+  int32  configType = 3; //咖豆配置类型(0系统配置、1代理商配置)
+  int32  agentNumber = 4; //代理商编号
+  int32  configId = 5; //配置id
+  int32  number = 6; //咖豆数
+  int32  give_number = 7; //赠送咖豆数
+  int32  amount = 8; //金额
+}
+
+message ChessBeanRechargeResp{
+  string orderNo = 1; //平台订单号
+  CommonResp commonResp = 2;
+}
+
+message BeanRechargeConfirmReq{
+  string userId = 1; //用户id
+  string orderNo = 2; //订单号
+  string smsCode = 3; //验证码
+}
+
+message BeanRechargeConfirmResp{
+  CommonResp commonResp = 1;
+}
+
+message BalanceWithdrawalReq{
+  string userId = 1; //用户id
+  string bindCardAgrNo = 2;//绑卡协议号
+  int32  amount = 3;//提现金额 单位：分
+  string paymentPassword = 4; //支付密码
+}
+
+message BalanceWithdrawalResp{
+  CommonResp commonResp = 1;
+}
+
+message AgentMainInfoReq{
+  string userId = 1; //用户id
+}
+
+message AgentMainInfoResp{
+  string agentNumber = 1; //推广员编号
+  string agentName = 2; //推广员姓名
+  string avatar = 3; //推广员头像
+  int64 balance = 4; //余额
+  int64 beanBalance = 5; //咖豆
+  int64 todayIncome = 6; //今日收益
+  int64 accumulatedIncome = 7; //累计收益
+  int64 todayBindUser = 8; //今日推广用户
+  int64 accumulatedBindUser = 9; //累计推广用户
+}
+
+message AgentAccountIncomeChartReq{
+  string userId = 1; //用户id
+  int32 dateType = 2; //时间类型 0、7天,1半年
+}
+
+message AgentAccountIncomeChartResp{
+  repeated IncomeChartData incomeChartData = 1; //收益图标数据
+}
+
+message IncomeChartData{
+  string date = 1; //日期
+  string income = 2; //收益值
+}
+
+message AgentAccountRecordListReq{
+  string userId = 1; //用户id
+  string date = 2; //日期
+}
+
+message AgentAccountRecordListResp{
+  repeated AccountRecordList accountRecordList = 1; //收益记录列表
+}
+
+message AccountRecordList{
+  int32  businessType = 1; //业务类型
+  int64  balance = 2; //金额(分)
+  string describe = 3; //描述
+  string createdTime = 4; //时间
+  int32  type = 5; //收支类型(1收入、2支出)
+}
+
+
+message AgentBeanShopConfigReq{
+  string userId = 1; //用户id
+  int32 agentNumber = 2; //推广员编号
+  int32 chessUserId = 3; //互娱用户id
+}
+
+message AgentBeanShopConfigResp{
+  repeated BeanShopConfig beanShopConfig = 1; //咖豆商店配置列表
+}
+
+message PlatformBeanShopConfigReq{
+  string userId = 1; //用户id
+}
+
+message PlatformBeanShopConfigResp{
+  repeated BeanShopConfig beanShopConfig = 1; //咖豆商店配置列表
+}
+
+message BeanShopConfig{
+  int32 configId = 1; //配置id
+  int32 beanNumber = 2; //购买数量
+  int32 giveBeanNumber = 3; //赠送数量
+  int32 amount = 4; //金额(单位元)
+  int32 status = 5; //状态
+}
+
+message AgentBeanShopUpStatusReq{
+  string userId = 1; //用户id
+  int32  status = 2; //状态(0下架、1上架)
+}
+
+message AgentBeanShopUpStatusResp{
+  CommonResp commonResp = 1;
+}
+
+message AgentBeanShopUpdateReq{
+  string userId = 1; //用户id
+  string beanShopConfig = 2; //咖豆商城配置数组
+}
+
+message AgentBeanShopUpdateResp{
+  CommonResp commonResp = 1;
+}
+
+message AgentBeanRecordListReq{
+  string userId = 1; //用户id
+  string date = 2; //日期
+}
+
+message AgentBeanRecordListResp{
+  repeated BeanRecordList beanRecordList = 1; //收益记录列表
+}
+
+message BeanRecordList{
+  int32  businessType = 1; //业务类型
+  int64  number = 2; //数量
+  string describe = 3; //描述
+  string createdTime = 4; //时间
+  int32  type = 5; //收支类型(1收入、2支出)
+}
+
+message AgentGiveMemberBeanReq{
+  string userId = 1; //用户id
+  int32  chessUserId = 2; //互娱用户id
+  int64  number = 3; //赠送数量
+}
+
+message AgentGiveMemberBeanResp{
+  CommonResp commonResp = 1;
+}
+
+message AgentGiveRecordReq{
+  string userId = 1; //用户id
+}
+
+message AgentGiveRecordResp{
+  int64  number = 1; //数量
+  string describe = 2; //描述
+  string createdTime = 3; //时间
+  int32  type = 4; //收支类型(1收入、2支出)
+}
+
+message AgentMemberListReq{
+  string userId = 1; //用户id
+  string keyword = 2; //搜索关键字
+  int32  page = 3;
+  int32  size = 4;
+}
+
+message AgentMemberListResp{
+  repeated AgentMemberList agentMemberList = 1; //推广用户列表
+}
+
+message AgentMemberList{
+  string chessUserId = 1; //互娱用户id
+  string chessNickname = 2; //互娱用户昵称
+  int64  chessBeanNumber = 3; //互娱用户咖豆
+  int64  contribution = 4; //贡献值
+}
+
+// 推广系统服务
+service AgentSystemService {
+  // 获取用户推广员信息
+  rpc GetUserAgentInfo(GetUserAgentInfoReq)returns(GetUserAgentInfoResp);
+  //推广员申请提交
+  rpc AgentApply(AgentApplyReq)returns(AgentApplyResp);
+  //绑定推广员
+  rpc BindAgentNumber(BindAgentNumberReq)returns(BindAgentNumberResp);
+  //h5咖豆充值下单
+  rpc WebBeanRecharge(WebBeanRechargeReq)returns(WebBeanRechargeResp);
+  //互娱咖豆充值下单
+  rpc ChessBeanRecharge(ChessBeanRechargeReq)returns(ChessBeanRechargeResp);
+  //咖豆充值下单确认-验证码
+  rpc BeanRechargeConfirm(BeanRechargeConfirmReq)returns(BeanRechargeConfirmResp);
+  //推广员余额提现
+  rpc BalanceWithdrawal(BalanceWithdrawalReq)returns(BalanceWithdrawalResp);
+  //推广中心主页信息
+  rpc AgentMainInfo(AgentMainInfoReq)returns(AgentMainInfoResp);
+  //账户明细收益趋势图
+  rpc AgentAccountIncomeChart(AgentAccountIncomeChartReq)returns(AgentAccountIncomeChartResp);
+  //账户明细详情列表
+  rpc AgentAccountRecordList(AgentAccountRecordListReq)returns(AgentAccountRecordListResp);
+  //平台咖豆商城配置
+  rpc PlatformBeanShopConfig(PlatformBeanShopConfigReq)returns(PlatformBeanShopConfigResp);
+  //推广员咖豆商城配置
+  rpc AgentBeanShopConfig(AgentBeanShopConfigReq)returns(AgentBeanShopConfigResp);
+  //咖豆管理上下架
+  rpc AgentBeanShopUpStatus(AgentBeanShopUpStatusReq)returns(AgentBeanShopUpStatusResp);
+  //咖豆管理(新增、删除)
+  rpc AgentBeanShopUpdate(AgentBeanShopUpdateReq)returns(AgentBeanShopUpdateResp);
+  //咖豆收支明细
+  rpc AgentBeanRecordList(AgentBeanRecordListReq)returns(AgentBeanRecordListResp);
+  //赠送下属咖豆
+  rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
+  //咖豆赠送记录
+  rpc AgentGiveRecord(AgentGiveRecordReq)returns(AgentGiveRecordResp);
+  //推广下属用户列表
+  rpc AgentMemberList(AgentMemberListReq)returns(AgentMemberListResp);
+}
