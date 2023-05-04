@@ -47,6 +47,15 @@ func NewGinRouter() *gin.Engine {
 		r.GET("/metrics", promePkg.PrometheusHandler())
 	}
 
+	//推广计划
+	//agentGroup := r.Group("/agent")
+	//{
+	//	agentGroup.POST("user_agent_info", agent.GetUserAgentInfo)     //获取当前用户的推广员信息以及绑定关系
+	//	agentGroup.POST("apply", agent.AgentApply)                     //推广员申请提交
+	//	agentGroup.POST("bind_agent_number", agent.BindAgentNumber)    //绑定推广员
+	//	agentGroup.POST("bean_shop_config", agent.AgentBeanShopConfig) //获取推广员咖豆充值配置
+	//}
+
 	// CloudWallet
 	cloudWalletGroup := r.Group("/cloudWallet")
 	{

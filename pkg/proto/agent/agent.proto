@@ -25,7 +25,7 @@ message AgentApplyReq{
   string userId = 1; //用户id
   string name = 2; //用户姓名
   string mobile = 3; //用户手机号码
-  int32 chessUserId = 4; //互娱用户id
+  int32  chessUserId = 4; //互娱用户id
 }
 
 message AgentApplyResp{
@@ -59,7 +59,7 @@ message ChessBeanRechargeReq{
   int32  agentNumber = 4; //代理商编号
   int32  configId = 5; //配置id
   int32  number = 6; //咖豆数
-  int32  give_number = 7; //赠送咖豆数
+  int32  giveNumber = 7; //赠送咖豆数
   int32  amount = 8; //金额
 }
 
@@ -97,17 +97,17 @@ message AgentMainInfoResp{
   string agentNumber = 1; //推广员编号
   string agentName = 2; //推广员姓名
   string avatar = 3; //推广员头像
-  int64 balance = 4; //余额
-  int64 beanBalance = 5; //咖豆
-  int64 todayIncome = 6; //今日收益
-  int64 accumulatedIncome = 7; //累计收益
-  int64 todayBindUser = 8; //今日推广用户
-  int64 accumulatedBindUser = 9; //累计推广用户
+  int64  balance = 4; //余额
+  int64  beanBalance = 5; //咖豆
+  int64  todayIncome = 6; //今日收益
+  int64  accumulatedIncome = 7; //累计收益
+  int64  todayBindUser = 8; //今日推广用户
+  int64  accumulatedBindUser = 9; //累计推广用户
 }
 
 message AgentAccountIncomeChartReq{
   string userId = 1; //用户id
-  int32 dateType = 2; //时间类型 0、7天,1半年
+  int32  dateType = 2; //时间类型 0、7天,1半年
 }
 
 message AgentAccountIncomeChartResp{
@@ -139,8 +139,8 @@ message AccountRecordList{
 
 message AgentBeanShopConfigReq{
   string userId = 1; //用户id
-  int32 agentNumber = 2; //推广员编号
-  int32 chessUserId = 3; //互娱用户id
+  int32  agentNumber = 2; //推广员编号
+  int32  chessUserId = 3; //互娱用户id
 }
 
 message AgentBeanShopConfigResp{
