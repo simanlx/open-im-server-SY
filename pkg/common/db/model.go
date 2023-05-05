@@ -25,8 +25,9 @@ import (
 var DB DataBases
 
 type DataBases struct {
-	MysqlDB    mysqlDB
-	mgoSession *mgo.Session
+	MysqlDB      mysqlDB
+	AgentMysqlDB agentMysqlDB
+	mgoSession   *mgo.Session
 	//redisPool   *redis.Pool
 	mongoClient *mongo.Client
 	RDB         go_redis.UniversalClient
@@ -51,6 +52,8 @@ func init() {
 	fmt.Println("init mysql redis mongo ")
 
 	initMysqlDB()
+	initAgentMysqlDB()
+
 	// mongo init
 	// "mongodb://sysop:moon@localhost/records"
 	uri := "mongodb://sample.host:27017/?maxPoolSize=20&w=majority"

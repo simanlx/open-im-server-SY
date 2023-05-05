@@ -3,6 +3,7 @@ package common
 import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/token_verify"
+	"Open_IM/pkg/proto/agent"
 	"Open_IM/pkg/proto/cloud_wallet"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,6 +11,15 @@ import (
 
 // 处理错误返回
 func HandleCommonRespErr(commResp *cloud_wallet.CommonResp, c *gin.Context) bool {
+	if commResp != nil && commResp.ErrCode != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": commResp.ErrCode, "errMsg": commResp.ErrMsg})
+		return true
+	}
+	return false
+}
+
+// 处理错误返回
+func HandleAgentCommonRespErr(commResp *agent.CommonResp, c *gin.Context) bool {
 	if commResp != nil && commResp.ErrCode != 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": commResp.ErrCode, "errMsg": commResp.ErrMsg})
 		return true

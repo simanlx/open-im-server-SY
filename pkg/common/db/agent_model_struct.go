@@ -6,7 +6,7 @@ import "time"
 type TAgentApplyRecord struct {
 	Id          int64     `gorm:"column:id" json:"id"`
 	UserId      string    `gorm:"column:user_id" json:"user_id"`             //用户id
-	ChessUserId int       `gorm:"column:chess_user_id" json:"chess_user_id"` //互娱用户id
+	ChessUserId int64     `gorm:"column:chess_user_id" json:"chess_user_id"` //互娱用户id
 	Name        string    `gorm:"column:name" json:"name"`                   //推广员姓名
 	Mobile      string    `gorm:"column:mobile" json:"mobile"`               //推广员电话
 	AuditStatus int32     `gorm:"column:audit_status" json:"audit_status"`   //审核状态
@@ -25,8 +25,8 @@ type TAgentAccount struct {
 	UserId            string    `gorm:"column:user_id" json:"user_id"`                       //用户id
 	Name              string    `gorm:"column:name" json:"name"`                             //推广员姓名
 	Mobile            string    `gorm:"column:mobile" json:"mobile"`                         //推广员电话
-	ChessUserId       int       `gorm:"column:chess_user_id" json:"chess_user_id"`           //互娱用户id
-	AgentNumber       int       `gorm:"column:agent_number" json:"agent_number"`             //推广员编号
+	ChessUserId       int64     `gorm:"column:chess_user_id" json:"chess_user_id"`           //互娱用户id
+	AgentNumber       int32     `gorm:"column:agent_number" json:"agent_number"`             //推广员编号
 	Balance           int       `gorm:"column:balance" json:"balance"`                       //余额(单位:分)
 	BeanBalance       int       `gorm:"column:bean_balance" json:"bean_balance"`             //咖豆余额
 	AccumulatedIncome int       `gorm:"column:accumulated_income" json:"accumulated_income"` //累计收益(单位:分)

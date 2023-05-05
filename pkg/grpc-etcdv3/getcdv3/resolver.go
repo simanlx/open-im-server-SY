@@ -171,6 +171,10 @@ func GetConfigConn(serviceName string, operationID string) *grpc.ClientConn {
 	if config.Config.RpcRegisterName.OpenImChatName == serviceName {
 		configPortList = config.Config.RpcPort.OpenImChatPort
 	}
+	//17
+	if config.Config.RpcRegisterName.OpenImAgentName == serviceName {
+		configPortList = config.Config.RpcPort.OpenImAgentPort
+	}
 
 	if len(configPortList) == 0 {
 		log.Error(operationID, "len(configPortList) == 0  ")

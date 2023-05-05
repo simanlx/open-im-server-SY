@@ -6,7 +6,7 @@ serverversion: 2.3.1
 #---------------Infrastructure configuration---------------------#
 etcd:
   etcdSchema: openim  #默认即可
-  etcdAddr: [127.0.0.1:12379 ] #单机部署时，默认即可
+  etcdAddr: [127.0.0.1:2379 ] #单机部署时，默认即可
   userName:
   password:
   secret:
@@ -89,8 +89,10 @@ ncount :
     privateKey: "" #私钥
     merchantId: "" #商户号
     notify:
-      rechargeNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/charge_account_callback" #充值回调地址
-      withdrawNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/draw_account_callback" #提现回调地址
+      rechargeNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/charge_account_callback" #云钱包充值回调地址
+      withdrawNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/draw_account_callback" #云钱包提现回调地址
+      agentRechargeNotifyUrl: "http://office.najieguo.com:10002/agent/charge_callback" #推广系统充值回调地址
+      agentWithdrawNotifyUrl: "http://office.najieguo.com:10002/agent/draw_callback" #推广系统提现回调地址
 
 
 
@@ -188,6 +190,7 @@ rpcport: #rpc服务端口 默认即可
   openImCachePort: [ 10240 ]
   openImRealTimeCommPort: [ 11300 ]
   openImCloudWalletPort: [ 12300 ]
+  openImAgentPort: [ 13300 ]
   openImChatPort: [ 30300 ]
   c2c:
     callbackBeforeSendMsg:
@@ -214,6 +217,7 @@ rpcregistername: #rpc注册服务名，默认即可
   openImCacheName: Cache
   openImRealTimeCommName: RealTimeComm
   openImCloudWalletName: CloudWallet
+  openImAgentName: Agent
   openImChatName: Chat
 log:
   storageLocation: ../logs/
@@ -851,3 +855,4 @@ prometheus:
   realTimeCommPrometheusPort: [ 21300 ]
   messageTransferPrometheusPort: [ 21400, 21401, 21402, 21403 ] # 端口数量和 script/path_info.cfg  msg_transfer_service_num保持一致
   cloudWalletPrometheusPort: [ 21500 ]
+  agentPrometheusPort: [ 21600 ]
