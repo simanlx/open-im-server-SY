@@ -27,9 +27,9 @@ type TAgentAccount struct {
 	Mobile            string    `gorm:"column:mobile" json:"mobile"`                         //推广员电话
 	ChessUserId       int64     `gorm:"column:chess_user_id" json:"chess_user_id"`           //互娱用户id
 	AgentNumber       int32     `gorm:"column:agent_number" json:"agent_number"`             //推广员编号
-	Balance           int       `gorm:"column:balance" json:"balance"`                       //余额(单位:分)
-	BeanBalance       int       `gorm:"column:bean_balance" json:"bean_balance"`             //咖豆余额
-	AccumulatedIncome int       `gorm:"column:accumulated_income" json:"accumulated_income"` //累计收益(单位:分)
+	Balance           int64     `gorm:"column:balance" json:"balance"`                       //余额(单位:分)
+	BeanBalance       int64     `gorm:"column:bean_balance" json:"bean_balance"`             //咖豆余额
+	AccumulatedIncome int64     `gorm:"column:accumulated_income" json:"accumulated_income"` //累计收益(单位:分)
 	OpenStatus        int32     `gorm:"column:open_status" json:"open_status"`               //开通状态(1开通、0关闭)
 	CreatedTime       time.Time `gorm:"column:created_time" json:"created_time"`
 	UpdatedTime       time.Time `gorm:"column:updated_time" json:"updated_time"`

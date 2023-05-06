@@ -10,13 +10,13 @@ import (
 
 // 推广员申请提交
 func (rpc *AgentServer) AgentApply(_ context.Context, req *agent.AgentApplyReq) (*agent.AgentApplyResp, error) {
-	resp := &agent.AgentApplyResp{CommonResp: &agent.CommonResp{ErrCode: 0, ErrMsg: ""}}
+	resp := &agent.AgentApplyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
 	//查询是否已申请
 	info, err := imdb.ApplyInfo(req.ChessUserId)
 	if info != nil {
-		resp.CommonResp.ErrMsg = "已提交申请，请勿重复提交"
-		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.Msg = "已提交申请，请勿重复提交"
+		resp.CommonResp.Code = 400
 		return resp, nil
 	}
 
@@ -30,8 +30,8 @@ func (rpc *AgentServer) AgentApply(_ context.Context, req *agent.AgentApplyReq) 
 
 	if err != nil {
 		log.Error(req.OperationId, "推广员申请提交数据入库失败:%s", err.Error())
-		resp.CommonResp.ErrMsg = "申请数据保存失败"
-		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.Msg = "申请数据保存失败"
+		resp.CommonResp.Code = 400
 	}
 
 	return resp, nil
@@ -39,13 +39,13 @@ func (rpc *AgentServer) AgentApply(_ context.Context, req *agent.AgentApplyReq) 
 
 // 绑定推广员
 func (rpc *AgentServer) BindAgentNumber(_ context.Context, req *agent.BindAgentNumberReq) (*agent.BindAgentNumberResp, error) {
-	resp := &agent.BindAgentNumberResp{CommonResp: &agent.CommonResp{ErrCode: 0, ErrMsg: ""}}
+	resp := &agent.BindAgentNumberResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
 	//查询推广员是否存在
 	agentInfo, _ := imdb.GetAgentByAgentNumber(req.AgentNumber)
 	if agentInfo == nil || agentInfo.OpenStatus == 0 {
-		resp.CommonResp.ErrMsg = "请输入正确的推广员ID"
-		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.Msg = "请输入正确的推广员ID"
+		resp.CommonResp.Code = 400
 		return resp, nil
 	}
 
@@ -59,8 +59,8 @@ func (rpc *AgentServer) BindAgentNumber(_ context.Context, req *agent.BindAgentN
 
 	if err != nil {
 		log.Error(req.OperationId, "绑定推广员数据入库失败:%s", err.Error())
-		resp.CommonResp.ErrMsg = "绑定推广员失败"
-		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.Msg = "绑定推广员失败"
+		resp.CommonResp.Code = 400
 	}
 
 	return resp, nil
@@ -95,5 +95,36 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 		resp.BindAgentNumber = agentMember.AgentNumber
 	}
 
+	return resp, nil
+}
+
+// 绑定推广员
+func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInfoReq) (*agent.AgentMainInfoResp, error) {
+	resp := &agent.AgentMainInfoResp{
+		AgentNumber:         1,
+		AgentName:           "1",
+		Balance:             1,
+		BeanBalance:         1,
+		TodayIncome:         1,
+		AccumulatedIncome:   1,
+		TodayBindUser:       1,
+		AccumulatedBindUser: 1,
+	}
+
+	//获取推广员信息
+	info, _ := imdb.GetAgentByUserId(req.UserId)
+	if info == nil {
+		return resp, nil
+	}
+
+	resp.AgentNumber = info.AgentNumber
+	resp.AgentName = info.Name
+	resp.Balance = info.Balance
+	resp.BeanBalance = info.BeanBalance
+	resp.AccumulatedIncome = info.AccumulatedIncome
+
+	//今日收益=下属用户充值返利+商城出售咖豆收入
+
+	//resp.TodayIncome = 0
 	return resp, nil
 }

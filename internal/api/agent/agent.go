@@ -16,7 +16,7 @@ import (
 func AgentApply(c *gin.Context) {
 	params := base_info.AgentApplyReq{}
 	if err := c.BindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
@@ -33,7 +33,7 @@ func AgentApply(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
 		log.NewError(operationId, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
 		return
 	}
 
@@ -41,7 +41,7 @@ func AgentApply(c *gin.Context) {
 	RpcResp, err := client.AgentApply(c, req)
 	if err != nil {
 		log.NewError(operationId, "AgentApply failed ", err.Error(), req.String())
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
@@ -50,7 +50,7 @@ func AgentApply(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
 }
 
@@ -58,7 +58,7 @@ func AgentApply(c *gin.Context) {
 func GetUserAgentInfo(c *gin.Context) {
 	params := base_info.GetUserAgentInfo{}
 	if err := c.BindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
@@ -73,7 +73,7 @@ func GetUserAgentInfo(c *gin.Context) {
 	if etcdConn == nil {
 		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
 		log.NewError(operationId, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
 		return
 	}
 
@@ -81,11 +81,11 @@ func GetUserAgentInfo(c *gin.Context) {
 	RpcResp, err := client.GetUserAgentInfo(c, req)
 	if err != nil {
 		log.NewError(operationId, "GetUserAgentInfo failed ", err.Error(), req.String())
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
 }
 
@@ -93,7 +93,7 @@ func GetUserAgentInfo(c *gin.Context) {
 func BindAgentNumber(c *gin.Context) {
 	params := base_info.BindAgentNumberReq{}
 	if err := c.BindJSON(&params); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
@@ -103,13 +103,14 @@ func BindAgentNumber(c *gin.Context) {
 		AgentNumber:   params.AgentNumber,
 		ChessUserId:   params.ChessUserId,
 		ChessNickname: params.ChessNickname,
+		OperationId:   operationId,
 	}
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
 	if etcdConn == nil {
 		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
 		log.NewError(operationId, errMsg)
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
 		return
 	}
 
@@ -117,7 +118,7 @@ func BindAgentNumber(c *gin.Context) {
 	RpcResp, err := client.BindAgentNumber(c, req)
 	if err != nil {
 		log.NewError(operationId, "BindAgentNumber failed ", err.Error(), req.String())
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
@@ -126,6 +127,34 @@ func BindAgentNumber(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
+	return
+}
+
+// 推广员主页信息
+func AgentMainInfo(c *gin.Context) {
+	operationId := c.GetString("operationId")
+	req := &rpc.AgentMainInfoReq{
+		UserId:      c.GetString("userId"),
+		OperationId: operationId,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentMainInfo(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentMainInfo failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
 }

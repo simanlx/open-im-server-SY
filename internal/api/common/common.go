@@ -20,8 +20,8 @@ func HandleCommonRespErr(commResp *cloud_wallet.CommonResp, c *gin.Context) bool
 
 // 处理错误返回
 func HandleAgentCommonRespErr(commResp *agent.CommonResp, c *gin.Context) bool {
-	if commResp != nil && commResp.ErrCode != 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": commResp.ErrCode, "errMsg": commResp.ErrMsg})
+	if commResp != nil && commResp.Code != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": commResp.Code, "errMsg": commResp.Msg})
 		return true
 	}
 	return false
