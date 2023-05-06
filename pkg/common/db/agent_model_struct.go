@@ -21,18 +21,18 @@ func (TAgentApplyRecord) TableName() string {
 
 // 推广员账户表
 type TAgentAccount struct {
-	Id                int64     `gorm:"column:id" json:"id"`
-	UserId            string    `gorm:"column:user_id" json:"user_id"`                       //用户id
-	Name              string    `gorm:"column:name" json:"name"`                             //推广员姓名
-	Mobile            string    `gorm:"column:mobile" json:"mobile"`                         //推广员电话
-	ChessUserId       int64     `gorm:"column:chess_user_id" json:"chess_user_id"`           //互娱用户id
-	AgentNumber       int32     `gorm:"column:agent_number" json:"agent_number"`             //推广员编号
-	Balance           int64     `gorm:"column:balance" json:"balance"`                       //余额(单位:分)
-	BeanBalance       int64     `gorm:"column:bean_balance" json:"bean_balance"`             //咖豆余额
-	AccumulatedIncome int64     `gorm:"column:accumulated_income" json:"accumulated_income"` //累计收益(单位:分)
-	OpenStatus        int32     `gorm:"column:open_status" json:"open_status"`               //开通状态(1开通、0关闭)
-	CreatedTime       time.Time `gorm:"column:created_time" json:"created_time"`
-	UpdatedTime       time.Time `gorm:"column:updated_time" json:"updated_time"`
+	Id          int64  `gorm:"column:id" json:"id"`
+	UserId      string `gorm:"column:user_id" json:"user_id"`             //用户id
+	Name        string `gorm:"column:name" json:"name"`                   //推广员姓名
+	Mobile      string `gorm:"column:mobile" json:"mobile"`               //推广员电话
+	ChessUserId int64  `gorm:"column:chess_user_id" json:"chess_user_id"` //互娱用户id
+	AgentNumber int32  `gorm:"column:agent_number" json:"agent_number"`   //推广员编号
+	Balance     int64  `gorm:"column:balance" json:"balance"`             //余额(单位:分)
+	BeanBalance int64  `gorm:"column:bean_balance" json:"bean_balance"`   //咖豆余额
+	//AccumulatedIncome int64     `gorm:"column:accumulated_income" json:"accumulated_income"` //累计收益(单位:分)
+	OpenStatus  int32     `gorm:"column:open_status" json:"open_status"` //开通状态(1开通、0关闭)
+	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
+	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`
 }
 
 func (TAgentAccount) TableName() string {
@@ -46,7 +46,11 @@ type TAgentAccountRecord struct {
 	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
 	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
 	Describe     string    `json:"describe"`      // 描述
-	Balance      int64     `json:"balance"`       // 金额(单位:分)
+	Amount       int64     `json:"amount"`        // 金额(单位:分)
+	RebateAmount int64     `json:"rebate_amount"` // 返利金额(单位:分)
+	ChessUserId  int64     `json:"chess_user_id"` // 互娱用户id
+	Day          string    `json:"day"`           // 天
+	Month        string    `json:"month"`         // 月
 	CreatedTime  time.Time `json:"created_time"`
 	UpdatedTime  time.Time `json:"updated_time"`
 }
@@ -117,6 +121,7 @@ type TAgentMember struct {
 	ChessUserId   int64     `json:"chess_user_id"`  // 互娱用户id
 	ChessNickname string    `json:"chess_nickname"` // 互娱用户昵称
 	Contribution  int64     `json:"contribution"`   // 成员贡献值
+	Day           string    `json:"day"`            // 天
 	CreatedTime   time.Time `json:"created_time"`
 	UpdatedTime   time.Time `json:"updated_time"`
 }

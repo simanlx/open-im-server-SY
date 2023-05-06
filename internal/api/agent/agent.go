@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // 推广员申请提交
@@ -56,7 +57,7 @@ func AgentApply(c *gin.Context) {
 
 // 获取当前用户的推广员信息以及绑定关系
 func GetUserAgentInfo(c *gin.Context) {
-	params := base_info.GetUserAgentInfo{}
+	params := base_info.GetUserAgentInfoReq{}
 	if err := c.BindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
@@ -157,4 +158,87 @@ func AgentMainInfo(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
+}
+
+// 账户明细收益趋势图
+func AgentAccountIncomeChart(c *gin.Context) {
+	params := base_info.AgentAccountIncomeChartReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	//默认7天
+	if params.DateType == 0 {
+		params.DateType = 1
+	}
+
+	operationId := c.GetString("operationId")
+	req := &rpc.AgentAccountIncomeChartReq{
+		UserId:      c.GetString("userId"),
+		DateType:    params.DateType,
+		OperationId: operationId,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentAccountIncomeChart(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentAccountIncomeChart failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp.IncomeChartData})
+	return
+}
+
+// 账户明细详情列表
+func AgentAccountRecordList(c *gin.Context) {
+	params := base_info.AgentAccountRecordListReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	//默认当天
+	if params.Date == "" {
+		params.Date = time.Now().Format("2006-01-02")
+	}
+
+	operationId := c.GetString("operationId")
+	req := &rpc.AgentAccountRecordListReq{
+		UserId:       c.GetString("userId"),
+		Date:         params.Date,
+		BusinessType: params.BusinessType,
+		Keyword:      params.Keyword,
+		OperationId:  operationId,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentAccountRecordList(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentAccountRecordList failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp.AccountRecordList})
+	return
+
 }

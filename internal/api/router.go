@@ -59,7 +59,9 @@ func NewGinRouter() *gin.Engine {
 		agentGroup.POST("bind_agent_number", agent.BindAgentNumber) //绑定推广员
 		//agentGroup.POST("bean_shop_config", agent.AgentBeanShopConfig) //获取推广员咖豆充值配置
 
-		agentGroup.POST("main", agent.AgentMainInfo) //推广员主页信息
+		agentGroup.POST("main", agent.AgentMainInfo)                           //推广员主页信息
+		agentGroup.POST("account/income_chart", agent.AgentAccountIncomeChart) //账户明细收益趋势图
+		agentGroup.POST("account/record_list", agent.AgentAccountRecordList)   //账户明细详情列表
 	}
 
 	// CloudWallet

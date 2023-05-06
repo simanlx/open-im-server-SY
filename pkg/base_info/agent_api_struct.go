@@ -13,6 +13,16 @@ type BindAgentNumberReq struct {
 	ChessNickname string `json:"chess_nickname"  binding:"required"` //互娱用户昵称
 }
 
-type GetUserAgentInfo struct {
+type GetUserAgentInfoReq struct {
 	ChessUserId int64 `json:"chess_user_id"  binding:"required"` //互娱用户id
+}
+
+type AgentAccountIncomeChartReq struct {
+	DateType int32 `json:"date_type"` //日期类型 1(7天),2(半年) 默认7天
+}
+
+type AgentAccountRecordListReq struct {
+	Date         string `json:"date"`          //日期
+	BusinessType int32  `json:"business_type"` //业务类型
+	Keyword      string `json:"keyword"`       //搜索关键字
 }

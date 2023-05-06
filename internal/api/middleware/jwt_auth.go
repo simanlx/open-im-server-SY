@@ -12,11 +12,11 @@ import (
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		operationId := utils.OperationIDGenerator()
-		ok, userId, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), operationId)
+		ok, userId, _ := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), operationId)
 		if !ok || len(userId) == 0 {
 			log.NewError("", "GetUserIDFromToken false ", c.Request.Header.Get("token"))
 			c.Abort()
-			c.JSON(http.StatusOK, gin.H{"errCode": 403, "errMsg": errInfo})
+			c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "token授权认证失败"})
 			return
 		} else {
 			// 用户id

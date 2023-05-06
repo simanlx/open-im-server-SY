@@ -66,7 +66,7 @@ func (rpc *AgentServer) BindAgentNumber(_ context.Context, req *agent.BindAgentN
 	return resp, nil
 }
 
-// 绑定推广员
+// 获取当前用户的推广员信息以及绑定关系
 func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAgentInfoReq) (*agent.GetUserAgentInfoResp, error) {
 	resp := &agent.GetUserAgentInfoResp{
 		IsAgent:         false,
@@ -100,16 +100,7 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 
 // 绑定推广员
 func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInfoReq) (*agent.AgentMainInfoResp, error) {
-	resp := &agent.AgentMainInfoResp{
-		AgentNumber:         1,
-		AgentName:           "1",
-		Balance:             1,
-		BeanBalance:         1,
-		TodayIncome:         1,
-		AccumulatedIncome:   1,
-		TodayBindUser:       1,
-		AccumulatedBindUser: 1,
-	}
+	resp := &agent.AgentMainInfoResp{}
 
 	//获取推广员信息
 	info, _ := imdb.GetAgentByUserId(req.UserId)
@@ -121,10 +112,66 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 	resp.AgentName = info.Name
 	resp.Balance = info.Balance
 	resp.BeanBalance = info.BeanBalance
-	resp.AccumulatedIncome = info.AccumulatedIncome
 
-	//今日收益=下属用户充值返利+商城出售咖豆收入
+	//累计收益、今日收益
+	statIncome, _ := imdb.StatAgentIncomeData(req.UserId)
+	resp.TodayIncome = statIncome.TodayIncome
+	resp.AccumulatedIncome = statIncome.AccumulatedIncome
 
-	//resp.TodayIncome = 0
+	//绑定的下属成员
+	statMember, _ := imdb.StatAgentMemberData(req.UserId)
+	resp.TodayBindUser = statMember.TodayBindUser
+	resp.AccumulatedBindUser = statMember.AccumulatedBindUser
+	return resp, nil
+}
+
+// 账户明细收益趋势图
+func (rpc *AgentServer) AgentAccountIncomeChart(_ context.Context, req *agent.AgentAccountIncomeChartReq) (*agent.AgentAccountIncomeChartResp, error) {
+	resp := &agent.AgentAccountIncomeChartResp{}
+
+	//获取收益统计数据
+	chartData, _ := imdb.AccountIncomeChart(req.UserId, req.DateType)
+	if len(chartData) > 0 {
+		resp.IncomeChartData = make([]*agent.IncomeChartData, 0)
+		for _, v := range chartData {
+			resp.IncomeChartData = append(resp.IncomeChartData, &agent.IncomeChartData{
+				Date:   v.Date,
+				Income: v.Income,
+			})
+		}
+	}
+
+	return resp, nil
+}
+
+// 账户明细详情列表
+func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.AgentAccountRecordListReq) (*agent.AgentAccountRecordListResp, error) {
+	resp := &agent.AgentAccountRecordListResp{}
+
+	//搜索用户
+	chessUserIds := make([]int64, 0)
+	if len(req.Keyword) > 0 {
+		chessUserIds, _ = imdb.FindAgentMemberByKey(req.UserId, req.Keyword)
+		if len(chessUserIds) == 0 {
+			return resp, nil
+		}
+	}
+
+	//获取收益统计数据
+	list, _ := imdb.AccountIncomeList(req.UserId, req.Date, req.BusinessType, chessUserIds)
+	if len(list) > 0 {
+		resp.AccountRecordList = make([]*agent.AccountRecordList, 0)
+		for _, v := range list {
+			resp.AccountRecordList = append(resp.AccountRecordList, &agent.AccountRecordList{
+				BusinessType: v.BusinessType,
+				Amount:       v.Amount,
+				RebateAmount: v.RebateAmount,
+				Describe:     v.Describe,
+				CreatedTime:  v.CreatedTime.Format("2006-01-02 15:04:05"),
+				Type:         v.Type,
+			})
+		}
+	}
+
 	return resp, nil
 }

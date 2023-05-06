@@ -116,7 +116,7 @@ message AgentMainInfoResp{
 
 message AgentAccountIncomeChartReq{
   string userId = 1; //用户id
-  int32  day = 2; //天数 7(7天),180(半年)
+  int32  dateType = 2; //日期类型 1(7天),2(半年) 默认7天
   string operationId = 3;
 }
 
@@ -126,13 +126,15 @@ message AgentAccountIncomeChartResp{
 
 message IncomeChartData{
   string date = 1; //日期
-  string income = 2; //收益值
+  int64  income = 2; //收益值
 }
 
 message AgentAccountRecordListReq{
   string userId = 1; //用户id
   string date = 2; //日期
-  string operationId = 3;
+  int32  businessType = 3; //业务类型
+  string keyword = 4; //搜索关键字
+  string operationId = 5;
 }
 
 message AgentAccountRecordListResp{
@@ -140,11 +142,12 @@ message AgentAccountRecordListResp{
 }
 
 message AccountRecordList{
-  int32  businessType = 1; //业务类型
-  int64  balance = 2; //金额(分)
-  string describe = 3; //描述
-  string createdTime = 4; //时间
-  int32  type = 5; //收支类型(1收入、2支出)
+  int32  business_type = 1; //业务类型
+  int64  amount = 2; //金额(分)
+  int64  rebate_amount = 3; //返利金额(分)
+  string describe = 4; //描述
+  string created_time = 5; //时间
+  int32  type = 6; //收支类型(1收入、2支出)
 }
 
 
@@ -270,9 +273,9 @@ service AgentSystemService {
   //推广中心主页信息
   rpc AgentMainInfo(AgentMainInfoReq)returns(AgentMainInfoResp);
   //账户明细收益趋势图
-//  rpc AgentAccountIncomeChart(AgentAccountIncomeChartReq)returns(AgentAccountIncomeChartResp);
+  rpc AgentAccountIncomeChart(AgentAccountIncomeChartReq)returns(AgentAccountIncomeChartResp);
   //账户明细详情列表
-//  rpc AgentAccountRecordList(AgentAccountRecordListReq)returns(AgentAccountRecordListResp);
+  rpc AgentAccountRecordList(AgentAccountRecordListReq)returns(AgentAccountRecordListResp);
 
 //  //平台咖豆商城配置
 //  rpc PlatformBeanShopConfig(PlatformBeanShopConfigReq)returns(PlatformBeanShopConfigResp);

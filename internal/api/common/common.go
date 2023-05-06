@@ -18,15 +18,6 @@ func HandleCommonRespErr(commResp *cloud_wallet.CommonResp, c *gin.Context) bool
 	return false
 }
 
-// 处理错误返回
-func HandleAgentCommonRespErr(commResp *agent.CommonResp, c *gin.Context) bool {
-	if commResp != nil && commResp.Code != 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": commResp.Code, "errMsg": commResp.Msg})
-		return true
-	}
-	return false
-}
-
 // 解析im token、获取用户id
 func ParseImToken(c *gin.Context, operationID string) (string, bool) {
 	ok, userId, errMsg := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), operationID)
@@ -36,4 +27,13 @@ func ParseImToken(c *gin.Context, operationID string) (string, bool) {
 		return "", false
 	}
 	return userId, true
+}
+
+// 推广系统处理错误返回
+func HandleAgentCommonRespErr(commResp *agent.CommonResp, c *gin.Context) bool {
+	if commResp != nil && commResp.Code != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": commResp.Code, "msg": commResp.Msg})
+		return true
+	}
+	return false
 }
