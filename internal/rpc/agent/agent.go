@@ -98,7 +98,7 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 	return resp, nil
 }
 
-// 绑定推广员
+// 推广员主页信息
 func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInfoReq) (*agent.AgentMainInfoResp, error) {
 	resp := &agent.AgentMainInfoResp{}
 

@@ -1765,7 +1765,7 @@ type BeanShopConfig struct {
 	unknownFields protoimpl.UnknownFields
 
 	ConfigId       int32 `protobuf:"varint,1,opt,name=config_id,json=configId,proto3" json:"config_id,omitempty"`                     //配置id
-	BeanNumber     int32 `protobuf:"varint,2,opt,name=bean_number,json=beanNumber,proto3" json:"bean_number,omitempty"`               //购买数量
+	BeanNumber     int64 `protobuf:"varint,2,opt,name=bean_number,json=beanNumber,proto3" json:"bean_number,omitempty"`               //购买数量
 	GiveBeanNumber int32 `protobuf:"varint,3,opt,name=give_bean_number,json=giveBeanNumber,proto3" json:"give_bean_number,omitempty"` //赠送数量
 	Amount         int32 `protobuf:"varint,4,opt,name=amount,proto3" json:"amount,omitempty"`                                         //金额(单位元)
 	Status         int32 `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`                                         //状态
@@ -1810,7 +1810,7 @@ func (x *BeanShopConfig) GetConfigId() int32 {
 	return 0
 }
 
-func (x *BeanShopConfig) GetBeanNumber() int32 {
+func (x *BeanShopConfig) GetBeanNumber() int64 {
 	if x != nil {
 		return x.BeanNumber
 	}
@@ -2932,7 +2932,7 @@ var file_agent_proto_rawDesc = []byte{
 	0x66, 0x69, 0x67, 0x12, 0x1b, 0x0a, 0x09, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x69, 0x64,
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x64,
 	0x12, 0x1f, 0x0a, 0x0b, 0x62, 0x65, 0x61, 0x6e, 0x5f, 0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x62, 0x65, 0x61, 0x6e, 0x4e, 0x75, 0x6d, 0x62, 0x65,
+	0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0a, 0x62, 0x65, 0x61, 0x6e, 0x4e, 0x75, 0x6d, 0x62, 0x65,
 	0x72, 0x12, 0x28, 0x0a, 0x10, 0x67, 0x69, 0x76, 0x65, 0x5f, 0x62, 0x65, 0x61, 0x6e, 0x5f, 0x6e,
 	0x75, 0x6d, 0x62, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0e, 0x67, 0x69, 0x76,
 	0x65, 0x42, 0x65, 0x61, 0x6e, 0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x16, 0x0a, 0x06, 0x61,
@@ -3041,7 +3041,7 @@ var file_agent_proto_rawDesc = []byte{
 	0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0f, 0x63, 0x68, 0x65, 0x73, 0x73, 0x42, 0x65, 0x61, 0x6e,
 	0x4e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0x12, 0x22, 0x0a, 0x0c, 0x63, 0x6f, 0x6e, 0x74, 0x72, 0x69,
 	0x62, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x0c, 0x63, 0x6f,
-	0x6e, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x32, 0xeb, 0x03, 0x0a, 0x12, 0x41,
+	0x6e, 0x74, 0x72, 0x69, 0x62, 0x75, 0x74, 0x69, 0x6f, 0x6e, 0x32, 0xa0, 0x05, 0x0a, 0x12, 0x41,
 	0x67, 0x65, 0x6e, 0x74, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x12, 0x4b, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x41, 0x67, 0x65, 0x6e,
 	0x74, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x1a, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x47, 0x65,
@@ -3072,8 +3072,19 @@ var file_agent_proto_rawDesc = []byte{
 	0x74, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64, 0x4c, 0x69,
 	0x73, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x21, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x41, 0x67,
 	0x65, 0x6e, 0x74, 0x41, 0x63, 0x63, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x72, 0x64,
-	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x42, 0x09, 0x5a, 0x07, 0x2e, 0x3b, 0x61, 0x67,
-	0x65, 0x6e, 0x74, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x5d, 0x0a, 0x16, 0x50, 0x6c, 0x61, 0x74,
+	0x66, 0x6f, 0x72, 0x6d, 0x42, 0x65, 0x61, 0x6e, 0x53, 0x68, 0x6f, 0x70, 0x43, 0x6f, 0x6e, 0x66,
+	0x69, 0x67, 0x12, 0x20, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x50, 0x6c, 0x61, 0x74, 0x66,
+	0x6f, 0x72, 0x6d, 0x42, 0x65, 0x61, 0x6e, 0x53, 0x68, 0x6f, 0x70, 0x43, 0x6f, 0x6e, 0x66, 0x69,
+	0x67, 0x52, 0x65, 0x71, 0x1a, 0x21, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x50, 0x6c, 0x61,
+	0x74, 0x66, 0x6f, 0x72, 0x6d, 0x42, 0x65, 0x61, 0x6e, 0x53, 0x68, 0x6f, 0x70, 0x43, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x12, 0x54, 0x0a, 0x13, 0x41, 0x67, 0x65, 0x6e, 0x74,
+	0x42, 0x65, 0x61, 0x6e, 0x53, 0x68, 0x6f, 0x70, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x1d,
+	0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x42, 0x65, 0x61, 0x6e,
+	0x53, 0x68, 0x6f, 0x70, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x1a, 0x1e, 0x2e,
+	0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x42, 0x65, 0x61, 0x6e, 0x53,
+	0x68, 0x6f, 0x70, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x42, 0x09, 0x5a,
+	0x07, 0x2e, 0x3b, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -3155,14 +3166,18 @@ var file_agent_proto_depIdxs = []int32{
 	15, // 18: agent.AgentSystemService.AgentMainInfo:input_type -> agent.AgentMainInfoReq
 	17, // 19: agent.AgentSystemService.AgentAccountIncomeChart:input_type -> agent.AgentAccountIncomeChartReq
 	20, // 20: agent.AgentSystemService.AgentAccountRecordList:input_type -> agent.AgentAccountRecordListReq
-	2,  // 21: agent.AgentSystemService.GetUserAgentInfo:output_type -> agent.GetUserAgentInfoResp
-	4,  // 22: agent.AgentSystemService.AgentApply:output_type -> agent.AgentApplyResp
-	6,  // 23: agent.AgentSystemService.BindAgentNumber:output_type -> agent.BindAgentNumberResp
-	16, // 24: agent.AgentSystemService.AgentMainInfo:output_type -> agent.AgentMainInfoResp
-	18, // 25: agent.AgentSystemService.AgentAccountIncomeChart:output_type -> agent.AgentAccountIncomeChartResp
-	21, // 26: agent.AgentSystemService.AgentAccountRecordList:output_type -> agent.AgentAccountRecordListResp
-	21, // [21:27] is the sub-list for method output_type
-	15, // [15:21] is the sub-list for method input_type
+	25, // 21: agent.AgentSystemService.PlatformBeanShopConfig:input_type -> agent.PlatformBeanShopConfigReq
+	23, // 22: agent.AgentSystemService.AgentBeanShopConfig:input_type -> agent.AgentBeanShopConfigReq
+	2,  // 23: agent.AgentSystemService.GetUserAgentInfo:output_type -> agent.GetUserAgentInfoResp
+	4,  // 24: agent.AgentSystemService.AgentApply:output_type -> agent.AgentApplyResp
+	6,  // 25: agent.AgentSystemService.BindAgentNumber:output_type -> agent.BindAgentNumberResp
+	16, // 26: agent.AgentSystemService.AgentMainInfo:output_type -> agent.AgentMainInfoResp
+	18, // 27: agent.AgentSystemService.AgentAccountIncomeChart:output_type -> agent.AgentAccountIncomeChartResp
+	21, // 28: agent.AgentSystemService.AgentAccountRecordList:output_type -> agent.AgentAccountRecordListResp
+	26, // 29: agent.AgentSystemService.PlatformBeanShopConfig:output_type -> agent.PlatformBeanShopConfigResp
+	24, // 30: agent.AgentSystemService.AgentBeanShopConfig:output_type -> agent.AgentBeanShopConfigResp
+	23, // [23:31] is the sub-list for method output_type
+	15, // [15:23] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
 	15, // [15:15] is the sub-list for extension extendee
 	0,  // [0:15] is the sub-list for field type_name
@@ -3723,6 +3738,10 @@ type AgentSystemServiceClient interface {
 	AgentAccountIncomeChart(ctx context.Context, in *AgentAccountIncomeChartReq, opts ...grpc.CallOption) (*AgentAccountIncomeChartResp, error)
 	// 账户明细详情列表
 	AgentAccountRecordList(ctx context.Context, in *AgentAccountRecordListReq, opts ...grpc.CallOption) (*AgentAccountRecordListResp, error)
+	// 平台咖豆商城配置
+	PlatformBeanShopConfig(ctx context.Context, in *PlatformBeanShopConfigReq, opts ...grpc.CallOption) (*PlatformBeanShopConfigResp, error)
+	// 推广员咖豆商城配置
+	AgentBeanShopConfig(ctx context.Context, in *AgentBeanShopConfigReq, opts ...grpc.CallOption) (*AgentBeanShopConfigResp, error)
 }
 
 type agentSystemServiceClient struct {
@@ -3787,6 +3806,24 @@ func (c *agentSystemServiceClient) AgentAccountRecordList(ctx context.Context, i
 	return out, nil
 }
 
+func (c *agentSystemServiceClient) PlatformBeanShopConfig(ctx context.Context, in *PlatformBeanShopConfigReq, opts ...grpc.CallOption) (*PlatformBeanShopConfigResp, error) {
+	out := new(PlatformBeanShopConfigResp)
+	err := c.cc.Invoke(ctx, "/agent.AgentSystemService/PlatformBeanShopConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentSystemServiceClient) AgentBeanShopConfig(ctx context.Context, in *AgentBeanShopConfigReq, opts ...grpc.CallOption) (*AgentBeanShopConfigResp, error) {
+	out := new(AgentBeanShopConfigResp)
+	err := c.cc.Invoke(ctx, "/agent.AgentSystemService/AgentBeanShopConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentSystemServiceServer is the server API for AgentSystemService service.
 type AgentSystemServiceServer interface {
 	// 获取用户推广员信息
@@ -3801,6 +3838,10 @@ type AgentSystemServiceServer interface {
 	AgentAccountIncomeChart(context.Context, *AgentAccountIncomeChartReq) (*AgentAccountIncomeChartResp, error)
 	// 账户明细详情列表
 	AgentAccountRecordList(context.Context, *AgentAccountRecordListReq) (*AgentAccountRecordListResp, error)
+	// 平台咖豆商城配置
+	PlatformBeanShopConfig(context.Context, *PlatformBeanShopConfigReq) (*PlatformBeanShopConfigResp, error)
+	// 推广员咖豆商城配置
+	AgentBeanShopConfig(context.Context, *AgentBeanShopConfigReq) (*AgentBeanShopConfigResp, error)
 }
 
 // UnimplementedAgentSystemServiceServer can be embedded to have forward compatible implementations.
@@ -3824,6 +3865,12 @@ func (*UnimplementedAgentSystemServiceServer) AgentAccountIncomeChart(context.Co
 }
 func (*UnimplementedAgentSystemServiceServer) AgentAccountRecordList(context.Context, *AgentAccountRecordListReq) (*AgentAccountRecordListResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AgentAccountRecordList not implemented")
+}
+func (*UnimplementedAgentSystemServiceServer) PlatformBeanShopConfig(context.Context, *PlatformBeanShopConfigReq) (*PlatformBeanShopConfigResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlatformBeanShopConfig not implemented")
+}
+func (*UnimplementedAgentSystemServiceServer) AgentBeanShopConfig(context.Context, *AgentBeanShopConfigReq) (*AgentBeanShopConfigResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AgentBeanShopConfig not implemented")
 }
 
 func RegisterAgentSystemServiceServer(s *grpc.Server, srv AgentSystemServiceServer) {
@@ -3938,6 +3985,42 @@ func _AgentSystemService_AgentAccountRecordList_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentSystemService_PlatformBeanShopConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PlatformBeanShopConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentSystemServiceServer).PlatformBeanShopConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/agent.AgentSystemService/PlatformBeanShopConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentSystemServiceServer).PlatformBeanShopConfig(ctx, req.(*PlatformBeanShopConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentSystemService_AgentBeanShopConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentBeanShopConfigReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentSystemServiceServer).AgentBeanShopConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/agent.AgentSystemService/AgentBeanShopConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentSystemServiceServer).AgentBeanShopConfig(ctx, req.(*AgentBeanShopConfigReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AgentSystemService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "agent.AgentSystemService",
 	HandlerType: (*AgentSystemServiceServer)(nil),
@@ -3965,6 +4048,14 @@ var _AgentSystemService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AgentAccountRecordList",
 			Handler:    _AgentSystemService_AgentAccountRecordList_Handler,
+		},
+		{
+			MethodName: "PlatformBeanShopConfig",
+			Handler:    _AgentSystemService_PlatformBeanShopConfig_Handler,
+		},
+		{
+			MethodName: "AgentBeanShopConfig",
+			Handler:    _AgentSystemService_AgentBeanShopConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

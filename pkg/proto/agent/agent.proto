@@ -173,7 +173,7 @@ message PlatformBeanShopConfigResp{
 
 message BeanShopConfig{
   int32 config_id = 1; //配置id
-  int32 bean_number = 2; //购买数量
+  int64 bean_number = 2; //购买数量
   int32 give_bean_number = 3; //赠送数量
   int32 amount = 4; //金额(单位元)
   int32 status = 5; //状态
@@ -269,18 +269,17 @@ service AgentSystemService {
   rpc AgentApply(AgentApplyReq)returns(AgentApplyResp);
   //绑定推广员
   rpc BindAgentNumber(BindAgentNumberReq)returns(BindAgentNumberResp);
-
   //推广中心主页信息
   rpc AgentMainInfo(AgentMainInfoReq)returns(AgentMainInfoResp);
   //账户明细收益趋势图
   rpc AgentAccountIncomeChart(AgentAccountIncomeChartReq)returns(AgentAccountIncomeChartResp);
   //账户明细详情列表
   rpc AgentAccountRecordList(AgentAccountRecordListReq)returns(AgentAccountRecordListResp);
+  //平台咖豆商城配置
+  rpc PlatformBeanShopConfig(PlatformBeanShopConfigReq)returns(PlatformBeanShopConfigResp);
+  //推广员咖豆商城配置
+  rpc AgentBeanShopConfig(AgentBeanShopConfigReq)returns(AgentBeanShopConfigResp);
 
-//  //平台咖豆商城配置
-//  rpc PlatformBeanShopConfig(PlatformBeanShopConfigReq)returns(PlatformBeanShopConfigResp);
-//  //推广员咖豆商城配置
-//  rpc AgentBeanShopConfig(AgentBeanShopConfigReq)returns(AgentBeanShopConfigResp);
 //  //咖豆管理上下架
 //  rpc AgentBeanShopUpStatus(AgentBeanShopUpStatusReq)returns(AgentBeanShopUpStatusResp);
 //  //咖豆管理(新增、删除)

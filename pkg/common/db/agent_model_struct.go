@@ -132,7 +132,7 @@ func (TAgentMember) TableName() string {
 
 type TAgentPlatformConfig struct {
 	Id          int32     `json:"id"`
-	ConfigType  int32     `json:"config_type"` // 配置类型
+	ConfigKey   string    `json:"config_key"`  // 配置类型
 	ConfigData  string    `json:"config_data"` // 配置值
 	CreatedTime time.Time `json:"created_time"`
 	UpdatedTime time.Time `json:"updated_time"`

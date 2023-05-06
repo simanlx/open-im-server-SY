@@ -3,6 +3,7 @@ package rocksCache
 import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
+	"Open_IM/pkg/common/db/mysql_model/agent_model"
 	imdb2 "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
@@ -36,6 +37,7 @@ const (
 	conversationIDListCache   = "CONVERSATION_ID_LIST_CACHE:"
 	extendMsgSetCache         = "EXTEND_MSG_SET_CACHE:"
 	extendMsgCache            = "EXTEND_MSG_CACHE:"
+	agentPlatFormConfig       = "AGENT_PLATFORM_CONFIG:"
 
 	// 云钱包云钱包相关
 	fAccountCache = "F_ACCOUNT_CACHE:"
@@ -622,4 +624,37 @@ func GetExtendMsg(sourceID string, sessionType int32, clientMsgID string, firstM
 
 func DelExtendMsg(ID string, index int32, clientMsgID string) error {
 	return utils.Wrap(db.DB.Rc.TagAsDeleted(extendMsgCache+clientMsgID), "DelExtendMsg err")
+}
+
+// 获取推广平台咖豆商城配置
+func GetAgentPlatformBeanConfigCache() ([]agent_model.BeanShopConfig, error) {
+	getBeanConfig := func() (string, error) {
+		configV := agent_model.GetPlatformConfigValue("bean_shop")
+		return configV, nil
+	}
+
+	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+"bean_shop", time.Second*600, getBeanConfig)
+	if err != nil {
+		return nil, utils.Wrap(err, "Fetch failed")
+	}
+	var configValue []agent_model.BeanShopConfig
+	err = json.Unmarshal([]byte(configStr), &configValue)
+	if err != nil {
+		return nil, utils.Wrap(err, "Unmarshal failed")
+	}
+	return configValue, nil
+}
+
+// 获取推广平台充值返现配置
+func GetAgentPayRebateConfigCache() (string, error) {
+	getBeanConfig := func() (string, error) {
+		configV := agent_model.GetPlatformConfigValue("pay_rebate")
+		return configV, nil
+	}
+
+	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+"pay_rebate", time.Second*600, getBeanConfig)
+	if err != nil {
+		return "", utils.Wrap(err, "Fetch failed")
+	}
+	return configStr, nil
 }

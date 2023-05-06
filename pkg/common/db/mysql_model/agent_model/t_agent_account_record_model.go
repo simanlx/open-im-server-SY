@@ -58,6 +58,6 @@ func AccountIncomeList(userId, date string, businessType int32, chessUserIds []i
 		model = model.Where("chess_user_id in (?)", chessUserIds)
 	}
 
-	err = model.Find(&data).Error
+	err = model.Order("id desc").Find(&data).Error
 	return
 }
