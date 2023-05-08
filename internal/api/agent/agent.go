@@ -254,10 +254,36 @@ func AgentAccountRecordList(c *gin.Context) {
 
 // 推广下属用户列表
 func AgentMemberList(c *gin.Context) {
-	params := base_info.AgentAccountRecordListReq{}
+	params := base_info.AgentMemberListReq{}
 	if err := c.BindJSON(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
+	operationId := c.GetString("operationId")
+	req := &rpc.AgentMemberListReq{
+		UserId:      c.GetString("userId"),
+		Keyword:     params.Keyword,
+		OrderBy:     params.OrderBy,
+		OperationId: operationId,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentMemberList(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentMemberList failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
+	return
 }

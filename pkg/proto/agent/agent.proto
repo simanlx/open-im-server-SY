@@ -264,11 +264,13 @@ message AgentMemberListReq{
   string keyword = 2; //搜索关键字
   int32  page = 3;
   int32  size = 4;
-  string operationId = 5;
+  string orderBy = 5; //排序
+  string operationId = 6;
 }
 
 message AgentMemberListResp{
-  repeated AgentMemberList agent_member_list = 1; //推广用户列表
+  int64    total = 1; //总数
+  repeated AgentMemberList agent_member_list = 2; //推广用户列表
 }
 
 message AgentMemberList{

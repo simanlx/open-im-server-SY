@@ -169,3 +169,9 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 
 	return resp, nil
 }
+
+func (rpc *AgentServer) AgentGiveMemberBean(ctx context.Context, req *agent.AgentGiveMemberBeanReq) (*agent.AgentGiveMemberBeanResp, error) {
+	resp := &agent.AgentGiveMemberBeanResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+
+	return resp, nil
+}

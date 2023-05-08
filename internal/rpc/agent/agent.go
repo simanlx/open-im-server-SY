@@ -6,6 +6,7 @@ import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/proto/agent"
 	"context"
+	"sort"
 )
 
 // 推广员申请提交
@@ -151,7 +152,7 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 	//搜索用户
 	chessUserIds := make([]int64, 0)
 	if len(req.Keyword) > 0 {
-		chessUserIds, _ = imdb.FindAgentMemberByKey(req.UserId, req.Keyword)
+		chessUserIds, _ = imdb.FindAgentMemberIds(req.UserId, req.Keyword)
 		if len(chessUserIds) == 0 {
 			return resp, nil
 		}
@@ -173,5 +174,43 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 		}
 	}
 
+	return resp, nil
+}
+
+// 推广下属用户列表
+func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMemberListReq) (*agent.AgentMemberListResp, error) {
+	resp := &agent.AgentMemberListResp{Total: 0, AgentMemberList: []*agent.AgentMemberList{}}
+
+	//获取推广员全部下属用户咖豆和资料
+	chessUserIds, _ := imdb.FindAgentMemberIds(req.UserId, "")
+	if len(chessUserIds) == 0 {
+		return resp, nil
+	}
+
+	//获取条件列表数据
+	list, count, err := imdb.FindAgentMemberList(req.UserId, req.Keyword, req.OrderBy, req.Page, req.Size)
+	if err != nil {
+		return resp, nil
+	}
+
+	resp.Total = count
+	if len(list) > 0 {
+
+		for _, v := range list {
+			resp.AgentMemberList = append(resp.AgentMemberList, &agent.AgentMemberList{
+				ChessUserId:     v.ChessUserId,
+				ChessNickname:   v.ChessNickname,
+				ChessBeanNumber: v.Contribution,
+				Contribution:    v.Contribution,
+			})
+		}
+
+		//排序
+		if req.OrderBy == "" {
+			sort.Slice(resp.AgentMemberList, func(p, q int) bool {
+				return resp.AgentMemberList[p].ChessBeanNumber < resp.AgentMemberList[q].ChessBeanNumber
+			})
+		}
+	}
 	return resp, nil
 }

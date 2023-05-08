@@ -58,7 +58,6 @@ type BeanShopConfig struct {
 }
 
 type AgentMemberListReq struct {
-	Keyword string `json:"keyword"` //搜索关键字
-	Page    int32  `json:"page"`
-	Size    int32  `json:"size"`
+	Keyword string `json:"keyword"`  //搜索关键字
+	OrderBy string `json:"order_by"` //排序
 }
