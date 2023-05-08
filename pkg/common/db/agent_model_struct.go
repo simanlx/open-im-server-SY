@@ -42,6 +42,7 @@ func (TAgentAccount) TableName() string {
 // 推广员余额账户变更记录表
 type TAgentAccountRecord struct {
 	Id           int64     `json:"id"`
+	OrderNo      string    `json:"order_no"`      // 订单号
 	UserId       string    `json:"user_id"`       // 用户id
 	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
 	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
@@ -62,11 +63,15 @@ func (TAgentAccountRecord) TableName() string {
 // 推广员咖豆账户变更记录表
 type TAgentBeanAccountRecord struct {
 	Id           int64     `json:"id"`
+	OrderNo      string    `json:"order_no"`      // 订单号
 	UserId       string    `json:"user_id"`       // 用户id
 	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
 	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
 	Describe     string    `json:"describe"`      // 描述
-	Number       int32     `json:"number"`        // 数量
+	Amount       int64     `json:"amount"`        // 金额(单位分)
+	Number       int64     `json:"number"`        // 数量
+	GiveNumber   int64     `json:"give_number"`   // 赠送数量
+	Day          string    `json:"day"`           // 天
 	CreatedTime  time.Time `json:"created_time"`
 	UpdatedTime  time.Time `json:"updated_time"`
 }
@@ -99,9 +104,9 @@ func (TAgentBeanRechargeOrder) TableName() string {
 
 // 推广咖豆商店配置表
 type TAgentBeanShopConfig struct {
-	Id             int64     `json:"id"`
-	AgentNumber    int32     `json:"agent_number"`     // 推广员编号
-	BeanNumber     int32     `json:"bean_number"`      // 咖豆
+	Id             int32     `json:"id"`
+	UserId         string    `json:"user_id"`          // 用户id
+	BeanNumber     int64     `json:"bean_number"`      // 咖豆
 	GiveBeanNumber int32     `json:"give_bean_number"` // 赠送咖豆(0不赠送)
 	Amount         int32     `json:"amount"`           // 金额(单位:元)
 	Status         int32     `json:"status"`           // 状态(0下架、1上架)

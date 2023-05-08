@@ -146,7 +146,7 @@ func (rpc *AgentServer) AgentAccountIncomeChart(_ context.Context, req *agent.Ag
 
 // 账户明细详情列表
 func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.AgentAccountRecordListReq) (*agent.AgentAccountRecordListResp, error) {
-	resp := &agent.AgentAccountRecordListResp{}
+	resp := &agent.AgentAccountRecordListResp{Total: 0, AccountRecordList: []*agent.AccountRecordList{}}
 
 	//搜索用户
 	chessUserIds := make([]int64, 0)
@@ -158,9 +158,9 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 	}
 
 	//获取收益统计数据
-	list, _ := imdb.AccountIncomeList(req.UserId, req.Date, req.BusinessType, chessUserIds)
+	list, count, _ := imdb.AccountIncomeList(req.UserId, req.Date, req.BusinessType, req.Page, req.Size, chessUserIds)
+	resp.Total = count
 	if len(list) > 0 {
-		resp.AccountRecordList = make([]*agent.AccountRecordList, 0)
 		for _, v := range list {
 			resp.AccountRecordList = append(resp.AccountRecordList, &agent.AccountRecordList{
 				BusinessType: v.BusinessType,

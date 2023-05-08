@@ -25,4 +25,17 @@ type AgentAccountRecordListReq struct {
 	Date         string `json:"date"`          //日期
 	BusinessType int32  `json:"business_type"` //业务类型
 	Keyword      string `json:"keyword"`       //搜索关键字
+	Page         int32  `json:"page"`
+	Size         int32  `json:"size"`
+}
+
+type AgentGameShopBeanConfigReq struct {
+	AgentNumber int32 `json:"agent_number"  binding:"required"` //推广员编号
+}
+
+type AgentBeanAccountRecordListReq struct {
+	Date         string `json:"date"`          //日期
+	BusinessType int32  `json:"business_type"` //业务类型
+	Page         int32  `json:"page"`
+	Size         int32  `json:"size"`
 }

@@ -213,12 +213,22 @@ func AgentAccountRecordList(c *gin.Context) {
 		params.Date = time.Now().Format("2006-01-02")
 	}
 
+	if params.Page == 0 {
+		params.Page = 1
+	}
+
+	if params.Size == 0 || params.Size > 100 {
+		params.Size = 20
+	}
+
 	operationId := c.GetString("operationId")
 	req := &rpc.AgentAccountRecordListReq{
 		UserId:       c.GetString("userId"),
 		Date:         params.Date,
 		BusinessType: params.BusinessType,
 		Keyword:      params.Keyword,
+		Page:         params.Page,
+		Size:         params.Size,
 		OperationId:  operationId,
 	}
 
@@ -238,7 +248,7 @@ func AgentAccountRecordList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp.AccountRecordList})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
 
 }

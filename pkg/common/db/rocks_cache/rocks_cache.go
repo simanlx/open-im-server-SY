@@ -646,7 +646,7 @@ func GetAgentPlatformBeanConfigCache() ([]agent_model.BeanShopConfig, error) {
 }
 
 // 获取推广平台充值返现配置
-func GetAgentPayRebateConfigCache() (string, error) {
+func GetAgentPayRebateConfigCache() string {
 	getBeanConfig := func() (string, error) {
 		configV := agent_model.GetPlatformConfigValue("pay_rebate")
 		return configV, nil
@@ -654,7 +654,7 @@ func GetAgentPayRebateConfigCache() (string, error) {
 
 	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+"pay_rebate", time.Second*600, getBeanConfig)
 	if err != nil {
-		return "", utils.Wrap(err, "Fetch failed")
+		return "0"
 	}
-	return configStr, nil
+	return configStr
 }

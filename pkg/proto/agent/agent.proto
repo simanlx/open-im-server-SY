@@ -134,11 +134,14 @@ message AgentAccountRecordListReq{
   string date = 2; //日期
   int32  businessType = 3; //业务类型
   string keyword = 4; //搜索关键字
-  string operationId = 5;
+  int32  page = 5;
+  int32  size = 6;
+  string operationId = 7;
 }
 
 message AgentAccountRecordListResp{
-  repeated AccountRecordList account_record_list = 1; //收益记录列表
+  int64    total = 1; //总数
+  repeated AccountRecordList account_record_list = 2; //余额变更详情列表
 }
 
 message AccountRecordList{
@@ -150,16 +153,24 @@ message AccountRecordList{
   int32  type = 6; //收支类型(1收入、2支出)
 }
 
-
-message AgentBeanShopConfigReq{
+message AgentDiyBeanShopConfigReq{
   string userId = 1; //用户id
-  int32  agentNumber = 2; //推广员编号
-  int64  chessUserId = 3; //互娱用户id
-  string operationId = 4;
+  string operationId = 3;
 }
 
-message AgentBeanShopConfigResp{
-  repeated BeanShopConfig bean_shop_config = 1; //咖豆商店配置列表
+message AgentDiyBeanShopConfigResp{
+  int64    today_sales = 1; //今日销售咖豆数
+  repeated BeanShopConfig bean_shop_config = 2; //咖豆商城配置列表
+}
+
+message AgentGameBeanShopConfigReq{
+  string userId = 1; //用户id
+  int32  agentNumber = 2; //推广员编号
+  string operationId = 3;
+}
+
+message AgentGameBeanShopConfigResp{
+  repeated BeanShopConfig bean_shop_config = 1; //咖豆商城配置列表
 }
 
 message PlatformBeanShopConfigReq{
@@ -168,7 +179,7 @@ message PlatformBeanShopConfigReq{
 }
 
 message PlatformBeanShopConfigResp{
-  repeated BeanShopConfig bean_shop_config = 1; //咖豆商店配置列表
+  repeated BeanShopConfig bean_shop_config = 1; //咖豆商城配置列表
 }
 
 message BeanShopConfig{
@@ -201,22 +212,28 @@ message AgentBeanShopUpdateResp{
   CommonResp commonResp = 1;
 }
 
-message AgentBeanRecordListReq{
+message AgentBeanAccountRecordListReq{
   string userId = 1; //用户id
   string date = 2; //日期
-  string operationId = 3;
+  int32  page = 3;
+  int32  size = 4;
+  int32  businessType = 5; //业务类型
+  string operationId = 6;
 }
 
-message AgentBeanRecordListResp{
-  repeated BeanRecordList bean_record_list = 1; //收益记录列表
+message AgentBeanAccountRecordListResp{
+  int64    total = 1; //总数
+  repeated BeanRecordList bean_record_list = 2; //咖豆账户变动详情列表
 }
 
 message BeanRecordList{
-  int32  business_type = 1; //业务类型
-  int64  number = 2; //数量
-  string describe = 3; //描述
-  string created_time = 4; //时间
-  int32  type = 5; //收支类型(1收入、2支出)
+  int32  type = 1; //收支类型(1收入、2支出)
+  int32  business_type = 2; //业务类型
+  int64  amount = 3; //金额(单位分)
+  int64  number = 4; //数量
+  int64  give_number = 5; //赠送数量
+  string describe = 6; //描述
+  string created_time = 7; //时间
 }
 
 message AgentGiveMemberBeanReq{
@@ -277,15 +294,18 @@ service AgentSystemService {
   rpc AgentAccountRecordList(AgentAccountRecordListReq)returns(AgentAccountRecordListResp);
   //平台咖豆商城配置
   rpc PlatformBeanShopConfig(PlatformBeanShopConfigReq)returns(PlatformBeanShopConfigResp);
-  //推广员咖豆商城配置
-  rpc AgentBeanShopConfig(AgentBeanShopConfigReq)returns(AgentBeanShopConfigResp);
+  //推广员自定义咖豆商城配置
+  rpc AgentDiyBeanShopConfig(AgentDiyBeanShopConfigReq)returns(AgentDiyBeanShopConfigResp);
+  //推广员游戏咖豆商城配置
+  rpc AgentGameBeanShopConfig(AgentGameBeanShopConfigReq)returns(AgentGameBeanShopConfigResp);
+    //咖豆收支明细
+  rpc AgentBeanAccountRecordList(AgentBeanAccountRecordListReq)returns(AgentBeanAccountRecordListResp);
 
 //  //咖豆管理上下架
 //  rpc AgentBeanShopUpStatus(AgentBeanShopUpStatusReq)returns(AgentBeanShopUpStatusResp);
 //  //咖豆管理(新增、删除)
 //  rpc AgentBeanShopUpdate(AgentBeanShopUpdateReq)returns(AgentBeanShopUpdateResp);
-//  //咖豆收支明细
-//  rpc AgentBeanRecordList(AgentBeanRecordListReq)returns(AgentBeanRecordListResp);
+
 //  //赠送下属咖豆
 //  rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
 //  //咖豆赠送记录
