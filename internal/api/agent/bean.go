@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"Open_IM/internal/api/common"
 	"Open_IM/pkg/base_info"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
@@ -147,6 +148,111 @@ func AgentBeanAccountRecordList(c *gin.Context) {
 	if err != nil {
 		log.NewError(operationId, "AgentBeanAccountRecordList failed ", err.Error(), req.String())
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
+	return
+}
+
+// 咖豆管理上下架
+func AgentBeanShopUpStatus(c *gin.Context) {
+	params := base_info.AgentBeanShopUpStatusReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	if params.IsAll == 0 && params.ConfigId == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "配置参数错误"})
+		return
+	}
+
+	operationId := c.GetString("operationId")
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	req := &rpc.AgentBeanShopUpStatusReq{
+		UserId:      c.GetString("userId"),
+		Status:      params.Status,
+		ConfigId:    params.ConfigId,
+		IsAll:       params.IsAll,
+		OperationId: operationId,
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentBeanShopUpStatus(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentBeanShopUpStatus failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleAgentCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
+	return
+}
+
+// 咖豆管理(新增、编辑)
+func AgentBeanShopUpdate(c *gin.Context) {
+	params := base_info.AgentBeanShopUpdateReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	operationId := c.GetString("operationId")
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	beanShopConfig := make([]*rpc.BeanShopConfig, 0)
+	configLen := len(params.BeanShopConfig)
+	if configLen > 0 {
+		if configLen > 8 {
+			c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "咖豆配置不能超过8个"})
+			return
+		}
+
+		for _, v := range params.BeanShopConfig {
+			beanShopConfig = append(beanShopConfig, &rpc.BeanShopConfig{
+				BeanNumber:     v.BeanNumber,
+				GiveBeanNumber: v.GiveBeanNumber,
+				Amount:         v.Amount,
+				Status:         v.Status,
+			})
+		}
+	}
+
+	req := &rpc.AgentBeanShopUpdateReq{
+		UserId:         c.GetString("userId"),
+		BeanShopConfig: beanShopConfig,
+		OperationId:    operationId,
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentBeanShopUpdate(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentBeanShopUpdate failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleAgentCommonRespErr(RpcResp.CommonResp, c) {
 		return
 	}
 

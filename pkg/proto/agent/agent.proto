@@ -203,9 +203,9 @@ message AgentBeanShopUpStatusResp{
 }
 
 message AgentBeanShopUpdateReq{
-  string userId = 1; //用户id
-  string beanShopConfig = 2; //咖豆商城配置数组
-  string operationId = 3;
+  string   userId = 1; //用户id
+  repeated BeanShopConfig beanShopConfig = 2; //咖豆商城配置数组
+  string   operationId = 3;
 }
 
 message AgentBeanShopUpdateResp{
@@ -300,18 +300,16 @@ service AgentSystemService {
   rpc AgentGameBeanShopConfig(AgentGameBeanShopConfigReq)returns(AgentGameBeanShopConfigResp);
     //咖豆收支明细
   rpc AgentBeanAccountRecordList(AgentBeanAccountRecordListReq)returns(AgentBeanAccountRecordListResp);
+  //咖豆管理上下架
+  rpc AgentBeanShopUpStatus(AgentBeanShopUpStatusReq)returns(AgentBeanShopUpStatusResp);
+  //咖豆管理(新增、删除)
+  rpc AgentBeanShopUpdate(AgentBeanShopUpdateReq)returns(AgentBeanShopUpdateResp);
+  //推广下属用户列表
+  rpc AgentMemberList(AgentMemberListReq)returns(AgentMemberListResp);
+  //赠送下属咖豆
+  rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
 
-//  //咖豆管理上下架
-//  rpc AgentBeanShopUpStatus(AgentBeanShopUpStatusReq)returns(AgentBeanShopUpStatusResp);
-//  //咖豆管理(新增、删除)
-//  rpc AgentBeanShopUpdate(AgentBeanShopUpdateReq)returns(AgentBeanShopUpdateResp);
 
-//  //赠送下属咖豆
-//  rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
-//  //咖豆赠送记录
-//  rpc AgentGiveRecord(AgentGiveRecordReq)returns(AgentGiveRecordResp);
-//  //推广下属用户列表
-//  rpc AgentMemberList(AgentMemberListReq)returns(AgentMemberListResp);
 //  //h5咖豆充值下单
 //  rpc WebBeanRecharge(WebBeanRechargeReq)returns(WebBeanRechargeResp);
 //  //互娱咖豆充值下单

@@ -250,5 +250,14 @@ func AgentAccountRecordList(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
+}
+
+// 推广下属用户列表
+func AgentMemberList(c *gin.Context) {
+	params := base_info.AgentAccountRecordListReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
 
 }

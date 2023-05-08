@@ -10,6 +10,28 @@ func GetAgentDiyShopBeanConfig(userId string) (data []*db.TAgentBeanShopConfig, 
 
 // 获取推广员自定义商城上架咖豆配置
 func GetAgentDiyShopBeanOnlineConfig(userId string) (data []*db.TAgentBeanShopConfig, err error) {
-	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("user_id = ? and status = ?", userId, 1).Order("id asc").Find(&data).Error
+	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("user_id = ? and status = ?", userId, 1).Order("bean_number asc").Find(&data).Error
+	return
+}
+
+// 删除咖豆配置
+func DelAgentDiyShopBeanConfig(userId string) error {
+	return db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("user_id = ?", userId).Delete(&db.TAgentBeanShopConfig{}).Error
+}
+
+// 修改配置上下架状态
+func UpAgentDiyShopBeanConfigStatus(userId string, configId, status int32) error {
+	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("user_id = ?", userId)
+
+	if configId > 0 {
+		model = model.Where("id = ?", configId)
+	}
+
+	return model.Update("status", status).Error
+}
+
+// 批量插入推广员自定义商城咖豆配置
+func InsertAgentDiyShopBeanConfigs(data []*db.TAgentBeanShopConfig) (err error) {
+	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Create(&data).Error
 	return
 }

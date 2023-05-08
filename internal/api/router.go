@@ -68,6 +68,11 @@ func NewGinRouter() *gin.Engine {
 		agentGroup.POST("bean/platform_config", agent.PlatformBeanShopConfig)         //获取平台咖豆商城配置
 		agentGroup.POST("bean/config", agent.AgentDiyBeanShopConfig)                  //推广员自定义咖豆商城配置
 		agentGroup.POST("bean_account/record_list", agent.AgentBeanAccountRecordList) //咖豆账户明细详情列表
+		agentGroup.POST("bean/config_status", agent.AgentBeanShopUpStatus)            //咖豆管理上下架
+		agentGroup.POST("bean/config_up", agent.AgentBeanShopUpdate)                  //咖豆配置管理
+
+		agentGroup.POST("member_list", agent.AgentMemberList) //推广下属用户列表
+
 	}
 
 	// CloudWallet

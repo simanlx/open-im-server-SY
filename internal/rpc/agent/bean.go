@@ -1,11 +1,13 @@
 package agent
 
 import (
+	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/agent_model"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/proto/agent"
 	"context"
+	"time"
 )
 
 // 获取平台咖豆商城配置
@@ -47,7 +49,12 @@ func (rpc *AgentServer) AgentGameBeanShopConfig(_ context.Context, req *agent.Ag
 	configList, _ := imdb.GetAgentDiyShopBeanOnlineConfig(agentInfo.UserId)
 	if len(configList) > 0 {
 		resp.BeanShopConfig = make([]*agent.BeanShopConfig, 0)
-		for _, v := range configList {
+		for k, v := range configList {
+			//推广员咖豆不足、不返回咖豆配置
+			if k == 0 || agentInfo.BeanBalance < v.BeanNumber {
+				return resp, nil
+			}
+
 			resp.BeanShopConfig = append(resp.BeanShopConfig, &agent.BeanShopConfig{
 				ConfigId:       v.Id,
 				BeanNumber:     v.BeanNumber,
@@ -104,6 +111,60 @@ func (rpc *AgentServer) AgentBeanAccountRecordList(_ context.Context, req *agent
 			Describe:     v.Describe,
 			CreatedTime:  v.CreatedTime.Format("2006-01-02 15:04:05"),
 		})
+	}
+
+	return resp, nil
+}
+
+// 咖豆管理上下架
+func (rpc *AgentServer) AgentBeanShopUpStatus(_ context.Context, req *agent.AgentBeanShopUpStatusReq) (*agent.AgentBeanShopUpStatusResp, error) {
+	resp := &agent.AgentBeanShopUpStatusResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+
+	//批量操作
+	var err error
+	if req.IsAll == 1 {
+		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, 0, req.Status)
+	} else {
+		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, req.ConfigId, req.Status)
+	}
+
+	if err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "更新上下架失败"
+		log.Error(req.OperationId, "更新上下架失败:%s", err.Error())
+	}
+
+	return resp, nil
+}
+
+// 咖豆管理(新增、编辑)
+func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentBeanShopUpdateReq) (*agent.AgentBeanShopUpdateResp, error) {
+	resp := &agent.AgentBeanShopUpdateResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+
+	//删除历史咖豆配置
+	_ = imdb.DelAgentDiyShopBeanConfig(req.UserId)
+
+	//批量插入新配置
+	if len(req.BeanShopConfig) > 0 {
+		data := make([]*db.TAgentBeanShopConfig, 0)
+		for _, v := range req.BeanShopConfig {
+			data = append(data, &db.TAgentBeanShopConfig{
+				UserId:         req.UserId,
+				BeanNumber:     v.BeanNumber,
+				GiveBeanNumber: v.GiveBeanNumber,
+				Amount:         v.Amount,
+				Status:         v.Status,
+				CreatedTime:    time.Now(),
+				UpdatedTime:    time.Now(),
+			})
+		}
+
+		err := imdb.InsertAgentDiyShopBeanConfigs(data)
+		if err != nil {
+			resp.CommonResp.Code = 400
+			resp.CommonResp.Msg = "更新失败"
+			log.Error(req.OperationId, "咖豆管理(新增、编辑)更新失败:%s", err.Error())
+		}
 	}
 
 	return resp, nil
