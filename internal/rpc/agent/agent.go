@@ -1,6 +1,7 @@
 package agent
 
 import (
+	chessApi "Open_IM/pkg/agent"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/agent_model"
 	"Open_IM/pkg/common/log"
@@ -189,13 +190,23 @@ func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMembe
 	resp := &agent.AgentMemberListResp{Total: 0, AgentMemberList: []*agent.AgentMemberList{}}
 
 	//获取推广员信息
-	_, err := imdb.GetAgentByUserId(req.UserId)
+	info, err := imdb.GetAgentByUserId(req.UserId)
 	if err != nil {
 		return resp, nil
 	}
 
+	// 按成员咖豆排序
+	//if req.OrderBy == 1 || req.OrderBy == 2 {
+	//
+	//} else {
+	//
+	//}
+
 	//根据推广员编号获取所有下属成员
-	//agent2.GetAgentChessUserList(info.AgentNumber)
+	agentMemberList, err := chessApi.GetAgentChessMemberList(info.AgentNumber, req.OrderBy)
+	if err != nil || len(agentMemberList) == 0 {
+		return resp, nil
+	}
 
 	//req.OrderBy 排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
 

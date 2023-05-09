@@ -1,64 +1,111 @@
 package agent
 
 import (
-	"io/ioutil"
-	"net/http"
-	"net/url"
+	"Open_IM/pkg/common/config"
+	"Open_IM/pkg/common/http"
+	"Open_IM/pkg/common/log"
+	"encoding/json"
+	"fmt"
+	"github.com/pkg/errors"
+	"math"
 )
 
-// chess_user_id = 100006
-const (
-	ChessApiUrl = "http://serverlocal.xingdong.sh.cn:21512" //新互娱api url
-)
-
-type Record struct {
-	Code int32  `json:"code"`
-	Msg  string `json:"msg"`
+type RechargeUserGoldReq struct {
+	OrderId     string `json:"order_id"`
+	Uid         int64  `json:"uid"`
+	AgentNumber int32  `json:"agent_number"`
+	Num         int64  `json:"num"`
 }
 
-type AgentChessUser struct {
-	AgentNumber     int32            `json:"agent_number"`
-	AgentMemberList []*ChessUserInfo `json:"agent_member_list"`
+type ChessApiResp struct {
+	Msg  string `json:"msg"`
+	Code int64  `json:"code"`
+}
+
+type AgentChessUserListResp struct {
+	Code int32            `json:"code"`
+	Msg  string           `json:"msg"`
+	Data []*ChessUserInfo `json:"data"`
 }
 
 type ChessUserInfo struct {
-	BeanNumber int32  `json:"bean_number"`
-	Nickname   string `json:"nickname"`
+	Uid      int64  `json:"uid"`
+	Nickname string `json:"nickname"`
+	Gold     int64  `json:"gold"`
 }
 
-func httpPost(url string, form url.Values) ([]byte, error) {
-	resp, err := http.PostForm(url, form)
+// 调用chess api 获取推广员下属成员列表
+func ChessApiAgentChessMemberList(agentNumber int32) ([]*ChessUserInfo, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/v1/getUserListInfo?agent_number=%d", config.Config.Agent.ChessApiDomain, agentNumber))
 	if err != nil {
-		return nil, err
+		log.Error("", "请求chess api getUserListInfo", err.Error())
+		return nil, errors.Wrap(err, "请求chess api getUserListInfo失败")
 	}
-	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+
+	chessApiResp := &AgentChessUserListResp{Data: []*ChessUserInfo{}}
+	_ = json.Unmarshal(resp, &chessApiResp)
+	if chessApiResp.Code != 200 {
+		errMsg := fmt.Sprintf("调用chess api 接口失败, err:%s", chessApiResp.Msg)
+		log.Error("", "请求chess api getUserListInfo", errMsg)
+		return nil, errors.New(errMsg)
+	}
+	return chessApiResp.Data, nil
 }
 
-// 获取互娱用户信息(咖豆、用户昵称、分页、排序)
-func GetAgentChessUserList(agentNumber int32) map[int64]map[string]interface{} {
-
-	return map[int64]map[string]interface{}{
-		10018: {"bean_number": 0, "nickname": "昵称"},
-	}
+// 获取推广员下属成员列表
+func GetAgentChessMemberList(agentNumber, orderBy int32) ([]*ChessUserInfo, error) {
+	return ChessApiAgentChessMemberList(agentNumber)
 }
 
-// 获取新互娱用户资料
-func GetChessUserInfo(chessUserId int64) *ChessUserInfo {
-	return &ChessUserInfo{
-		BeanNumber: 100,
-		Nickname:   "xxx",
+//func ArraySlice(s []interface{}, offset, length uint) []interface{} {
+//	if offset > uint(len(s)) {
+//		panic("offset: the offset is less than the length of s")
+//	}
+//	end := offset + length
+//	if end < uint(len(s)) {
+//		return s[offset:end]	}
+//	return s[offset:]
+//}
+
+func SlicePage(sliceLen, page, size int) (sliceStart, sliceEnd int) {
+	if size > sliceLen {
+		return 0, sliceLen
 	}
+
+	// 总页数计算
+	pageCount := int(math.Ceil(float64(sliceLen) / float64(size)))
+	if page > pageCount {
+		return 0, 0
+	}
+
+	sliceStart = (page - 1) * size
+	sliceEnd = sliceStart + size
+	if sliceEnd > sliceLen {
+		sliceEnd = sliceLen
+	}
+	return sliceStart, sliceEnd
 }
 
-// 赠送新互娱用户咖豆
-func GiveChessUserBean(chessUserId int64) int64 {
-	/**
-	加锁lock、事务
-	1、校验咖豆余额(计算冻结额度)
-	2、扣除推广员咖豆、账户表更日志
-	3、api 互娱加豆、异常重试一次
-	*/
+// 调用chess api 给用户加咖豆
+func ChessApiGiveUserBean(orderNo string, agentNumber int32, chessUserId, beanNumber int64) error {
+	data := RechargeUserGoldReq{
+		OrderId:     orderNo,
+		Uid:         chessUserId,
+		AgentNumber: agentNumber,
+		Num:         beanNumber,
+	}
+	resp, err := http.Post(config.Config.Agent.ChessApiDomain+"/v1/rechargeUserGold", data, 2)
+	if err != nil {
+		log.Error("", "请求chess api rechargeUserGold失败", err.Error())
+		return errors.Wrap(err, "请求chess api rechargeUserGold失败")
+	}
 
-	return 10
+	chessApiResp := &ChessApiResp{}
+	_ = json.Unmarshal(resp, &chessApiResp)
+	if chessApiResp.Code != 200 {
+		errMsg := fmt.Sprintf("调用chess api 给用户加咖豆失败, 订单号(%s),推广员编号(%d),互娱用户id(%d),咖豆数(%d),err:%s", orderNo, agentNumber, chessUserId, beanNumber, chessApiResp.Msg)
+		log.Error("", "请求chess api rechargeUserGold失败", errMsg)
+		return errors.New(errMsg)
+	}
+	return nil
 }

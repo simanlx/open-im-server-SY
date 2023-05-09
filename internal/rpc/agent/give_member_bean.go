@@ -1,15 +1,14 @@
 package agent
 
 import (
+	chessApi "Open_IM/pkg/agent"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/agent_model"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
-	"Open_IM/pkg/common/http"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/utils"
 	"Open_IM/pkg/proto/agent"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -17,22 +16,6 @@ import (
 	"strconv"
 	"time"
 )
-
-const (
-	ChessApiUrl = "http://serverlocal.xingdong.sh.cn:215120" //新互娱api url
-)
-
-type RechargeUserGoldReq struct {
-	OrderId     string `json:"order_id"`
-	Uid         int64  `json:"uid"`
-	AgentNumber int32  `json:"agent_number"`
-	Num         int64  `json:"num"`
-}
-
-type ChessApiResp struct {
-	Msg  string `json:"msg"`
-	Code int64  `json:"code"`
-}
 
 // 赠送下属成员咖豆
 func (rpc *AgentServer) AgentGiveMemberBean(ctx context.Context, req *agent.AgentGiveMemberBeanReq) (*agent.AgentGiveMemberBeanResp, error) {
@@ -106,7 +89,7 @@ func GiveChessUserBean(userId string, agentNumber int32, agentId, beanNumber, ch
 		UserId:       userId,
 		Type:         2,
 		BusinessType: imdb.BeanAccountBusinessTypeGive,
-		Describe:     fmt.Sprintf("赠送给%sID:%d %d咖豆", chessNickname, chessUserId, beanNumber),
+		Describe:     fmt.Sprintf("赠送给%sID%d %d咖豆", chessNickname, chessUserId, beanNumber),
 		Amount:       0,
 		Number:       beanNumber,
 		GiveNumber:   0,
@@ -136,30 +119,6 @@ func GiveChessUserBean(userId string, agentNumber int32, agentId, beanNumber, ch
 	return nil
 }
 
-// 调用chess api 给用户加咖豆
-func ChessApiGiveUserBean(orderNo string, agentNumber int32, chessUserId, beanNumber int64) error {
-	data := RechargeUserGoldReq{
-		OrderId:     orderNo,
-		Uid:         chessUserId,
-		AgentNumber: agentNumber,
-		Num:         beanNumber,
-	}
-	resp, err := http.Post(ChessApiUrl+"/v1/rechargeUserGold", data, 2)
-	if err != nil {
-		log.Error("", "请求chess api rechargeUserGold失败", err.Error())
-		return errors.Wrap(err, "请求chess api rechargeUserGold失败")
-	}
-
-	chessApiResp := &ChessApiResp{}
-	_ = json.Unmarshal(resp, &chessApiResp)
-	if chessApiResp.Code != 200 {
-		errMsg := fmt.Sprintf("调用chess api 给用户加咖豆失败, 订单号(%s),推广员编号(%d),互娱用户id(%d),咖豆数(%d),err:%s", orderNo, agentNumber, chessUserId, beanNumber, chessApiResp.Msg)
-		log.Error("", errMsg)
-		return errors.New(errMsg)
-	}
-	return nil
-}
-
 // 赠送用户咖豆(重试)
 func GiveUserBeanRetry(orderNo string, agentNumber int32, chessUserId, beanNumber int64, intervals []int) bool {
 	var retryCh = make(chan bool)
@@ -167,7 +126,7 @@ func GiveUserBeanRetry(orderNo string, agentNumber int32, chessUserId, beanNumbe
 
 	for {
 		go time.AfterFunc(time.Duration(intervals[index])*time.Second, func() {
-			err := ChessApiGiveUserBean(orderNo, agentNumber, chessUserId, beanNumber)
+			err := chessApi.ChessApiGiveUserBean(orderNo, agentNumber, chessUserId, beanNumber)
 			log.Info("", "ChessApiGiveUserBean err:", err, orderNo, agentNumber, chessUserId, beanNumber)
 			if err == nil {
 				retryCh <- true

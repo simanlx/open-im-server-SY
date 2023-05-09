@@ -594,6 +594,11 @@ type config struct {
 		CloudWalletPrometheusPort     []int `yaml:"cloudWalletPrometheusPort"`
 		AgentPrometheusPort           []int `yaml:"agentPrometheusPort"`
 	} `yaml:"prometheus"`
+
+	Agent struct {
+		SecretKey      string `yaml:"secretKey"`
+		ChessApiDomain string `yaml:"chessApiDomain"`
+	} `yaml:"agent"`
 }
 type PConversation struct {
 	ReliabilityLevel int  `yaml:"reliabilityLevel"`
