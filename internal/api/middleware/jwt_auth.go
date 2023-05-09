@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/utils"
 	"net/http"
 
@@ -12,11 +12,13 @@ import (
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		operationId := utils.OperationIDGenerator()
-		ok, userId, _ := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), operationId)
-		if !ok || len(userId) == 0 {
-			log.NewError("", "GetUserIDFromToken false ", c.Request.Header.Get("token"))
+		unionId := c.Request.Header.Get("token")
+		userId := rocksCache.GetUsersUnionIdFromCache(unionId)
+		//ok, userId, _ := token_verify.GetUserIDFromToken(c.Request.Header.Get("unionid"), operationId)
+		if userId == "" {
+			log.NewError("", "GetUsersUnionIdFromCache false ", unionId)
 			c.Abort()
-			c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "token授权认证失败"})
+			c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "token认证失败"})
 			return
 		} else {
 			// 用户id

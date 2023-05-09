@@ -38,6 +38,7 @@ const (
 	extendMsgSetCache         = "EXTEND_MSG_SET_CACHE:"
 	extendMsgCache            = "EXTEND_MSG_CACHE:"
 	agentPlatFormConfig       = "AGENT_PLATFORM_CONFIG:"
+	UserUnionIdCache          = "USER_UNION_ID_CACHE:"
 
 	// 云钱包云钱包相关
 	fAccountCache = "F_ACCOUNT_CACHE:"
@@ -657,4 +658,24 @@ func GetAgentPayRebateConfigCache() string {
 		return "0"
 	}
 	return configStr
+}
+
+// 根据UnionId获取用户userId
+func GetUsersUnionIdFromCache(UnionId string) string {
+	if len(UnionId) < 10 {
+		return ""
+	}
+
+	userIdFunc := func() (string, error) {
+		user, err := imdb.GetUserByUnionId(UnionId)
+		if err != nil {
+			return "", utils.Wrap(err, "")
+		}
+		return user.UserID, nil
+	}
+	userId, err := db.DB.Rc.Fetch(UserUnionIdCache+UnionId, time.Second*60*60*24, userIdFunc)
+	if err != nil {
+		return ""
+	}
+	return userId
 }
