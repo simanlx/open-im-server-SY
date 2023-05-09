@@ -88,3 +88,12 @@ type ReFoundPacketReq struct {
 	Secret      string `json:"secret" binding:"required"`      //秘钥
 	OperationID string `json:"operationID" binding:"required"` // 链路跟踪id
 }
+
+type ThirdPayReq struct {
+	// 暴露第三方接口
+	MerchantID string `json:"merchant_id" binding:"required"`  //商户号，需要向平台申请
+	MerOrderID string `json:"mer_order_id" binding:"required"` //商户订单号 ，全局唯一，不能重复
+	NotifyURL  string `json:"notify_url" binding:"required"`   //异步通知地址
+	Amount     int32  `json:"amount" binding:"required"`       //金额，单位分
+	OprationID string `json:"opration_id" binding:"required"`  //链路跟踪id
+}

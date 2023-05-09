@@ -40,6 +40,7 @@ const (
 	CloudWalletService_CloudWalletRecordDel_FullMethodName    = "/cloud_wallet.CloudWalletService/CloudWalletRecordDel"
 	CloudWalletService_GetVersion_FullMethodName              = "/cloud_wallet.CloudWalletService/GetVersion"
 	CloudWalletService_RefoundPacket_FullMethodName           = "/cloud_wallet.CloudWalletService/RefoundPacket"
+	CloudWalletService_ThirdPay_FullMethodName                = "/cloud_wallet.CloudWalletService/ThirdPay"
 )
 
 // CloudWalletServiceClient is the client API for CloudWalletService service.
@@ -89,6 +90,8 @@ type CloudWalletServiceClient interface {
 	GetVersion(ctx context.Context, in *GetVersionReq, opts ...grpc.CallOption) (*GetVersionResp, error)
 	// 红包退还
 	RefoundPacket(ctx context.Context, in *RefoundPacketReq, opts ...grpc.CallOption) (*RefoundPacketResp, error)
+	// 第三方支付
+	ThirdPay(ctx context.Context, in *ThirdPayReq, opts ...grpc.CallOption) (*ThirdPayResp, error)
 }
 
 type cloudWalletServiceClient struct {
@@ -288,6 +291,15 @@ func (c *cloudWalletServiceClient) RefoundPacket(ctx context.Context, in *Refoun
 	return out, nil
 }
 
+func (c *cloudWalletServiceClient) ThirdPay(ctx context.Context, in *ThirdPayReq, opts ...grpc.CallOption) (*ThirdPayResp, error) {
+	out := new(ThirdPayResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_ThirdPay_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudWalletServiceServer is the server API for CloudWalletService service.
 // All implementations must embed UnimplementedCloudWalletServiceServer
 // for forward compatibility
@@ -335,6 +347,8 @@ type CloudWalletServiceServer interface {
 	GetVersion(context.Context, *GetVersionReq) (*GetVersionResp, error)
 	// 红包退还
 	RefoundPacket(context.Context, *RefoundPacketReq) (*RefoundPacketResp, error)
+	// 第三方支付
+	ThirdPay(context.Context, *ThirdPayReq) (*ThirdPayResp, error)
 	mustEmbedUnimplementedCloudWalletServiceServer()
 }
 
@@ -404,6 +418,9 @@ func (UnimplementedCloudWalletServiceServer) GetVersion(context.Context, *GetVer
 }
 func (UnimplementedCloudWalletServiceServer) RefoundPacket(context.Context, *RefoundPacketReq) (*RefoundPacketResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefoundPacket not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) ThirdPay(context.Context, *ThirdPayReq) (*ThirdPayResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ThirdPay not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) mustEmbedUnimplementedCloudWalletServiceServer() {}
 
@@ -796,6 +813,24 @@ func _CloudWalletService_RefoundPacket_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudWalletService_ThirdPay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ThirdPayReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).ThirdPay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_ThirdPay_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).ThirdPay(ctx, req.(*ThirdPayReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudWalletService_ServiceDesc is the grpc.ServiceDesc for CloudWalletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -886,6 +921,10 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefoundPacket",
 			Handler:    _CloudWalletService_RefoundPacket_Handler,
+		},
+		{
+			MethodName: "ThirdPay",
+			Handler:    _CloudWalletService_ThirdPay_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
