@@ -11,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cast"
 	"math/big"
 	"sort"
 	"strconv"
@@ -18,27 +19,29 @@ import (
 )
 
 const (
-	userInfoCache             = "USER_INFO_CACHE:"
-	friendRelationCache       = "FRIEND_RELATION_CACHE:"
-	blackListCache            = "BLACK_LIST_CACHE:"
-	groupCache                = "GROUP_CACHE:"
-	groupInfoCache            = "GROUP_INFO_CACHE:"
-	groupOwnerIDCache         = "GROUP_OWNER_ID:"
-	joinedGroupListCache      = "JOINED_GROUP_LIST_CACHE:"
-	groupMemberInfoCache      = "GROUP_MEMBER_INFO_CACHE:"
-	groupAllMemberInfoCache   = "GROUP_ALL_MEMBER_INFO_CACHE:"
-	allFriendInfoCache        = "ALL_FRIEND_INFO_CACHE:"
-	allDepartmentCache        = "ALL_DEPARTMENT_CACHE:"
-	allDepartmentMemberCache  = "ALL_DEPARTMENT_MEMBER_CACHE:"
-	joinedSuperGroupListCache = "JOINED_SUPER_GROUP_LIST_CACHE:"
-	groupMemberListHashCache  = "GROUP_MEMBER_LIST_HASH_CACHE:"
-	groupMemberNumCache       = "GROUP_MEMBER_NUM_CACHE:"
-	conversationCache         = "CONVERSATION_CACHE:"
-	conversationIDListCache   = "CONVERSATION_ID_LIST_CACHE:"
-	extendMsgSetCache         = "EXTEND_MSG_SET_CACHE:"
-	extendMsgCache            = "EXTEND_MSG_CACHE:"
-	agentPlatFormConfig       = "AGENT_PLATFORM_CONFIG:"
-	UserUnionIdCache          = "USER_UNION_ID_CACHE:"
+	userInfoCache               = "USER_INFO_CACHE:"
+	friendRelationCache         = "FRIEND_RELATION_CACHE:"
+	blackListCache              = "BLACK_LIST_CACHE:"
+	groupCache                  = "GROUP_CACHE:"
+	groupInfoCache              = "GROUP_INFO_CACHE:"
+	groupOwnerIDCache           = "GROUP_OWNER_ID:"
+	joinedGroupListCache        = "JOINED_GROUP_LIST_CACHE:"
+	groupMemberInfoCache        = "GROUP_MEMBER_INFO_CACHE:"
+	groupAllMemberInfoCache     = "GROUP_ALL_MEMBER_INFO_CACHE:"
+	allFriendInfoCache          = "ALL_FRIEND_INFO_CACHE:"
+	allDepartmentCache          = "ALL_DEPARTMENT_CACHE:"
+	allDepartmentMemberCache    = "ALL_DEPARTMENT_MEMBER_CACHE:"
+	joinedSuperGroupListCache   = "JOINED_SUPER_GROUP_LIST_CACHE:"
+	groupMemberListHashCache    = "GROUP_MEMBER_LIST_HASH_CACHE:"
+	groupMemberNumCache         = "GROUP_MEMBER_NUM_CACHE:"
+	conversationCache           = "CONVERSATION_CACHE:"
+	conversationIDListCache     = "CONVERSATION_ID_LIST_CACHE:"
+	extendMsgSetCache           = "EXTEND_MSG_SET_CACHE:"
+	extendMsgCache              = "EXTEND_MSG_CACHE:"
+	agentPlatFormConfig         = "AGENT_PLATFORM_CONFIG:"
+	UserUnionIdCache            = "USER_UNION_ID_CACHE:"
+	AgentUnionIdCache           = "USER_UNION_ID_CACHE:"
+	AgentFreezeBeanBalanceCache = "AGENT_FREEZE_BEAN_BALANCE_CACHE:"
 
 	// 云钱包云钱包相关
 	fAccountCache = "F_ACCOUNT_CACHE:"
@@ -678,4 +681,31 @@ func GetUsersUnionIdFromCache(UnionId string) string {
 		return ""
 	}
 	return userId
+}
+
+// 冻结推广员咖豆
+func FreezeAgentBeanBalance(ctx context.Context, agentNumber int32, chessUserId int64) error {
+	return db.DB.RDB.Set(ctx, fmt.Sprintf("%s%d:%d", AgentFreezeBeanBalanceCache, agentNumber, chessUserId), agentNumber, time.Second*120).Err()
+}
+
+// 获取推广员冻结的咖豆
+func GetAgentFreezeBeanBalance(ctx context.Context, agentNumber int32) (beanBalance int64) {
+	keys, err := db.DB.RDB.Keys(ctx, fmt.Sprintf("%s%d", AgentFreezeBeanBalanceCache, agentNumber)).Result()
+	if err != nil {
+		return beanBalance
+	}
+	fmt.Println("---获取推广员冻结的咖豆,redis-", keys, err)
+
+	for _, key := range keys {
+		freezeBalance, err := db.DB.RDB.Get(ctx, key).Result()
+		fmt.Println("---获取推广员冻结的咖豆,redis-", key, freezeBalance, err)
+
+		if err != nil {
+			continue
+		}
+
+		beanBalance = beanBalance + cast.ToInt64(freezeBalance)
+	}
+
+	return
 }

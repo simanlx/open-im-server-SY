@@ -1,6 +1,9 @@
 package db
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 // 推广员申请表
 type TAgentApplyRecord struct {
@@ -21,18 +24,18 @@ func (TAgentApplyRecord) TableName() string {
 
 // 推广员账户表
 type TAgentAccount struct {
-	Id          int64  `gorm:"column:id" json:"id"`
-	UserId      string `gorm:"column:user_id" json:"user_id"`             //用户id
-	Name        string `gorm:"column:name" json:"name"`                   //推广员姓名
-	Mobile      string `gorm:"column:mobile" json:"mobile"`               //推广员电话
-	ChessUserId int64  `gorm:"column:chess_user_id" json:"chess_user_id"` //互娱用户id
-	AgentNumber int32  `gorm:"column:agent_number" json:"agent_number"`   //推广员编号
-	Balance     int64  `gorm:"column:balance" json:"balance"`             //余额(单位:分)
-	BeanBalance int64  `gorm:"column:bean_balance" json:"bean_balance"`   //咖豆余额
-	//AccumulatedIncome int64     `gorm:"column:accumulated_income" json:"accumulated_income"` //累计收益(单位:分)
-	OpenStatus  int32     `gorm:"column:open_status" json:"open_status"` //开通状态(1开通、0关闭)
+	Id          int64     `gorm:"column:id" json:"id"`
+	UserId      string    `gorm:"column:user_id" json:"user_id"`             //用户id
+	Name        string    `gorm:"column:name" json:"name"`                   //推广员姓名
+	Mobile      string    `gorm:"column:mobile" json:"mobile"`               //推广员电话
+	ChessUserId int64     `gorm:"column:chess_user_id" json:"chess_user_id"` //互娱用户id
+	AgentNumber int32     `gorm:"column:agent_number" json:"agent_number"`   //推广员编号
+	Balance     int64     `gorm:"column:balance" json:"balance"`             //余额(单位:分)
+	BeanBalance int64     `gorm:"column:bean_balance" json:"bean_balance"`   //咖豆余额
+	OpenStatus  int32     `gorm:"column:open_status" json:"open_status"`     //开通状态(1开通、0关闭)
 	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
 	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`
+	DB          *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentAccount) TableName() string {
@@ -54,6 +57,7 @@ type TAgentAccountRecord struct {
 	Month        string    `json:"month"`         // 月
 	CreatedTime  time.Time `json:"created_time"`
 	UpdatedTime  time.Time `json:"updated_time"`
+	DB           *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentAccountRecord) TableName() string {
@@ -74,6 +78,7 @@ type TAgentBeanAccountRecord struct {
 	Day          string    `json:"day"`           // 天
 	CreatedTime  time.Time `json:"created_time"`
 	UpdatedTime  time.Time `json:"updated_time"`
+	DB           *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentBeanAccountRecord) TableName() string {
@@ -96,6 +101,7 @@ type TAgentBeanRechargeOrder struct {
 	PayStatus     int32     `json:"pay_status"`      // 支付状态
 	CreatedTime   time.Time `json:"created_time"`
 	UpdatedTime   time.Time `json:"updated_time"`
+	DB            *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentBeanRechargeOrder) TableName() string {
@@ -129,6 +135,7 @@ type TAgentMember struct {
 	Day           string    `json:"day"`            // 天
 	CreatedTime   time.Time `json:"created_time"`
 	UpdatedTime   time.Time `json:"updated_time"`
+	DB            *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentMember) TableName() string {

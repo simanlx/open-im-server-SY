@@ -58,6 +58,13 @@ type BeanShopConfig struct {
 }
 
 type AgentMemberListReq struct {
+	Page    int32  `json:"page"`
+	Size    int32  `json:"size"`
 	Keyword string `json:"keyword"`  //搜索关键字
-	OrderBy string `json:"order_by"` //排序
+	OrderBy int32  `json:"order_by"` //排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
+}
+
+type AgentGiveMemberBeanReq struct {
+	ChessUserId int64 `json:"chess_user_id"  binding:"required"`
+	BeanNumber  int64 `json:"bean_number"  binding:"required"`
 }

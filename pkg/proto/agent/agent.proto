@@ -239,7 +239,7 @@ message BeanRecordList{
 message AgentGiveMemberBeanReq{
   string userId = 1; //用户id
   int64  chessUserId = 2; //互娱用户id
-  int64  number = 3; //赠送数量
+  int64  beanNumber = 3; //赠送数量
   string operationId = 4;
 }
 
@@ -264,7 +264,7 @@ message AgentMemberListReq{
   string keyword = 2; //搜索关键字
   int32  page = 3;
   int32  size = 4;
-  string orderBy = 5; //排序
+  int32  orderBy = 5; //排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
   string operationId = 6;
 }
 
@@ -308,7 +308,7 @@ service AgentSystemService {
   rpc AgentBeanShopUpdate(AgentBeanShopUpdateReq)returns(AgentBeanShopUpdateResp);
   //推广下属用户列表
   rpc AgentMemberList(AgentMemberListReq)returns(AgentMemberListResp);
-  //赠送下属咖豆
+  //赠送下属成员咖豆
   rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
 
 

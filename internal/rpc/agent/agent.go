@@ -6,7 +6,6 @@ import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/proto/agent"
 	"context"
-	"sort"
 )
 
 // 推广员申请提交
@@ -14,8 +13,8 @@ func (rpc *AgentServer) AgentApply(_ context.Context, req *agent.AgentApplyReq) 
 	resp := &agent.AgentApplyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
 	//查询是否已申请
-	info, err := imdb.ApplyInfo(req.ChessUserId)
-	if info != nil {
+	_, err := imdb.ApplyInfo(req.ChessUserId)
+	if err == nil {
 		resp.CommonResp.Msg = "已提交申请，请勿重复提交"
 		resp.CommonResp.Code = 400
 		return resp, nil
@@ -43,15 +42,23 @@ func (rpc *AgentServer) BindAgentNumber(_ context.Context, req *agent.BindAgentN
 	resp := &agent.BindAgentNumberResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
 	//查询推广员是否存在
-	agentInfo, _ := imdb.GetAgentByAgentNumber(req.AgentNumber)
-	if agentInfo == nil || agentInfo.OpenStatus == 0 {
+	agentInfo, err := imdb.GetAgentByAgentNumber(req.AgentNumber)
+	if err != nil || agentInfo.OpenStatus == 0 {
 		resp.CommonResp.Msg = "请输入正确的推广员ID"
 		resp.CommonResp.Code = 400
 		return resp, nil
 	}
 
+	//判断是否已绑定其他推广员
+	_, err = imdb.AgentNumberByChessUserId(req.ChessUserId)
+	if err == nil {
+		resp.CommonResp.Msg = "该用户已绑定其他推广员"
+		resp.CommonResp.Code = 400
+		return resp, nil
+	}
+
 	//绑定推广员
-	err := imdb.BindAgentNumber(&db.TAgentMember{
+	err = imdb.BindAgentNumber(&db.TAgentMember{
 		UserId:        req.UserId,
 		AgentNumber:   req.AgentNumber,
 		ChessUserId:   req.ChessUserId,
@@ -77,22 +84,22 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 	}
 
 	//是否为推广员
-	info, _ := imdb.GetAgentByChessUserId(req.ChessUserId)
-	if info != nil {
+	info, err := imdb.GetAgentByChessUserId(req.ChessUserId)
+	if err == nil {
 		resp.IsAgent = true
 		resp.AgentName = info.Name
 		resp.AgentNumber = info.AgentNumber
 	} else {
 		//是否申请
-		applyInfo, _ := imdb.ApplyInfo(req.ChessUserId)
-		if applyInfo != nil {
+		_, err = imdb.ApplyInfo(req.ChessUserId)
+		if err == nil {
 			resp.IsApply = true
 		}
 	}
 
 	//是否绑定推广员
-	agentMember, _ := imdb.AgentNumberByChessUserId(req.ChessUserId)
-	if agentMember != nil {
+	agentMember, err := imdb.AgentNumberByChessUserId(req.ChessUserId)
+	if err == nil {
 		resp.BindAgentNumber = agentMember.AgentNumber
 	}
 
@@ -104,8 +111,8 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 	resp := &agent.AgentMainInfoResp{}
 
 	//获取推广员信息
-	info, _ := imdb.GetAgentByUserId(req.UserId)
-	if info == nil {
+	info, err := imdb.GetAgentByUserId(req.UserId)
+	if err != nil {
 		return resp, nil
 	}
 
@@ -181,11 +188,16 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMemberListReq) (*agent.AgentMemberListResp, error) {
 	resp := &agent.AgentMemberListResp{Total: 0, AgentMemberList: []*agent.AgentMemberList{}}
 
-	//获取推广员全部下属用户咖豆和资料
-	chessUserIds, _ := imdb.FindAgentMemberIds(req.UserId, "")
-	if len(chessUserIds) == 0 {
+	//获取推广员信息
+	_, err := imdb.GetAgentByUserId(req.UserId)
+	if err != nil {
 		return resp, nil
 	}
+
+	//根据推广员编号获取所有下属成员
+	//agent2.GetAgentChessUserList(info.AgentNumber)
+
+	//req.OrderBy 排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
 
 	//获取条件列表数据
 	list, count, err := imdb.FindAgentMemberList(req.UserId, req.Keyword, req.OrderBy, req.Page, req.Size)
@@ -206,11 +218,11 @@ func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMembe
 		}
 
 		//排序
-		if req.OrderBy == "" {
-			sort.Slice(resp.AgentMemberList, func(p, q int) bool {
-				return resp.AgentMemberList[p].ChessBeanNumber < resp.AgentMemberList[q].ChessBeanNumber
-			})
-		}
+		//if req.OrderBy == 1 {
+		//	sort.Slice(resp.AgentMemberList, func(p, q int) bool {
+		//		return resp.AgentMemberList[p].ChessBeanNumber < resp.AgentMemberList[q].ChessBeanNumber
+		//	})
+		//}
 	}
 	return resp, nil
 }

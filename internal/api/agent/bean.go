@@ -259,3 +259,45 @@ func AgentBeanShopUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
 }
+
+// 赠送下属成员咖豆
+func AgentGiveMemberBean(c *gin.Context) {
+	params := base_info.AgentGiveMemberBeanReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	operationId := c.GetString("operationId")
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	req := &rpc.AgentGiveMemberBeanReq{
+		UserId:      c.GetString("userId"),
+		ChessUserId: params.ChessUserId,
+		BeanNumber:  params.BeanNumber,
+		OperationId: operationId,
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.AgentGiveMemberBean(c, req)
+	if err != nil {
+		log.NewError(operationId, "AgentGiveMemberBean failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleAgentCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
+	return
+
+}

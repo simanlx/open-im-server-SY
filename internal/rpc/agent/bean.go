@@ -40,8 +40,8 @@ func (rpc *AgentServer) AgentGameBeanShopConfig(_ context.Context, req *agent.Ag
 	resp := &agent.AgentGameBeanShopConfigResp{}
 
 	//获取推广员信息
-	agentInfo, _ := imdb.GetAgentByAgentNumber(req.AgentNumber)
-	if agentInfo == nil || agentInfo.OpenStatus == 0 {
+	agentInfo, err := imdb.GetAgentByAgentNumber(req.AgentNumber)
+	if err != nil || agentInfo.OpenStatus == 0 {
 		return resp, nil
 	}
 
@@ -50,8 +50,8 @@ func (rpc *AgentServer) AgentGameBeanShopConfig(_ context.Context, req *agent.Ag
 	if len(configList) > 0 {
 		resp.BeanShopConfig = make([]*agent.BeanShopConfig, 0)
 		for k, v := range configList {
-			//推广员咖豆不足、不返回咖豆配置
-			if k == 0 || agentInfo.BeanBalance < v.BeanNumber {
+			//正序、最小配置大于推广员咖豆余额,咖豆不足、不返回咖豆配置
+			if k == 0 && agentInfo.BeanBalance < v.BeanNumber {
 				return resp, nil
 			}
 
@@ -166,12 +166,6 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 			log.Error(req.OperationId, "咖豆管理(新增、编辑)更新失败:%s", err.Error())
 		}
 	}
-
-	return resp, nil
-}
-
-func (rpc *AgentServer) AgentGiveMemberBean(ctx context.Context, req *agent.AgentGiveMemberBeanReq) (*agent.AgentGiveMemberBeanResp, error) {
-	resp := &agent.AgentGiveMemberBeanResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
 	return resp, nil
 }

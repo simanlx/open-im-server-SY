@@ -264,6 +264,8 @@ func AgentMemberList(c *gin.Context) {
 	req := &rpc.AgentMemberListReq{
 		UserId:      c.GetString("userId"),
 		Keyword:     params.Keyword,
+		Page:        params.Page,
+		Size:        params.Size,
 		OrderBy:     params.OrderBy,
 		OperationId: operationId,
 	}

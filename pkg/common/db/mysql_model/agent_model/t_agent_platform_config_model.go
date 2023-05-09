@@ -1,6 +1,10 @@
 package agent_model
 
-import "Open_IM/pkg/common/db"
+import (
+	"Open_IM/pkg/common/db"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
+)
 
 type BeanShopConfig struct {
 	ConfigId       int32 `json:"config_id"`        //配置id
@@ -13,11 +17,10 @@ type BeanShopConfig struct {
 // 获取配置项
 func GetPlatformConfigValue(configKey string) string {
 	var info *db.TAgentPlatformConfig
-	_ = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_platform_config").Where("config_key = ?", configKey).First(&info).Error
-
-	if info != nil {
-		return info.ConfigData
+	err := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_platform_config").Where("config_key = ?", configKey).First(&info).Error
+	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+		return ""
 	}
 
-	return ""
+	return info.ConfigData
 }

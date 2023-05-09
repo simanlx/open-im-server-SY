@@ -3,6 +3,8 @@ package agent_model
 import (
 	"Open_IM/pkg/common/db"
 	"fmt"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -22,6 +24,9 @@ func BindAgentNumber(info *db.TAgentMember) error {
 // 推广员下属
 func AgentNumberByChessUserId(chessUserId int64) (info *db.TAgentMember, err error) {
 	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_member").Where("chess_user_id = ?", chessUserId).First(&info).Error
+	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+		return nil, errors.Wrap(err, "")
+	}
 	return
 }
 
@@ -46,7 +51,7 @@ func FindAgentMemberIds(userId, keyword string) (chessUserIds []int64, err error
 }
 
 // 获取推广员下属成员列表
-func FindAgentMemberList(userId, keyword, orderBy string, page, size int32) (list []*db.TAgentMember, count int64, err error) {
+func FindAgentMemberList(userId, keyword string, orderBy, page, size int32) (list []*db.TAgentMember, count int64, err error) {
 	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_member").Where("user_id = ?", userId)
 
 	if len(keyword) > 0 {
@@ -55,13 +60,15 @@ func FindAgentMemberList(userId, keyword, orderBy string, page, size int32) (lis
 
 	model = model.Count(&count).Limit(int(size)).Offset(int(size * (page - 1)))
 
-	//排序
-	if len(orderBy) > 0 {
-		model = model.Order(orderBy)
-	} else {
-		model = model.Order("id desc")
+	//排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
+	orderByStr := "id desc"
+	switch orderBy {
+	case 3:
+		orderByStr = "contribution desc"
+	case 4:
+		orderByStr = "contribution asc"
 	}
 
-	err = model.Find(&list).Error
+	err = model.Order(orderByStr).Find(&list).Error
 	return
 }
