@@ -6,64 +6,63 @@ serverversion: 2.3.1
 #---------------Infrastructure configuration---------------------#
 etcd:
   etcdSchema: openim  #默认即可
-  etcdAddr: [ 127.0.0.1:2379 ] #单机部署时，默认即可
+  etcdAddr: [127.0.0.1:12379 ] #单机部署时，默认即可
   userName:
   password:
   secret:
 
 mysql:
-  dbMysqlAddress: [ 10.20.0.183:3306 ] #mysql地址 目前仅支持单机，默认即可
+  dbMysqlAddress: [ 10.20.0.183:13306 ] #mysql地址 目前仅支持单机，默认即可
   dbMysqlUserName:  root #mysql用户名，建议修改
-  dbMysqlPassword:  Mysql@rootpassword123 # mysql密码，建议修改
+  dbMysqlPassword:  openIM123 # mysql密码，建议修改
   dbMysqlDatabaseName: openIM_v2 #默认即可
   dbTableName: eMsg #默认即可
   dbMsgTableNum: 1
   dbMaxOpenConns: 100
   dbMaxIdleConns: 10
   dbMaxLifeTime: 5
-  logLevel: 1 #1=slient 2=error 3=warn 4=info
+  logLevel: 4 #1=slient 2=error 3=warn 4=info
   slowThreshold: 500
-
 mongo:
   dbUri: ""#当dbUri值不为空则直接使用该值
   #dbAddress: 127.0.0.1:37017  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
-  dbAddress: [127.0.0.1:27017]  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
+  dbAddress: [10.20.0.183:37017]  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
   dbDirect: false
   dbTimeout: 60
   dbDatabase: openIM  #mongo db 默认即可
   dbSource: admin
-  dbUserName: "" #mongo用户名，建议先不设置
-  dbPassword:  "" #mongo密码，建议先不设置
+  dbUserName: "root" #mongo用户名，建议先不设置
+  dbPassword:  "openIM123" #mongo密码，建议先不设置
   dbMaxPoolSize: 100
   dbRetainChatRecords: 3650 #mongo保存离线消息时间（天），根据需求修改
   chatRecordsClearTime: "0 3 * * *" # 每天凌晨3点清除消息，该配置和linux定时任务一样， 清理操作建议设置在用户活跃少的时候 # 0 3 * * *
 
 redis:
-  dbAddress: [ 127.0.0.1:6379 ] #redis地址 单机时，填写一个地址即可，使用redis集群时候，填写集群中多个节点地址（主从地址都可以填写，增加容灾能力），默认即可
+  dbAddress: [ 10.20.0.183:16379 ] #redis地址 单机时，填写一个地址即可，使用redis集群时候，填写集群中多个节点地址（主从地址都可以填写，增加容灾能力），默认即可
   dbMaxIdle: 128
   dbMaxActive: 0
   dbIdleTimeout: 120
   dbUserName:     #only redis version 6.0+ need username
-  dbPassWord:  #redis密码 建议修改
+  dbPassWord: openIM123 #redis密码 建议修改
   enableCluster: false #如果外部redis以集群方式启动，需要打开此开关
 
 kafka:
   SASLUserName: 
   SASLPassword:
   ws2mschat:
-    addr: [ 127.0.0.1:9092 ] #kafka配置，默认即可
+    addr: [10.20.0.183:9092] #kafka配置，默认即可
     topic: "ws2ms_chat" #用于mongo和mysql保存消息
 #  ws2mschatoffline:
 #    addr: [ 127.0.0.1:9092 ] #kafka配置，默认即可
 #    topic: "ws2ms_chat_offline" #原为离线用户消息处理，目前暂时弃用
   msgtomongo:
-    addr: [ 127.0.0.1:9092 ] #kafka配置，默认即可
+    addr: [10.20.0.183:9092] #kafka配置，默认即可
     topic: "msg_to_mongo"
   ms2pschat:
-    addr: [ 127.0.0.1:9092 ] #kafka配置，默认即可
+    addr: [10.20.0.183:9092] #kafka配置，默认即可
     topic: "ms2ps_chat" #消息push
   msgtomodify:
-    addr: [ 127.0.0.1:9092 ] #kafka配置，默认即可
+    addr: [10.20.0.183:9092] #kafka配置，默认即可
     topic: "msg_to_modify"
   consumergroupid:
     msgToTransfer: mongo
@@ -71,6 +70,15 @@ kafka:
     msgToMySql: mysql
     msgToPush: push
     msgToModify: modify
+#------------------定制化的内容 start---------------------------#
+ncount :
+    publicKey: "" #公钥
+    privateKey: "" #私钥
+    merchantId: "" #商户号
+    notify:
+      rechargeNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/charge_account_callback" #充值回调地址
+      withdrawNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/draw_account_callback" #提现回调地址
+
 
 
 #---------------Internal service configuration---------------------#
@@ -125,10 +133,10 @@ credential: #腾讯cos，发送图片、视频、文件时需要，请自行申�
     appBucket: app # 存储app的桶
     location: us-east-1
     endpoint:  #minio外网ip 这个ip是给客户端访问的
-    endpointInner: http://127.0.0.1:10005 #minio内网地址 如果im server 可以通过内网访问到 minio就可以
+    endpointInner: http://10.20.0.183:9090 #minio内网地址 如果im server 可以通过内网访问到 minio就可以
     endpointInnerEnable: true #是否启用minio内网地址 启用可以让桶初始化，IM server连接minio走内网地址访问
-    accessKeyID:
-    secretAccessKey:
+    accessKeyID: EZOXISyP9s47h3AR
+    secretAccessKey: HgzgXFg0Hov1IjEgMFSnGdHsxhgMDTJW
     storageTime: 50 #文件在minio中保存的时间
     isDistributedMod: false # 是否分布式多硬盘部署 默认docker-compose中为false
   ali: # ali oss
@@ -166,6 +174,8 @@ rpcport: #rpc服务端口 默认即可
   openImConversationPort: [ 10230 ]
   openImCachePort: [ 10240 ]
   openImRealTimeCommPort: [ 11300 ]
+  openImCloudWalletPort: [ 12300 ]
+  openImChatPort: [ 30300 ]
   c2c:
     callbackBeforeSendMsg:
       switch: false
@@ -190,6 +200,8 @@ rpcregistername: #rpc注册服务名，默认即可
   openImConversationName: Conversation
   openImCacheName: Cache
   openImRealTimeCommName: RealTimeComm
+  openImCloudWalletName: CloudWallet
+  openImChatName: Chat
 log:
   storageLocation: ../logs/
   rotationTime: 24
@@ -250,11 +262,12 @@ push:
 
 manager:
   #app管理员userID和对应的secret  建议修改。 用于管理后台登录，也可以用户管理后台对应的api
-  appManagerUid: [ "openIM123456","openIM654321", "openIM333", "openIMAdmin"]
-  secrets: [ "openIM1","openIM2", "openIM333", "openIMAdmin"]
+  appManagerUid: ["openIM123456","openIM654321", "openIM333", "openIMAdmin"]
+  secrets: [ ]
   appSysNotificationName: "系统通知"
 
-secret:
+secret: "xingdong8888"
+
 # 多端互踢策略
 # 1：多平台登录：Android、iOS、Windows、Mac 每种平台只能一个在线，web端可以多个同时在线
 multiloginpolicy: 1
@@ -762,7 +775,7 @@ notification:
 #---------------demo configuration---------------------#
 #The following configuration items are applied to openIM Demo configuration
 #是否启动demo，如果自身没有账号体系，设置为true
-demoswitch: true
+demoswitch: false
 demo:
   listenIP: 0.0.0.0
   #demo对外服务端口，默认即可，需要开放此端口或做nginx转发
@@ -824,3 +837,4 @@ prometheus:
   cachePrometheusPort: [ 20240 ]
   realTimeCommPrometheusPort: [ 21300 ]
   messageTransferPrometheusPort: [ 21400, 21401, 21402, 21403 ] # 端口数量和 script/path_info.cfg  msg_transfer_service_num保持一致
+  cloudWalletPrometheusPort: [ 21500 ]

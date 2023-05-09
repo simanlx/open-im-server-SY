@@ -163,6 +163,15 @@ func GetConfigConn(serviceName string, operationID string) *grpc.ClientConn {
 	if config.Config.RpcRegisterName.OpenImRealTimeCommName == serviceName {
 		configPortList = config.Config.RpcPort.OpenImRealTimeCommPort
 	}
+	//15
+	if config.Config.RpcRegisterName.OpenImCloudWalletName == serviceName {
+		configPortList = config.Config.RpcPort.OpenImCloudWalletPort
+	}
+	//16
+	if config.Config.RpcRegisterName.OpenImChatName == serviceName {
+		configPortList = config.Config.RpcPort.OpenImChatPort
+	}
+
 	if len(configPortList) == 0 {
 		log.Error(operationID, "len(configPortList) == 0  ")
 		return nil

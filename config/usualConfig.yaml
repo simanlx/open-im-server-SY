@@ -8,12 +8,12 @@ mysql:
   dbMysqlPassword: openIM123 # mysql密码
 
 mongo:
-  dbUserName:  #mongo用户名
-  dbPassword:   #mongo密码
+  dbUserName:  root #mongo用户名
+  dbPassword:   openIM123 #mongo密码
 
 redis:
   dbUserName:
-  dbPassWord:  #redis密码
+  dbPassWord: openIM123 #redis密码
 
 kafka:
   SASLUserName:
@@ -25,7 +25,7 @@ credential:
     accessKeyID: root
     secretAccessKey: openIM123
 
-secret: tuoyun #建议修改
+secret: xingdong8888 #建议修改
 
 tokenpolicy:
   accessSecret: "open_im_server" #token生成相关 建议修改

@@ -51,8 +51,10 @@ func (ms *PushConsumerHandler) handleMs2PsChat(msg []byte) {
 	}
 	switch msgFromMQ.MsgData.SessionType {
 	case constant.SuperGroupChatType:
+		// 这里是发送给超级群
 		MsgToSuperGroupUser(pbData)
 	default:
+		// 这里是发送给用户
 		MsgToUser(pbData)
 	}
 	//Call push module to send message to the user

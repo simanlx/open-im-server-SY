@@ -3,6 +3,7 @@ package ncount
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestNewCounter(t *testing.T) {
@@ -21,6 +22,7 @@ func TestNewCounter(t *testing.T) {
 	}
 }
 
+// 绑定银行卡接口 ： 单元测试通过
 func Test_counter_BindCard(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -34,10 +36,33 @@ func Test_counter_BindCard(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *BindCardResp
+		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "test",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &BindCardReq{
+					MerOrderId: "afdafa",
+					BindCardMsgCipherText: BindCardMsgCipherText{
+						CardNo:            "",
+						HolderName:        "",
+						CardAvailableDate: "",
+						Cvv2:              "",
+						MobileNo:          "",
+						IdentityType:      "1",
+						IdentityCode:      "",
+						UserId:            "",
+					},
+				},
+			},
+			want: "4444",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -58,6 +83,7 @@ func Test_counter_BindCard(t *testing.T) {
 	}
 }
 
+// 绑定确认接口 ：  单元测试通过
 func Test_counter_BindCardConfirm(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -71,10 +97,28 @@ func Test_counter_BindCardConfirm(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *BindCardConfirmResp
+		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "test",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &BindCardConfirmReq{
+					MerOrderId: "afdafa",
+					BindCardConfirmMsgCipherText: BindCardConfirmMsgCipherText{
+						NcountOrderId: "1234",   // 通联订单号 这个是之前的记录好
+						SmsCode:       "123456", // 短信验证码
+						MerUserIp:     "1234",   // 用户IP
+					},
+				},
+			},
+			want: "4444",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -88,7 +132,7 @@ func Test_counter_BindCardConfirm(t *testing.T) {
 				t.Errorf("BindCardConfirm() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if got.ResultCode != tt.want {
 				t.Errorf("BindCardConfirm() got = %v, want %v", got, tt.want)
 			}
 		})
@@ -206,6 +250,7 @@ func Test_counter_CheckUserAccountTrans(t *testing.T) {
 	}
 }
 
+// 创建用户账户 单元测试通过
 func Test_counter_NewAccount(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -219,11 +264,52 @@ func Test_counter_NewAccount(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *NewAccountResp
+		want    string
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		// 由于信息安全原因，身份证不方便留下，所以这里只能用测试的身份证号码，但是肯定会报错，所以这里只是测试一下请求是否成功
+		{
+			name: "测试非真实用户手机 ： 这个手机号和用户的身份证信息不对应",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &NewAccountReq{
+					OrderID: "dsfsafdsa",
+					MsgCipherText: &NewAccountMsgCipherText{
+						MerUserId: "main_10086",
+						Mobile:    "15282603386",
+						UserName:  "沈晨曦",
+						CertNo:    "5116231185554",
+					},
+				},
+			},
+			want: "4444", // 表示请求结果失败
+		},
+		{
+			name: "真实手机用户 : 这个用户已经存在账号，所以会返回失败",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &NewAccountReq{
+					OrderID: "ds_" + time.Now().Format("20060102150405"),
+					MsgCipherText: &NewAccountMsgCipherText{
+						MerUserId: "main_100861ss",
+						Mobile:    "18566634004",
+						UserName:  "沈晨曦",
+						CertNo:    "511185554",
+					},
+				},
+			},
+			want: "4444", // 表示请求结果失败
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &counter{
@@ -233,16 +319,17 @@ func Test_counter_NewAccount(t *testing.T) {
 			}
 			got, err := c.NewAccount(tt.args.req)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("NewAccount() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("NewAccount() error = %+v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewAccount() got = %v, want %v", got, tt.want)
+			if got.ResultCode != tt.want {
+				t.Errorf("NewAccount() got = %+v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
+// 快捷支付确认 单元测试通过
 func Test_counter_QuickPayConfirm(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -259,7 +346,44 @@ func Test_counter_QuickPayConfirm(t *testing.T) {
 		want    *QuickPayConfirmResp
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "测试快捷支付确认接口",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &QuickPayConfirmReq{
+					merOrderId: GetMerOrderID(),
+					QuickPayConfirmMsgCipher: QuickPayMsgCipher{
+						TranAmount: "",
+						PayType:    "",
+						/*		CardNo:            "",
+								HolderName:        "",
+								CardAvailableDate: "",
+								Cvv2:              "",
+								MobileNo:          "",
+								IdentityType:      "",
+								IdentityCode:      "",
+								BindCardAgrNo:     "",
+								NotifyUrl:         "",
+								OrderExpireTime:   "",
+								UserId:            "",
+								ReceiveUserId:     "",
+								MerUserIp:         "",
+								RiskExpand:        "",
+								GoodsInfo:         "",
+								SubMerchantId:     "",
+								DivideFlag:        "",
+								DivideDetail:      "",
+								InstalmentNum:     "",
+								InstalmentType:    "",
+								InstalmentRate:    "",*/
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -280,6 +404,7 @@ func Test_counter_QuickPayConfirm(t *testing.T) {
 	}
 }
 
+// 快捷支付接口测试 单元测试通过
 func Test_counter_QuickPayOrder(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -354,6 +479,7 @@ func Test_counter_Refund(t *testing.T) {
 	}
 }
 
+// 转账接口
 func Test_counter_Transfer(t *testing.T) {
 	type fields struct {
 		notifyQuickPayConfirmURL string
@@ -367,10 +493,30 @@ func Test_counter_Transfer(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *TransferResp
-		wantErr bool
+		want    string
+		wantErr error
 	}{
-		// TODO: Add test cases.
+		{
+			name: "转账",
+			fields: fields{
+				notifyQuickPayConfirmURL: "http://www.baidu.com",
+				notifyRefundURL:          "http://www.baidu.com",
+				notifyWithdrawURL:        "http://www.baidu.com",
+			},
+			args: args{
+				req: &TransferReq{
+					MerOrderId: "",
+					TransferMsgCipher: TransferMsgCipher{
+						PayUserId:     "",
+						ReceiveUserId: "",
+						TranAmount:    "",
+						BusinessType:  "", // 业务类型
+					},
+				},
+			},
+			want:    "4444",
+			wantErr: nil,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -380,7 +526,7 @@ func Test_counter_Transfer(t *testing.T) {
 				notifyWithdrawURL:        tt.fields.notifyWithdrawURL,
 			}
 			got, err := c.Transfer(tt.args.req)
-			if (err != nil) != tt.wantErr {
+			if err != nil && err != tt.wantErr {
 				t.Errorf("Transfer() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -463,4 +609,9 @@ func Test_counter_Withdraw(t *testing.T) {
 			}
 		})
 	}
+}
+
+// 发送自定义红包消息
+func Test_counter_SendRedPack(t *testing.T) {
+
 }

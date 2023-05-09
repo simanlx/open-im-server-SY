@@ -34,12 +34,6 @@ func (b *BindCardMsgCipherText) Valid() error {
 	if b.HolderName == "" {
 		return errors.New("holderName is empty")
 	}
-	if b.CardAvailableDate == "" {
-		return errors.New("cardAvailableDate is empty")
-	}
-	if b.Cvv2 == "" {
-		return errors.New("cvv2 is empty")
-	}
 	if b.MobileNo == "" {
 		return errors.New("mobileNo is empty")
 	}

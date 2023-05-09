@@ -19,8 +19,9 @@ import (
 )
 
 func main() {
-	log.NewPrivateLog(constant.LogFileName)
+	log.NewPrivateLog("im_demo")
 	gin.SetMode(gin.ReleaseMode)
+	log.Info("0", "start demo server, OpenIM version: ", constant.CurrentVersion)
 	f, _ := os.Create("../logs/api.log")
 	gin.DefaultWriter = io.MultiWriter(f)
 	r := gin.Default()
@@ -28,10 +29,10 @@ func main() {
 	if config.Config.Prometheus.Enable {
 		r.GET("/metrics", promePkg.PrometheusHandler())
 	}
-	authRouterGroup := r.Group("/demo")
+	authRouterGroup := r.Group("/account")
 	{
-		authRouterGroup.POST("/code", register.SendVerificationCode)
-		authRouterGroup.POST("/verify", register.Verify)
+		authRouterGroup.POST("/code", register.SendVerificationCode) // 设置验证码
+		authRouterGroup.POST("/verify", register.Verify)             //
 		authRouterGroup.POST("/password", register.SetPassword)
 		authRouterGroup.POST("/login", register.Login)
 		authRouterGroup.POST("/reset_password", register.ResetPassword)
@@ -70,7 +71,7 @@ func main() {
 		address = config.Config.Api.ListenIP + ":" + strconv.Itoa(*ginPort)
 	}
 	address = config.Config.CmsApi.ListenIP + ":" + strconv.Itoa(*ginPort)
-	fmt.Println("start demo api server address: ", address, ", OpenIM version: ", constant.CurrentVersion, "\n")
+	fmt.Println("start demo api server address: ", address, ", OpenIM version: ", constant.CurrentVersion)
 	go register.OnboardingProcessRoutine()
 	go register.ImportFriendRoutine()
 	err := r.Run(address)

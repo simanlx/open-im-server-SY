@@ -20,17 +20,16 @@ type Invitation struct {
 	Status         int32     `gorm:"column:status"`
 }
 
-//
-//message FriendInfo{
-//string OwnerUserID = 1;
-//string Remark = 2;
-//int64 CreateTime = 3;
-//UserInfo FriendUser = 4;
-//int32 AddSource = 5;
-//string OperatorUserID = 6;
-//string Ex = 7;
-//}
-//open_im_sdk.FriendInfo(FriendUser) != imdb.Friend(FriendUserID)
+// message FriendInfo{
+// string OwnerUserID = 1;
+// string Remark = 2;
+// int64 CreateTime = 3;
+// UserInfo FriendUser = 4;
+// int32 AddSource = 5;
+// string OperatorUserID = 6;
+// string Ex = 7;
+// }
+// open_im_sdk.FriendInfo(FriendUser) != imdb.Friend(FriendUserID)
 type Friend struct {
 	OwnerUserID    string    `gorm:"column:owner_user_id;primary_key;size:64"`
 	FriendUserID   string    `gorm:"column:friend_user_id;primary_key;size:64"`
@@ -41,18 +40,18 @@ type Friend struct {
 	Ex             string    `gorm:"column:ex;size:1024"`
 }
 
-//message FriendRequest{
-//string  FromUserID = 1;
-//string ToUserID = 2;
-//int32 HandleResult = 3;
-//string ReqMsg = 4;
-//int64 CreateTime = 5;
-//string HandlerUserID = 6;
-//string HandleMsg = 7;
-//int64 HandleTime = 8;
-//string Ex = 9;
-//}
-//open_im_sdk.FriendRequest(nickname, farce url ...) != imdb.FriendRequest
+// message FriendRequest{
+// string  FromUserID = 1;
+// string ToUserID = 2;
+// int32 HandleResult = 3;
+// string ReqMsg = 4;
+// int64 CreateTime = 5;
+// string HandlerUserID = 6;
+// string HandleMsg = 7;
+// int64 HandleTime = 8;
+// string Ex = 9;
+// }
+// open_im_sdk.FriendRequest(nickname, farce url ...) != imdb.FriendRequest
 type FriendRequest struct {
 	FromUserID    string    `gorm:"column:from_user_id;primary_key;size:64"`
 	ToUserID      string    `gorm:"column:to_user_id;primary_key;size:64"`
@@ -69,25 +68,50 @@ func (FriendRequest) TableName() string {
 	return "friend_requests"
 }
 
-//message GroupInfo{
-//  string GroupID = 1;
-//  string GroupName = 2;
-//  string Notification = 3;
-//  string Introduction = 4;
-//  string FaceUrl = 5;
-//  string OwnerUserID = 6;
-//  uint32 MemberCount = 8;
-//  int64 CreateTime = 7;
-//  string Ex = 9;
-//  int32 Status = 10;
-//  string CreatorUserID = 11;
-//  int32 GroupType = 12;
-//}
-//  open_im_sdk.GroupInfo (OwnerUserID ,  MemberCount )> imdb.Group
+//	message GroupInfo{
+//	 string GroupID = 1;
+//	 string GroupName = 2;
+//	 string Notification = 3;
+//	 string Introduction = 4;
+//	 string FaceUrl = 5;
+//	 string OwnerUserID = 6;
+//	 uint32 MemberCount = 8;
+//	 int64 CreateTime = 7;
+//	 string Ex = 9;
+//	 int32 Status = 10;
+//	 string CreatorUserID = 11;
+//	 int32 GroupType = 12;
+//	}
+//
+// open_im_sdk.GroupInfo (OwnerUserID ,  MemberCount )> imdb.Group
+
+//
+//CREATE TABLE `groups` (
+//`group_id` varchar(64) NOT NULL,
+//`ban_click_packet` tinyint(1) NOT NULL COMMENT ' 1为禁止抢红包',
+//`name` varchar(255) DEFAULT NULL,
+//`notification` varchar(255) DEFAULT NULL,
+//`introduction` varchar(255) DEFAULT NULL,
+//`face_url` varchar(255) DEFAULT NULL,
+//`create_time` datetime(3) DEFAULT NULL,
+//`ex` longtext,
+//`status` int(11) DEFAULT NULL,
+//`creator_user_id` varchar(64) DEFAULT NULL,
+//`group_type` int(11) DEFAULT NULL,
+//`need_verification` int(11) DEFAULT NULL,
+//`look_member_info` int(11) DEFAULT NULL,
+//`apply_member_friend` int(11) DEFAULT NULL,
+//`notification_update_time` datetime(3) DEFAULT NULL,
+//`notification_user_id` varchar(64) DEFAULT NULL,
+//PRIMARY KEY (`group_id`),
+//KEY `create_time` (`create_time`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 type Group struct {
 	//`json:"operationID" binding:"required"`
 	//`protobuf:"bytes,1,opt,name=GroupID" json:"GroupID,omitempty"` `json:"operationID" binding:"required"`
 	GroupID                string    `gorm:"column:group_id;primary_key;size:64" json:"groupID" binding:"required"`
+	BanClickPacket         int32     `gorm:"column:ban_click_packet" json:"banClickPacket"`
 	GroupName              string    `gorm:"column:name;size:255" json:"groupName"`
 	Notification           string    `gorm:"column:notification;size:255" json:"notification"`
 	Introduction           string    `gorm:"column:introduction;size:255" json:"introduction"`
@@ -104,18 +128,18 @@ type Group struct {
 	NotificationUserID     string    `gorm:"column:notification_user_id;size:64"`
 }
 
-//message GroupMemberFullInfo {
-//string GroupID = 1 ;
-//string UserID = 2 ;
-//int32 roleLevel = 3;
-//int64 JoinTime = 4;
-//string NickName = 5;
-//string FaceUrl = 6;
-//int32 JoinSource = 8;
-//string OperatorUserID = 9;
-//string Ex = 10;
-//int32 AppMangerLevel = 7; //if >0
-//}  open_im_sdk.GroupMemberFullInfo(AppMangerLevel) > imdb.GroupMember
+// message GroupMemberFullInfo {
+// string GroupID = 1 ;
+// string UserID = 2 ;
+// int32 roleLevel = 3;
+// int64 JoinTime = 4;
+// string NickName = 5;
+// string FaceUrl = 6;
+// int32 JoinSource = 8;
+// string OperatorUserID = 9;
+// string Ex = 10;
+// int32 AppMangerLevel = 7; //if >0
+// }  open_im_sdk.GroupMemberFullInfo(AppMangerLevel) > imdb.GroupMember
 type GroupMember struct {
 	GroupID        string    `gorm:"column:group_id;primary_key;size:64"`
 	UserID         string    `gorm:"column:user_id;primary_key;size:64"`
@@ -130,17 +154,17 @@ type GroupMember struct {
 	Ex             string    `gorm:"column:ex;size:1024"`
 }
 
-//message GroupRequest{
-//string UserID = 1;
-//string GroupID = 2;
-//string HandleResult = 3;
-//string ReqMsg = 4;
-//string  HandleMsg = 5;
-//int64 ReqTime = 6;
-//string HandleUserID = 7;
-//int64 HandleTime = 8;
-//string Ex = 9;
-//}open_im_sdk.GroupRequest == imdb.GroupRequest
+// message GroupRequest{
+// string UserID = 1;
+// string GroupID = 2;
+// string HandleResult = 3;
+// string ReqMsg = 4;
+// string  HandleMsg = 5;
+// int64 ReqTime = 6;
+// string HandleUserID = 7;
+// int64 HandleTime = 8;
+// string Ex = 9;
+// }open_im_sdk.GroupRequest == imdb.GroupRequest
 type GroupRequest struct {
 	UserID        string    `gorm:"column:user_id;primary_key;size:64"`
 	GroupID       string    `gorm:"column:group_id;primary_key;size:64"`
@@ -155,18 +179,18 @@ type GroupRequest struct {
 	Ex            string    `gorm:"column:ex;size:1024"`
 }
 
-//string UserID = 1;
-//string Nickname = 2;
-//string FaceUrl = 3;
-//int32 Gender = 4;
-//string PhoneNumber = 5;
-//string Birth = 6;
-//string Email = 7;
-//string Ex = 8;
-//string CreateIp = 9;
-//int64 CreateTime = 10;
-//int32 AppMangerLevel = 11;
-//open_im_sdk.User == imdb.User
+// string UserID = 1;
+// string Nickname = 2;
+// string FaceUrl = 3;
+// int32 Gender = 4;
+// string PhoneNumber = 5;
+// string Birth = 6;
+// string Email = 7;
+// string Ex = 8;
+// string CreateIp = 9;
+// int64 CreateTime = 10;
+// int32 AppMangerLevel = 11;
+// open_im_sdk.User == imdb.User
 type User struct {
 	UserID           string    `gorm:"column:user_id;primary_key;size:64"`
 	Nickname         string    `gorm:"column:name;size:255"`
@@ -176,11 +200,10 @@ type User struct {
 	Birth            time.Time `gorm:"column:birth"`
 	Email            string    `gorm:"column:email;size:64"`
 	Ex               string    `gorm:"column:ex;size:1024"`
-	CreateTime       time.Time `gorm:"column:create_time;index:create_time"`
+	status           int32     `gorm:"column:status"`
 	AppMangerLevel   int32     `gorm:"column:app_manger_level"`
 	GlobalRecvMsgOpt int32     `gorm:"column:global_recv_msg_opt"`
-
-	status int32 `gorm:"column:status"`
+	CreateTime       time.Time `gorm:"column:create_time;index:create_time"`
 }
 
 type UserIpRecord struct {
@@ -207,14 +230,14 @@ type UserIpLimit struct {
 	CreateTime time.Time `gorm:"column:create_time"`
 }
 
-//message BlackInfo{
-//string OwnerUserID = 1;
-//int64 CreateTime = 2;
-//PublicUserInfo BlackUserInfo = 4;
-//int32 AddSource = 5;
-//string OperatorUserID = 6;
-//string Ex = 7;
-//}
+// message BlackInfo{
+// string OwnerUserID = 1;
+// int64 CreateTime = 2;
+// PublicUserInfo BlackUserInfo = 4;
+// int32 AddSource = 5;
+// string OperatorUserID = 6;
+// string Ex = 7;
+// }
 // open_im_sdk.BlackInfo(BlackUserInfo) != imdb.Black (BlockUserID)
 type Black struct {
 	OwnerUserID    string    `gorm:"column:owner_user_id;primary_key;size:64"`
@@ -352,4 +375,222 @@ type ClientInitConfig struct {
 
 func (ClientInitConfig) TableName() string {
 	return "client_init_config"
+}
+
+type FNcountAccount struct {
+	Id              int32     `gorm:"column:id;type:int(10) unsigned;not null;primary_key;auto_increment;comment:'主键'" json:"id"`
+	UserID          string    `gorm:"column:user_id;type:varchar(64);not null;comment:'用户id'" json:"userID"`
+	MainAccountId   string    `gorm:"column:main_account_id;type:varchar(20);default:null;comment:'新生支付主账号id'" json:"mainAccountId"`
+	PacketAccountId string    `gorm:"column:packet_account_id;type:varchar(20);default:null;comment:'新生支付红包账户id'" json:"packetAccountId"`
+	Mobile          string    `gorm:"column:mobile;type:varchar(15);not null;comment:'手机号码'" json:"mobile"`
+	RealName        string    `gorm:"column:realname;type:varchar(20);not null;comment:'真实姓名'" json:"realName"`
+	IdCard          string    `gorm:"column:id_card;type:varchar(30);not null;comment:'身份证'" json:"idCard"`
+	PaySwitch       int32     `gorm:"column:pay_switch;type:tinyint(4);default:1;comment:'支付开关(0关闭、1默认开启)'" json:"paySwitch"`
+	BodPaySwitch    int32     `gorm:"column:bod_pay_switch;type:tinyint(4);default:0;comment:'指纹支付/人脸支付开关(0默认关闭、1开启)'" json:"bodPaySwitch"`
+	PaymentPassword string    `gorm:"column:payment_password;type:varchar(32);default:null;comment:'支付密码(md5加密)'" json:"paymentPassword"`
+	OpenStatus      int32     `gorm:"column:open_status;type:tinyint(4);default:0;comment:'开通状态'" json:"openStatus"`
+	OpenStep        int32     `gorm:"column:open_step;type:tinyint(4);default:1;comment:'开通认证步骤(1身份证认证、2支付密码、3绑定银行卡或者刷脸)'" json:"openStep"`
+	CreatedTime     time.Time `gorm:"column:created_time;type:datetime;default:null" json:"createdTime"`
+	UpdatedTime     time.Time `gorm:"column:updated_time;type:datetime;default:null" json:"updatedTime"`
+}
+
+func (FNcountAccount) TableName() string {
+	return "f_ncount_account"
+}
+
+/*  `ncount_type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '账户类型(1主账户，2红包账户)',*/
+// 用户银行卡绑定表
+type FNcountBankCard struct {
+	Id                int32     `gorm:"column:id" json:"id"`
+	UserId            string    `gorm:"column:user_id" json:"user_id"`                         //用户id
+	NcountUserId      string    `gorm:"column:ncount_user_id" json:"ncount_user_id"`           //新生支付用户id
+	MerOrderId        string    `gorm:"column:mer_order_id" json:"mer_order_id"`               //平台订单号
+	NcountOrderId     string    `gorm:"column:ncount_order_id" json:"ncount_order_id"`         //第三方签约订单号
+	BindCardAgrNo     string    `gorm:"column:bind_card_agr_no" json:"bind_card_agr_no"`       //第三方绑卡协议号
+	Mobile            string    `gorm:"column:mobile" json:"mobile"`                           //手机号码
+	CardOwner         string    `gorm:"column:card_owner" json:"card_owner"`                   //持卡者名字
+	BankCardNumber    string    `gorm:"column:bank_card_number" json:"bank_card_number"`       //银行卡号
+	CardAvailableDate string    `gorm:"column:card_available_date" json:"card_available_date"` //信用卡有效期
+	Cvv2              string    `gorm:"column:cvv2" json:"cvv2"`                               //cvv2
+	BankCode          string    `gorm:"column:bank_code" json:"bank_code"`                     //银行简写
+	IsBind            int       `gorm:"column:is_bind" json:"is_bind"`                         //是否绑定成功(0预提交、1绑定成功)
+	IsDelete          int       `gorm:"column:is_delete" json:"is_delete"`                     //是否删除(0未删除，1已删除)
+	CreatedTime       time.Time `gorm:"column:created_time" json:"created_time"`               //
+	UpdatedTime       time.Time `gorm:"column:updated_time" json:"updated_time"`               //
+}
+
+func (FNcountBankCard) TableName() string {
+	return "f_ncount_bank_card"
+}
+
+type FNcountTrade struct {
+	ID           int32  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserID       string `gorm:"column:user_id;not null" json:"user_id"`    //用户id
+	Type         int32  `gorm:"column:type" json:"type"`                   //收支类型(1收入、2支出)
+	BusinessType int32  `gorm:"column:business_type" json:"business_type"` //业务类型(见枚举)
+	Describe     string `gorm:"column:describe" json:"describe"`           //描述
+	Amount       int32  `gorm:"column:amount;not null" json:"amount"`      //变更金额(单位：分)
+	//BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
+	AfterAmount  int32     `gorm:"column:after_amount" json:"after_amount"`     //变更后金额(单位：分)
+	ThirdOrderNo string    `gorm:"column:third_order_no" json:"third_order_no"` //第三方订单号
+	NcountStatus int32     `gorm:"column:ncount_status" json:"ncount_status"`   //异步通知状态（0未生效，1生效）
+	PacketID     string    `gorm:"column:packet_id" json:"packet_id"`           //红包id
+	CreatedTime  time.Time `gorm:"column:created_time" json:"created_time"`
+	UpdatedTime  time.Time `gorm:"column:updated_time" json:"updated_time"`
+}
+
+func (FNcountTrade) TableName() string {
+	return "f_ncount_trade"
+}
+
+type GroupHistoryMembers struct {
+	Id              int       `gorm:"column:id" json:"id"`                                 //id
+	GroupId         string    `gorm:"column:group_id" json:"group_id"`                     //群id
+	UserId          string    `gorm:"column:user_id" json:"user_id"`                       //用户id
+	LastSendMsgTime int       `gorm:"column:last_send_msg_time" json:"last_send_msg_time"` //最后发送群消息时间
+	CreatedTime     time.Time `gorm:"column:created_time" json:"created_time"`             //加群时间
+}
+
+func (GroupHistoryMembers) TableName() string {
+	return "group_history_members"
+}
+
+type UserCollect struct {
+	Id             int32     `gorm:"column:id" json:"id"`                           //id
+	UserId         string    `gorm:"column:user_id" json:"user_id"`                 //用户id
+	CollectType    int32     `gorm:"column:collect_type" json:"collect_type"`       //收藏类型
+	CollectContent string    `gorm:"column:collect_content" json:"collect_content"` //收藏内容
+	CreatedTime    time.Time `gorm:"column:created_time" json:"created_time"`       //收藏时间
+}
+
+func (UserCollect) TableName() string {
+	return "user_collect"
+}
+
+//CREATE TABLE `f_error_log` (
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`remark` varchar(255) DEFAULT NULL COMMENT '我们的备注，',
+//`oprationID` varchar(255) DEFAULT NULL COMMENT '平台唯一操作ID',
+//`mer_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付那边的订单',
+//`err_msg` varchar(255) DEFAULT NULL COMMENT '新生支付的错误',
+//`err_code` varchar(255) DEFAULT NULL COMMENT '错误码',
+//`all_msg` text COMMENT '完整信息集合',
+//`create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+//PRIMARY KEY (`id`)
+//) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+type FErrorLog struct {
+	Id         int32  `gorm:"column:id" json:"id"`                     //id
+	Remark     string `gorm:"column:remark" json:"remark"`             //我们的备注，
+	OprationID string `gorm:"column:oprationID" json:"oprationID"`     //平台唯一操作ID
+	MerOrderId string `gorm:"column:mer_order_id" json:"mer_order_id"` //新生支付那边的订单
+	ErrMsg     string `gorm:"column:err_msg" json:"err_msg"`           //新生支付的错误
+	ErrCode    string `gorm:"column:err_code" json:"err_code"`         //错误码
+	AllMsg     string `gorm:"column:all_msg" json:"all_msg"`           //完整信息集合
+	CreateTime int64  `gorm:"column:create_time" json:"create_time"`   //创建时间
+}
+
+func (FErrorLog) TableName() string {
+	return "f_error_log"
+}
+
+// CREATE TABLE `f_packet` (
+// `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+// `packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
+// `submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
+// `user_id` varchar(255) NOT NULL COMMENT '红包发起者',
+// `user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
+// `packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
+// `is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
+// `exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
+// `packet_title` varchar(100) NOT NULL COMMENT '红包标题',
+// `amount` int(11) NOT NULL COMMENT '单个红包金额，如果说是',
+// `number` tinyint(3) NOT NULL COMMENT '红包个数',
+// `total_amount` int(11) DEFAULT NULL COMMENT '发红包的总金额 == remain_amount的初始值',
+// `expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
+// `mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
+// `operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
+// `recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
+// `send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
+// `bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
+// `remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
+// `remain_amout` int(11) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
+// `lucky_user_id` varchar(255) NOT NULL DEFAULT ” COMMENT '最佳手气红包用户ID',
+// `luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
+// `created_time` int(11) DEFAULT NULL,
+// `updated_time` int(11) DEFAULT NULL,
+// `status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
+// `is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
+// PRIMARY KEY (`id`),
+// KEY `idx_user_id` (`user_id`) USING BTREE,
+// KEY `idx_packet_id` (`packet_id`) USING BTREE
+// ) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
+type FPacket struct {
+	ID                   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	PacketID             string `gorm:"column:packet_id;not null" json:"packet_id"`
+	SubmitTime           string `gorm:"column:submit_time;not null" json:"submit_time"` // 调用新生支付的时间
+	UserID               string `gorm:"column:user_id;not null" json:"user_id"`
+	UserRedpacketAccount string `gorm:"column:user_redpacket_account;not null" json:"user_redpacket_account"`
+	PacketType           int32  `gorm:"column:packet_type;not null" json:"packet_type"`
+	IsLucky              int32  `gorm:"column:is_lucky;not null" json:"is_lucky"`
+	ExclusiveUserID      string `gorm:"column:exclusive_user_id;not null" json:"exclusive_user_id"`
+	PacketTitle          string `gorm:"column:packet_title;not null" json:"packet_title"`
+	Amount               int64  `gorm:"column:amount;not null" json:"amount"`
+	Number               int32  `gorm:"column:number;not null" json:"number"`
+	TotalAmount          int64  `gorm:"column:total_amount;not null" json:"total_amount"`
+	ExpireTime           int64  `gorm:"column:expire_time;not null" json:"expire_time"`
+	MerOrderID           string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	SendType             int32  `gorm:"column:send_type;not null" json:"send_type"`
+	BindCardAgrNo        string `gorm:"column:bind_card_agr_no;not null" json:"bind_card_agr_no"`
+	OperateID            string `gorm:"column:operate_id;not null" json:"operate_id"`
+	RecvID               string `gorm:"column:recv_id;not null" json:"recv_id"`
+	Remain               int64  `gorm:"column:remain;not null" json:"remain"`                     // 剩余红包数量
+	RemainAmout          int64  `gorm:"column:remain_amout;not null" json:"remain_amout"`         // 剩余红包金额
+	LuckyUserID          string `gorm:"column:lucky_user_id;not null" json:"lucky_user_id"`       // 最佳手气红包用户ID
+	LuckUserAmount       int64  `gorm:"column:luck_user_amount;not null" json:"luck_user_amount"` // 最大红包的值： account amount  分为单位
+	CreatedTime          int64  `gorm:"column:created_time;not null" json:"created_time"`
+	UpdatedTime          int64  `gorm:"column:updated_time;not null" json:"updated_time"`
+	Status               int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
+	IsExclusive          int32  `gorm:"column:is_exclusive;not null" json:"is_exclusive"`
+}
+
+func (FPacket) TableName() string {
+	return "f_packet"
+}
+
+//CREATE TABLE `f_version` (
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`version_code` varchar(255) DEFAULT NULL,
+//`download_url` varchar(255) DEFAULT NULL,
+//`update_content` varchar(255) DEFAULT NULL,
+//`is_force` tinyint(1) DEFAULT NULL,
+//`create_time` int(11) DEFAULT NULL,
+//PRIMARY KEY (`id`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+type FVersion struct {
+	ID            int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	VersionCode   string `gorm:"column:version_code;not null" json:"version_code"`
+	DownloadUrl   string `gorm:"column:download_url;not null" json:"download_url"`
+	UpdateContent string `gorm:"column:update_content;not null" json:"update_content"`
+	IsForce       int32  `gorm:"column:is_force;not null" json:"is_force"`
+	CreateTime    int64  `gorm:"column:create_time;not null" json:"create_time"`
+}
+
+func (FVersion) TableName() string {
+	return "f_version"
+}
+
+type UserAttributeSwitch struct {
+	Id                    int32     `gorm:"column:id" json:"id"`                                             //id
+	UserId                string    `gorm:"column:user_id" json:"user_id"`                                   //用户id
+	AddFriendVerifySwitch int32     `gorm:"column:add_friend_verify_switch" json:"add_friend_verify_switch"` //加好友验证开关
+	AddFriendGroupSwitch  int32     `gorm:"column:add_friend_group_switch" json:"add_friend_group_switch"`   //加好友群组开关
+	AddFriendQrcodeSwitch int32     `gorm:"column:add_friend_qrcode_switch" json:"add_friend_qrcode_switch"` //加好友二维码开关
+	AddFriendCardSwitch   int32     `gorm:"column:add_friend_card_switch" json:"add_friend_card_switch"`     //加好友名片开关
+	UpdatedTime           time.Time `gorm:"column:updated_time" json:"updated_time"`                         //时间
+}
+
+func (UserAttributeSwitch) TableName() string {
+	return "user_attribute_switch"
 }

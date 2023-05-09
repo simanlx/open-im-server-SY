@@ -20,20 +20,20 @@ func (c *CheckUserAccountReq) Valid() error {
 }
 
 /*
-	version 版本号 同上送
-	tranCode 交易代码 同上送
-	merOrderId 商 户 订 单 号 同上送
-	merId 商户 ID 同上送
-	merAttach 附加数据 同上送
-	charset 编码方式 同上送
-	signType 签名类型 同上送
-	resultCode 处 理 结 果 码 4 格式：数字 详 情 参 见 附 录 二
-	resultCode 9999
-	errorCode 异常代码 1-10 格式：数字，字母 详 情 参 见 附 录 一 errorCode
-	errorMsg 异常描述 1-200 中文、字母、数字
-	failReason 失败原因 中文、字母、数字
-	userId 用户编号 12 同上送
-	outUserId 用户标识 开户时商户
+version 版本号 同上送
+tranCode 交易代码 同上送
+merOrderId 商 户 订 单 号 同上送
+merId 商户 ID 同上送
+merAttach 附加数据 同上送
+charset 编码方式 同上送
+signType 签名类型 同上送
+resultCode 处 理 结 果 码 4 格式：数字 详 情 参 见 附 录 二
+resultCode 9999
+errorCode 异常代码 1-10 格式：数字，字母 详 情 参 见 附 录 一 errorCode
+errorMsg 异常描述 1-200 中文、字母、数字
+failReason 失败原因 中文、字母、数字
+userId 用户编号 12 同上送
+outUserId 用户标识 开户时商户
 */
 type CheckUserAccountResp struct {
 	Version    string `json:"version" binding:"required"`
@@ -61,22 +61,22 @@ type CheckUserAccountResp struct {
 		unsettleBalance 待 结 转 余 额 格式：数字，单位：元
 		bindCardAgrNoLi st 绑 卡 协 议 号列表 例 如 ： ["20180822000000 0123","2018082200 00000118"]
 	*/
-	UserStat         string   `json:"userStat" binding:"required"`
-	AuditStat        string   `json:"auditStat" binding:"required"`
-	AuthStat         string   `json:"authStat" binding:"required"`
-	BalAmount        string   `json:"balAmount" binding:"required"`
-	UnclearAmount    string   `json:"unclearAmount" binding:"required"`
-	UnclearSumAmount string   `json:"unclearSumAmount" binding:"required"`
-	AvailableBalance string   `json:"availableBalance" binding:"required"`
-	UnsettleBalance  string   `json:"unsettleBalance" binding:"required"`
-	BindCardAgrNoLi  []string `json:"bindCardAgrNoLi" binding:"required"`
+	UserStat          string `json:"userStat" binding:"required"`
+	AuditStat         string `json:"auditStat" binding:"required"`
+	AuthStat          string `json:"authStat" binding:"required"`
+	BalAmount         string `json:"balAmount" binding:"required"`
+	UnclearAmount     string `json:"unclearAmount" binding:"required"`
+	UnclearSumAmount  string `json:"unclearSumAmount" binding:"required"`
+	AvailableBalance  string `json:"availableBalance" binding:"required"`
+	UnsettleBalance   string `json:"unsettleBalance" binding:"required"`
+	BindCardAgrNoList string `json:"bindCardAgrNoList" binding:"required"`
 
 	/*
 		indCardAgrNo 绑 卡 协 议 号 30
 		bankCode 银行简码 详情参见附录三 银行简码 例如：ICBC
 		cardNo 卡号掩码 1-30 格式：数字
 	*/
-	BindCards []NAccountBankCard `json:"bindCards" binding:"required"`
+	//BindCards interface{} `json:"bindCards" binding:"required"`
 
 	SignValue string `json:"signValue" binding:"required"`
 }

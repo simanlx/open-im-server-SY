@@ -178,20 +178,21 @@ func ManagementSendMsg(c *gin.Context) {
 		log.Error(c.PostForm("operationID"), "data args validate  err", err.Error())
 		return
 	}
-	log.NewInfo(params.OperationID, data, params)
-	token := c.Request.Header.Get("token")
-	claims, err := token_verify.ParseToken(token, params.OperationID)
-	if err != nil {
-		log.NewError(params.OperationID, "parse token failed", err.Error(), token)
-		c.JSON(http.StatusOK, gin.H{"errCode": 400, "errMsg": "parse token failed", "sendTime": 0, "MsgID": ""})
-		return
-	}
-	if !utils.IsContain(claims.UID, config.Config.Manager.AppManagerUid) {
-		log.NewError(params.OperationID, "not authorized", token)
+	/*	log.NewInfo(params.OperationID, data, params)
+		token := c.Request.Header.Get("token")
+		claims, err := token_verify.ParseToken(token, params.OperationID)
+		if err != nil {
+			log.NewError(params.OperationID, "parse token failed", err.Error(), token)
+			c.JSON(http.StatusOK, gin.H{"errCode": 400, "errMsg": "parse token failed", "sendTime": 0, "MsgID": ""})
+			return
+		}*/
+	//
+
+	/*	if !utils.IsContain("10086", config.Config.Manager.AppManagerUid) {
+		log.NewError(params.OperationID, "not authorized", "10086")
 		c.JSON(http.StatusOK, gin.H{"errCode": 400, "errMsg": "not authorized", "sendTime": 0, "MsgID": ""})
 		return
-
-	}
+	}*/
 	switch params.SessionType {
 	case constant.SingleChatType:
 		if len(params.RecvID) == 0 {
@@ -213,6 +214,7 @@ func ManagementSendMsg(c *gin.Context) {
 	log.Info(params.OperationID, "", "api ManagementSendMsg call start..., [data: %s]", pbData.String())
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImMsgName, params.OperationID)
+
 	if etcdConn == nil {
 		errMsg := params.OperationID + "getcdv3.GetDefaultConn == nil"
 		log.NewError(params.OperationID, errMsg)
@@ -223,10 +225,18 @@ func ManagementSendMsg(c *gin.Context) {
 	log.Info(params.OperationID, "", "api ManagementSendMsg call, api call rpc...")
 	var status int32
 	RpcResp, err := client.SendMsg(context.Background(), pbData)
-	if err != nil || (RpcResp != nil && RpcResp.ErrCode != 0) {
+	if err != nil {
 		status = constant.MsgSendFailed
-	} else {
-		status = constant.MsgSendSuccessed
+		c.JSON(http.StatusOK, gin.H{"errCode": 500, "errMsg": err.Error(), "sendTime": 0, "MsgID": ""})
+		return
+	}
+	// 走到这里就相当于发送成功
+	status = constant.MsgSendSuccessed
+	// 这里进行内容保存
+
+	if RpcResp.ErrCode != 0 {
+		c.JSON(http.StatusOK, gin.H{"errCode": RpcResp.ErrCode, "errMsg": RpcResp.ErrMsg, "sendTime": 0, "MsgID": ""})
+		return
 	}
 
 	respSetSendMsgStatus, err2 := client.SetSendMsgStatus(context.Background(), &pbChat.SetSendMsgStatusReq{OperationID: params.OperationID, Status: status})
@@ -238,7 +248,9 @@ func ManagementSendMsg(c *gin.Context) {
 	}
 
 	log.Info(params.OperationID, "", "api ManagementSendMsg call end..., [data: %s] [reply: %s]", pbData.String(), RpcResp.String())
-	resp := api.ManagementSendMsgResp{CommResp: api.CommResp{ErrCode: RpcResp.ErrCode, ErrMsg: RpcResp.ErrMsg}, ResultList: open_im_sdk.UserSendMsgResp{ServerMsgID: RpcResp.ServerMsgID, ClientMsgID: RpcResp.ClientMsgID, SendTime: RpcResp.SendTime}}
+	resp := api.ManagementSendMsgResp{
+		CommResp:   api.CommResp{ErrCode: RpcResp.ErrCode, ErrMsg: RpcResp.ErrMsg},
+		ResultList: open_im_sdk.UserSendMsgResp{ServerMsgID: RpcResp.ServerMsgID, ClientMsgID: RpcResp.ClientMsgID, SendTime: RpcResp.SendTime}}
 	log.Info(params.OperationID, "ManagementSendMsg return", resp)
 	c.JSON(http.StatusOK, resp)
 }

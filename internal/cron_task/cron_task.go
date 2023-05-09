@@ -99,3 +99,9 @@ func StartClearWorkingGroupMsg(operationID string, workingGroupIDList []string) 
 		}
 	}
 }
+
+// 定时访问所有红包ID
+// 根据红包ID进行红包表进行过期处理
+func StartClearRedPacket() {
+
+}

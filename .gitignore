@@ -7,6 +7,7 @@ out-test
 .github
 .idea
 
+config/*
 
 deploy/open_im_demo
 deploy/open_im_api
@@ -20,3 +21,8 @@ deploy/open_im_rpc_group
 deploy/open_im_rpc_msg
 deploy/open_im_rpc_auth
 deploy/Open-IM-SDK-Core
+/cmd/open_im_api/open_im_api
+/cmd/rpc/open_im_cloud_wallet/open_im_cloud_wallet
+/cmd/Open-IM-SDK-Core
+/pkg/proto/Open_IM
+/cmd/rpc/open_im_cloud_wallet/open_im_cloud_wallet

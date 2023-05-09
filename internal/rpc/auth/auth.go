@@ -13,6 +13,7 @@ import (
 	"Open_IM/pkg/utils"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -25,9 +26,11 @@ import (
 )
 
 func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq) (*pbAuth.UserRegisterResp, error) {
+	fmt.Println("UserRegister")
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), " rpc args ", req.String())
 	var user db.User
 	utils.CopyStructFields(&user, req.UserInfo)
+	// 如果用户逇信息中有生日，需要转换一下
 	if req.UserInfo.BirthStr != "" {
 		time, err := utils.TimeStringToTime(req.UserInfo.BirthStr)
 		if err != nil {
@@ -37,6 +40,7 @@ func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq)
 		user.Birth = time
 	}
 	log.Debug(req.OperationID, "copy ", user, req.UserInfo)
+	// 创建用户账号
 	err := imdb.UserRegister(user)
 	if err != nil {
 		errMsg := req.OperationID + " imdb.UserRegister failed " + err.Error() + user.UserID

@@ -6,11 +6,13 @@ import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/token_verify"
+	"Open_IM/pkg/contrive_msg"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	rpc "Open_IM/pkg/proto/group"
 	open_im_sdk "Open_IM/pkg/proto/sdk_ws"
 	"Open_IM/pkg/utils"
 	"context"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc"
@@ -972,6 +974,14 @@ func DismissGroup(c *gin.Context) {
 		return
 	}
 
+	// 发送解散通知
+	err := contrive_msg.DismissGroup(req.OperationID, req.OpUserID, req.GroupID)
+	if err != nil {
+		log.NewError(req.OperationID, "DismissGroup contrive_msg.DismissGroup failed ", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), " args ", req.String())
 
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImGroupName, req.OperationID)
@@ -1369,5 +1379,43 @@ func GetGroupAbstractInfo(c *gin.Context) {
 	resp.GroupMemberListHash = respPb.GroupMemberListHash
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), " api return ", resp)
 	c.JSON(http.StatusOK, resp)
+	return
+}
+
+// 获取群历史成员列表
+func GetGroupHistoryMembers(c *gin.Context) {
+	var (
+		req api.GetGroupHistoryMembersReq
+	)
+
+	if err := c.BindJSON(&req); err != nil {
+		log.NewError("0", "BindJSON failed ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImGroupName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": errMsg})
+		return
+	}
+
+	client := rpc.NewGroupClient(etcdConn)
+	RpcResp, err := client.GetGroupHistoryMembers(context.Background(), &rpc.GetGroupHistoryMembersReq{
+		GroupID:     req.GroupID,
+		Page:        req.Page,
+		Size:        req.Size,
+		OperationID: req.OperationID,
+	})
+
+	if err != nil {
+		log.NewError(req.OperationID, "GetGroupHistoryMembers failed ", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "timestamp": time.Now().Unix(), "data": RpcResp})
 	return
 }

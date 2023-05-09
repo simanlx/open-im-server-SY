@@ -11,6 +11,7 @@ import (
 	open_im_sdk "Open_IM/pkg/proto/sdk_ws"
 	"Open_IM/pkg/utils"
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -30,6 +31,7 @@ import (
 // @Failure 400 {object} api.Swagger400Resp "errCode为400 一般为参数输入错误, token未带上等"
 // @Router /auth/user_register [post]
 func UserRegister(c *gin.Context) {
+	fmt.Println("UserRegister")
 	params := api.UserRegisterReq{}
 	if err := c.BindJSON(&params); err != nil {
 		errMsg := " BindJSON failed " + err.Error()
@@ -51,6 +53,7 @@ func UserRegister(c *gin.Context) {
 	log.NewInfo(req.OperationID, "UserRegister args ", req.String())
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAuthName, req.OperationID)
 	if etcdConn == nil {
+		fmt.Println("UserRegister err", "getcdv3.GetDefaultConn == nil")
 		errMsg := req.OperationID + " getcdv3.GetDefaultConn == nil"
 		log.NewError(req.OperationID, errMsg)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
@@ -59,6 +62,7 @@ func UserRegister(c *gin.Context) {
 	client := rpc.NewAuthClient(etcdConn)
 	reply, err := client.UserRegister(context.Background(), req)
 	if err != nil {
+		fmt.Println("UserRegister err", err.Error())
 		errMsg := req.OperationID + " " + "UserRegister failed " + err.Error() + req.String()
 		log.NewError(req.OperationID, errMsg)
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})

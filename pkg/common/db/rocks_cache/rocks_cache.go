@@ -3,6 +3,7 @@ package rocksCache
 import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
+	imdb2 "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/utils"
@@ -35,6 +36,9 @@ const (
 	conversationIDListCache   = "CONVERSATION_ID_LIST_CACHE:"
 	extendMsgSetCache         = "EXTEND_MSG_SET_CACHE:"
 	extendMsgCache            = "EXTEND_MSG_CACHE:"
+
+	// 云钱包云钱包相关
+	fAccountCache = "F_ACCOUNT_CACHE:"
 )
 
 func DelKeys() {
@@ -173,6 +177,32 @@ func GetUserInfoFromCache(userID string) (*db.User, error) {
 
 func DelUserInfoFromCache(userID string) error {
 	return db.DB.Rc.TagAsDeleted(userInfoCache + userID)
+}
+
+// 获取用户账户信息从缓存
+func GetUserAccountInfoFromCache(userID string) (*db.FNcountAccount, error) {
+	getAccountInfo := func() (string, error) {
+		account, err := imdb2.GetNcountAccountByUserId(userID)
+		if err != nil {
+			return "", utils.Wrap(err, "")
+		}
+		bytes, err := json.Marshal(account)
+		if err != nil {
+			return "", utils.Wrap(err, "")
+		}
+		return string(bytes), nil
+	}
+	userInfoStr, err := db.DB.Rc.Fetch(fAccountCache+userID, time.Second*60*60*24, getAccountInfo)
+	if err != nil {
+		return nil, utils.Wrap(err, "")
+	}
+	userInfo := &db.FNcountAccount{}
+	err = json.Unmarshal([]byte(userInfoStr), userInfo)
+	return userInfo, utils.Wrap(err, "")
+}
+
+func DeleteAccountInfoFromCache(userID string) error {
+	return db.DB.Rc.TagAsDeleted(fAccountCache + userID)
 }
 
 func GetGroupMemberInfoFromCache(groupID, userID string) (*db.GroupMember, error) {

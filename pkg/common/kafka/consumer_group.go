@@ -30,7 +30,7 @@ func NewMConsumerGroup(consumerConfig *MConsumerGroupConfig, topics, addrs []str
 	config.Version = consumerConfig.KafkaVersion
 	config.Consumer.Offsets.Initial = consumerConfig.OffsetsInitial
 	config.Consumer.Return.Errors = consumerConfig.IsReturnErr
-	//fmt.Println("init address is ", addrs, "topics is ", topics)
+	fmt.Println("init address is ", addrs, "topics is ", topics)
 	consumerGroup, err := sarama.NewConsumerGroup(addrs, groupID, config)
 	if err != nil {
 		fmt.Println("args:", addrs, groupID, config)
@@ -44,6 +44,8 @@ func NewMConsumerGroup(consumerConfig *MConsumerGroupConfig, topics, addrs []str
 }
 func (mc *MConsumerGroup) RegisterHandleAndConsumer(handler sarama.ConsumerGroupHandler) {
 	ctx := context.Background()
+	fmt.Println(mc.topics)
+	fmt.Printf("%+v", handler)
 	for {
 		err := mc.ConsumerGroup.Consume(ctx, mc.topics, handler)
 		if err != nil {

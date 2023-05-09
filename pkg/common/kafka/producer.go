@@ -5,7 +5,7 @@ import (
 	log "Open_IM/pkg/common/log"
 	"Open_IM/pkg/utils"
 	"errors"
-
+	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/golang/protobuf/proto"
 
@@ -34,8 +34,11 @@ func NewKafkaProducer(addr []string, topic string) *Producer {
 	p.addr = addr
 	p.topic = topic
 
+	// 创建消费者
 	producer, err := sarama.NewSyncProducer(p.addr, p.config) //Initialize the client
 	if err != nil {
+		fmt.Println("key 连接不上kafka目标地址 ", p.addr)
+		log.Error("SendMessage", "key 连接不上kafka目标地址 ", p.addr)
 		panic(err.Error())
 		return nil
 	}
@@ -44,7 +47,7 @@ func NewKafkaProducer(addr []string, topic string) *Producer {
 }
 
 func (p *Producer) SendMessage(m proto.Message, key string, operationID string) (int32, int64, error) {
-	log.Info(operationID, "SendMessage", "key ", key, m.String(), p.producer)
+
 	kMsg := &sarama.ProducerMessage{}
 	kMsg.Topic = p.topic
 	kMsg.Key = sarama.StringEncoder(key)

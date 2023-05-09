@@ -2,6 +2,7 @@ package ncount
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -26,7 +27,7 @@ func (c *counter) NewAccount(req *NewAccountReq) (*NewAccountResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.MsgCipherText)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (c *counter) NewAccount(req *NewAccountReq) (*NewAccountResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.OrderID, string(cipher))
+	body := NewNAccountBaseParam(req.OrderID, string(cipher), "R010")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -85,7 +86,7 @@ func (c *counter) CheckUserAccountInfo(req *CheckUserAccountReq) (*CheckUserAcco
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.OrderID, string(cipher))
+	body := NewNAccountBaseParam(req.OrderID, string(cipher), "Q001")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -120,12 +121,13 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.BindCardMsgCipherText)
+	fmt.Println(string(data))
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
@@ -133,16 +135,18 @@ func (c *counter) BindCard(req *BindCardReq) (*BindCardResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "R007")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
 	}
+
 	// 4. 使用RSA进行私钥签名
 	sign, err := Sign([]byte(str), PRIVATE_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Sign")
 	}
+
 	body.SignValue = sign
 	content := body.Form()
 	result, err := httpPost(bindCardURL, content)
@@ -166,12 +170,12 @@ func (c *counter) BindCardConfirm(req *BindCardConfirmReq) (*BindCardConfirmResp
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.BindCardConfirmMsgCipherText)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
@@ -179,7 +183,7 @@ func (c *counter) BindCardConfirm(req *BindCardConfirmReq) (*BindCardConfirmResp
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "R008")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -212,20 +216,22 @@ func (c *counter) UnbindCard(req *UnBindCardReq) (*UnBindCardResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.UnBindCardMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
+
+	fmt.Println("req.UnBindCardMsgCipher", string(data))
 	// 3.version=[]tranCode=[]merId=[]merOrderId=[]submitTime=[]msgCiphertext=[]signType=[]
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "R009")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -258,7 +264,7 @@ func (c *counter) CheckUserAccountDetail(req *CheckUserAccountDetailReq) (*Check
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.CheckUserAccountDetailMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -271,7 +277,7 @@ func (c *counter) CheckUserAccountDetail(req *CheckUserAccountDetailReq) (*Check
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "Q004")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -304,7 +310,7 @@ func (c *counter) CheckUserAccountTrans(req *CheckUserAccountTransReq) (*CheckUs
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.CheckUserAccountTransMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -317,7 +323,7 @@ func (c *counter) CheckUserAccountTrans(req *CheckUserAccountTransReq) (*CheckUs
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "Q002")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -350,12 +356,12 @@ func (c *counter) QuickPayOrder(req *QuickPayOrderReq) (*QuickPayOrderResp, erro
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.QuickPayMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
@@ -363,7 +369,7 @@ func (c *counter) QuickPayOrder(req *QuickPayOrderReq) (*QuickPayOrderResp, erro
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.merOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T007")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -396,12 +402,12 @@ func (c *counter) QuickPayConfirm(req *QuickPayConfirmReq) (*QuickPayConfirmResp
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.QuickPayConfirmMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
 	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
-	cipher, err := Encrpt(data, PUBLIC_KEY)
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
 	if err != nil {
 		return nil, errors.Wrap(err, "Encrpt")
 	}
@@ -409,7 +415,7 @@ func (c *counter) QuickPayConfirm(req *QuickPayConfirmReq) (*QuickPayConfirmResp
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.merOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T008")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -442,7 +448,7 @@ func (c *counter) Transfer(req *TransferReq) (*TransferResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.TransferMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -455,7 +461,7 @@ func (c *counter) Transfer(req *TransferReq) (*TransferResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T003")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -488,7 +494,7 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 		return nil, errors.Wrap(err, "req.Vaild")
 	}
 	// 1. 将报文信息转换为 JSON 格式
-	data, err := json.Marshal(req)
+	data, err := json.Marshal(req.RefundMsgCipher)
 	if err != nil {
 		return nil, errors.Wrap(err, "json.Marshal")
 	}
@@ -501,7 +507,7 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 	// signValue= version
 	// 2. 使用RSA进行私钥签名
 	// 3. 签名后的二进制转Base64编码
-	body := NewNAccountBaseParam(req.MerOrderId, string(cipher))
+	body := NewNAccountBaseParam(req.MerOrderId, string(cipher), "T005")
 	err, str := body.flushSignValue()
 	if err != nil {
 		return nil, errors.Wrap(err, "flushSignValue")
@@ -527,5 +533,47 @@ func (c *counter) Refund(req *RefundReq) (*RefundResp, error) {
 
 // 提现接口
 func (c *counter) Withdraw(req *WithdrawReq) (*WithdrawResp, error) {
-	panic(1)
+	if req == nil {
+		return nil, errors.New("req is nil")
+	}
+	if err := req.Valid(); err != nil {
+		return nil, errors.Wrap(err, "req.Vaild")
+	}
+	// 1. 将报文信息转换为 JSON 格式
+	data, err := json.Marshal(req.MsgCipher)
+	if err != nil {
+		return nil, errors.Wrap(err, "json.Marshal")
+	}
+	// 2. 将 JSON 格式的报文信息用平台公钥 RSA 加密后 base64 的编码值
+	cipher, err := RsaEncryptBlock(data, PUBLIC_KEY)
+	if err != nil {
+		return nil, errors.Wrap(err, "Encrpt")
+	}
+	// 3.version=[]tranCode=[]merId=[]merOrderId=[]submitTime=[]msgCiphertext=[]signType=[]
+	// signValue= version
+	// 2. 使用RSA进行私钥签名
+	// 3. 签名后的二进制转Base64编码
+	body := NewNAccountBaseParam(req.MerOrderID, string(cipher), "T002")
+	err, str := body.flushSignValue()
+	if err != nil {
+		return nil, errors.Wrap(err, "flushSignValue")
+	}
+	// 4. 使用RSA进行私钥签名
+	sign, err := Sign([]byte(str), PRIVATE_KEY)
+	if err != nil {
+		return nil, errors.Wrap(err, "Sign")
+	}
+
+	body.SignValue = sign
+	content := body.Form()
+	result, err := httpPost(withdrawURL, content)
+	if err != nil {
+		return nil, errors.Wrap(err, "httpPost")
+	}
+	reply := &WithdrawResp{}
+	err = json.Unmarshal(result, reply)
+	if err != nil {
+		return nil, errors.Wrap(err, "json.Unmarshal")
+	}
+	return reply, nil
 }
