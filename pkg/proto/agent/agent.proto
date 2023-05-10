@@ -57,21 +57,21 @@ message WebBeanRechargeResp{
   CommonResp commonResp = 2;
 }
 
-message ChessBeanRechargeReq{
-  string chessOrderNo = 1; //互娱订单号
-  int64  chessUserId = 2; //互娱用户id
-  int32  configType = 3; //咖豆配置类型(0系统配置、1代理商配置)
-  int32  agentNumber = 4; //代理商编号
-  int32  configId = 5; //配置id
-  int32  number = 6; //咖豆数
-  int32  giveNumber = 7; //赠送咖豆数
-  int32  amount = 8; //金额
-  string operationId = 9;
+message ChessShopPurchaseBeanReq{
+  string userId = 1; //用户id
+  string chessOrderNo = 2; //互娱订单号
+  int64  chessUserId = 3; //互娱用户id
+  int32  configId = 4; //配置id
+  string operationId = 5;
 }
 
-message ChessBeanRechargeResp{
+message ChessShopPurchaseBeanResp{
   string order_no = 1; //平台订单号
-  CommonResp commonResp = 2;
+  int32  config_id = 2; //配置id
+  int64  bean_number = 3; //购买数量
+  int32  give_bean_number = 4; //赠送数量
+  int32  amount = 5; //金额(单位分)
+  CommonResp commonResp = 6;
 }
 
 message BeanRechargeConfirmReq{
@@ -186,7 +186,7 @@ message BeanShopConfig{
   int32 config_id = 1; //配置id
   int64 bean_number = 2; //购买数量
   int32 give_bean_number = 3; //赠送数量
-  int32 amount = 4; //金额(单位元)
+  int32 amount = 4; //金额(单位分)
   int32 status = 5; //状态
 }
 
@@ -280,6 +280,15 @@ message AgentMemberList{
   int64  contribution = 4; //贡献值
 }
 
+message ChessPurchaseBeanNotifyReq{
+  string OrderNo = 1;//互娱订单号
+  string NcountOrderNo = 2;//新生支付订单号
+}
+
+message ChessPurchaseBeanNotifyResp{
+  CommonResp commonResp = 1;
+}
+
 // 推广系统服务
 service AgentSystemService {
   // 获取用户推广员信息
@@ -311,6 +320,11 @@ service AgentSystemService {
   //赠送下属成员咖豆
   rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
 
+  //互娱商城购买咖豆下单(预提交)
+  rpc ChessShopPurchaseBean(ChessShopPurchaseBeanReq)returns(ChessShopPurchaseBeanResp);
+
+  //推广员下属购买咖豆(互娱回调)
+  rpc ChessPurchaseBeanNotify(ChessPurchaseBeanNotifyReq)returns(ChessPurchaseBeanNotifyResp);
 
 //  //h5咖豆充值下单
 //  rpc WebBeanRecharge(WebBeanRechargeReq)returns(WebBeanRechargeResp);

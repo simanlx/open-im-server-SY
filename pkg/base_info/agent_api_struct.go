@@ -68,3 +68,14 @@ type AgentGiveMemberBeanReq struct {
 	ChessUserId int64 `json:"chess_user_id"  binding:"required"`
 	BeanNumber  int64 `json:"bean_number"  binding:"required"`
 }
+
+type ChessPurchaseBeanNotifyReq struct {
+	OrderNo       string `json:"order_no"  binding:"required"`        //家等你订单号
+	NcountOrderNo string `json:"ncount_order_no"  binding:"required"` //新生支付订单号
+}
+
+type ChessShopPurchaseBeanReq struct {
+	ChessUserId int64  `json:"chess_user_id"  binding:"required"` //互娱用户id
+	ConfigId    int32  `json:"config_id"  binding:"required"`     //咖豆配置id
+	OrderNo     string `json:"order_no"  binding:"required"`      //互娱订单号
+}

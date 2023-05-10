@@ -684,22 +684,19 @@ func GetUsersUnionIdFromCache(UnionId string) string {
 }
 
 // 冻结推广员咖豆
-func FreezeAgentBeanBalance(ctx context.Context, agentNumber int32, chessUserId int64) error {
-	return db.DB.RDB.Set(ctx, fmt.Sprintf("%s%d:%d", AgentFreezeBeanBalanceCache, agentNumber, chessUserId), agentNumber, time.Second*120).Err()
+func FreezeAgentBeanBalance(ctx context.Context, agentNumber int32, chessUserId, beanNumber int64) error {
+	return db.DB.RDB.Set(ctx, fmt.Sprintf("%s%d:%d", AgentFreezeBeanBalanceCache, agentNumber, chessUserId), beanNumber, time.Second*120).Err()
 }
 
 // 获取推广员冻结的咖豆
 func GetAgentFreezeBeanBalance(ctx context.Context, agentNumber int32) (beanBalance int64) {
-	keys, err := db.DB.RDB.Keys(ctx, fmt.Sprintf("%s%d", AgentFreezeBeanBalanceCache, agentNumber)).Result()
+	keys, err := db.DB.RDB.Keys(ctx, fmt.Sprintf("%s%d*", AgentFreezeBeanBalanceCache, agentNumber)).Result()
 	if err != nil {
 		return beanBalance
 	}
-	fmt.Println("---获取推广员冻结的咖豆,redis-", keys, err)
 
 	for _, key := range keys {
 		freezeBalance, err := db.DB.RDB.Get(ctx, key).Result()
-		fmt.Println("---获取推广员冻结的咖豆,redis-", key, freezeBalance, err)
-
 		if err != nil {
 			continue
 		}

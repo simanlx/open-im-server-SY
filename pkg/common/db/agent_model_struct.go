@@ -94,7 +94,7 @@ type TAgentBeanRechargeOrder struct {
 	OrderNo       string    `json:"order_no"`        // 平台订单号
 	ChessOrderNo  string    `json:"chess_order_no"`  // 互娱订单号
 	NcountOrderNo string    `json:"ncount_order_no"` // 新生支付订单号
-	Number        int32     `json:"number"`          // 充值数量
+	Number        int64     `json:"number"`          // 充值数量
 	GiveNumber    int32     `json:"give_number"`     // 赠送金额
 	Amount        int32     `json:"amount"`          // 金额(单位:元)
 	PayTime       int32     `json:"pay_time"`        // 支付时间

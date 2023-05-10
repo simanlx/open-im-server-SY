@@ -36,7 +36,6 @@ func FriendDBCopyOpenIM(dst *open_im_sdk.FriendInfo, src *db.Friend) error {
 	return nil
 }
 
-//
 func FriendRequestOpenIMCopyDB(dst *db.FriendRequest, src *open_im_sdk.FriendRequest) {
 	utils.CopyStructFields(dst, src)
 	dst.CreateTime = utils.UnixSecondToTime(int64(src.CreateTime))
@@ -159,4 +158,15 @@ func UserDBCopyOpenIM(dst *open_im_sdk.UserInfo, src *db.User) {
 
 func UserDBCopyOpenIMPublicUser(dst *open_im_sdk.PublicUserInfo, src *db.User) {
 	utils.CopyStructFields(dst, src)
+}
+
+func GetOrderNo() string {
+	// 生成一串随机数
+	// 时间戳 + 6位随机数
+	tim := time.Now()
+	times := tim.Format("20060102150405")
+	rand.Seed(time.Now().UnixNano())
+	randNum := rand.Intn(999999)
+	orderNo := times + strconv.Itoa(randNum)
+	return orderNo
 }

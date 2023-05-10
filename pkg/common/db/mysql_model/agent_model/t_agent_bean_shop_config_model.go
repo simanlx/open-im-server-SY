@@ -1,6 +1,10 @@
 package agent_model
 
-import "Open_IM/pkg/common/db"
+import (
+	"Open_IM/pkg/common/db"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
+)
 
 // 获取推广员自定义商城咖豆配置
 func GetAgentDiyShopBeanConfig(userId string) (data []*db.TAgentBeanShopConfig, err error) {
@@ -33,5 +37,14 @@ func UpAgentDiyShopBeanConfigStatus(userId string, configId, status int32) error
 // 批量插入推广员自定义商城咖豆配置
 func InsertAgentDiyShopBeanConfigs(data []*db.TAgentBeanShopConfig) (err error) {
 	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Create(&data).Error
+	return
+}
+
+// 获取推广员咖豆配置
+func GetAgentBeanConfigById(userId string, configId int32) (info *db.TAgentBeanShopConfig, err error) {
+	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("id = ? and user_id = ?", configId, userId).First(&info).Error
+	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+		return nil, errors.Wrap(err, "")
+	}
 	return
 }

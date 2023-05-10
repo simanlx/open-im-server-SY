@@ -12,8 +12,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -83,7 +81,7 @@ func GiveChessUserBean(userId string, agentNumber int32, agentId, beanNumber, ch
 	}
 
 	//2、增加咖豆变更日志
-	orderNo := GetOrderNo()
+	orderNo := utils.GetOrderNo()
 	record := &db.TAgentBeanAccountRecord{
 		OrderNo:      orderNo,
 		UserId:       userId,
@@ -146,15 +144,4 @@ func GiveUserBeanRetry(orderNo string, agentNumber int32, chessUserId, beanNumbe
 
 		index++
 	}
-}
-
-func GetOrderNo() string {
-	// 生成一串随机数
-	// 时间戳 + 6位随机数
-	tim := time.Now()
-	times := tim.Format("20060102150405")
-	rand.Seed(time.Now().UnixNano())
-	randNum := rand.Intn(999999)
-	orderNo := times + strconv.Itoa(randNum)
-	return orderNo
 }
