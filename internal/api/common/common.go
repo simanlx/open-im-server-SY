@@ -22,7 +22,6 @@ func ParseImToken(c *gin.Context, operationID string) (string, bool) {
 	ok, userId, errMsg := token_verify.GetUserIDFromToken(c.Request.Header.Get("im-token"), operationID)
 	if !ok {
 		log.NewError(operationID, "im-token parseToken err :", errMsg)
-		c.JSON(http.StatusForbidden, gin.H{"errCode": 403, "errMsg": "token授权认证失败"})
 		return "", false
 	}
 	return userId, true

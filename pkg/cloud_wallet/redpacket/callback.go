@@ -69,7 +69,7 @@ func HandleSendPacketResult(redPacketID, OperateID string) error {
 }
 
 // 给群发的红包
-func GroupPacket(req *imdb.FPacket, redpacketID string) error {
+func GroupPacket(req *db.FPacket, redpacketID string) error {
 
 	// 在群红包这里，
 	var err error

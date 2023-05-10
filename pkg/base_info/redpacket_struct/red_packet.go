@@ -91,9 +91,23 @@ type ReFoundPacketReq struct {
 
 type ThirdPayReq struct {
 	// 暴露第三方接口
+	OprationID       string `json:"opration_id" binding:"required"` //链路跟踪id
+	OrderNo          string `json:"order_no" binding:"required"`    //本平台订单号
+	Password         string `json:"password" binding:"required"`    //支付密码
+	SendType         int32  `json:"send_type" binding:"required"`   //发送方式(1钱包余额、2银行卡)
+	BankcardProtocol string `json:"bankcard_protocol"`              //协议号
+}
+
+type CreateThirdPayOrder struct {
+	// 创建第三方订单
 	MerchantID string `json:"merchant_id" binding:"required"`  //商户号，需要向平台申请
 	MerOrderID string `json:"mer_order_id" binding:"required"` //商户订单号 ，全局唯一，不能重复
 	NotifyURL  string `json:"notify_url" binding:"required"`   //异步通知地址
 	Amount     int32  `json:"amount" binding:"required"`       //金额，单位分
-	OprationID string `json:"opration_id" binding:"required"`  //链路跟踪id
+}
+
+type GetThirdPayOrder struct {
+	// 获取第三方订单
+	OrderNO     string `json:"order_no" binding:"required"`     //订单号
+	OperationID string `json:"operation_id" binding:"required"` // 链路跟踪id
 }
