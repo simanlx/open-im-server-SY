@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"math"
+	"sort"
 )
 
 type RechargeUserGoldReq struct {
@@ -53,37 +54,74 @@ func ChessApiAgentChessMemberList(agentNumber int32) ([]*ChessUserInfo, error) {
 }
 
 // 获取推广员下属成员列表
-func GetAgentChessMemberList(agentNumber, orderBy int32) ([]*ChessUserInfo, error) {
-	return ChessApiAgentChessMemberList(agentNumber)
+func GetAgentChessMemberList(agentNumber, orderBy, page, size int32) (int64, []int64, map[int64]*ChessUserInfo) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error("", "获取推广员下属成员列表GetAgentChessMemberList panic:参数->", agentNumber, orderBy, page, size)
+			return
+		}
+	}()
+
+	chessUserIds := make([]int64, 0)
+	chessUserMap := map[int64]*ChessUserInfo{}
+
+	agentChessMemberList, err := ChessApiAgentChessMemberList(agentNumber)
+	memberTotal := int64(len(agentChessMemberList))
+	if err != nil || memberTotal == 0 {
+		return memberTotal, chessUserIds, chessUserMap
+	}
+
+	if orderBy == 1 {
+		//咖豆倒序
+		sort.Slice(agentChessMemberList, func(p, q int) bool {
+			return agentChessMemberList[p].Gold > agentChessMemberList[q].Gold
+		})
+
+	} else if orderBy == 2 {
+		//咖豆正序
+		sort.Slice(agentChessMemberList, func(p, q int) bool {
+			return agentChessMemberList[p].Gold < agentChessMemberList[q].Gold
+		})
+	} else {
+		// 无排序、返回uid map
+		for _, v := range agentChessMemberList {
+			chessUserMap[v.Uid] = v
+		}
+		return memberTotal, chessUserIds, chessUserMap
+	}
+
+	//分页获取
+	chessMemberList := SliceListPage(agentChessMemberList, int(page), int(size))
+	for _, v := range chessMemberList {
+		chessUserIds = append(chessUserIds, v.Uid)
+		chessUserMap[v.Uid] = v
+	}
+
+	return memberTotal, chessUserIds, chessUserMap
 }
 
-//func ArraySlice(s []interface{}, offset, length uint) []interface{} {
-//	if offset > uint(len(s)) {
-//		panic("offset: the offset is less than the length of s")
-//	}
-//	end := offset + length
-//	if end < uint(len(s)) {
-//		return s[offset:end]	}
-//	return s[offset:]
-//}
+// 分页
+func SliceListPage(list []*ChessUserInfo, page, size int) []*ChessUserInfo {
+	sliceLen := len(list)
 
-func SlicePage(sliceLen, page, size int) (sliceStart, sliceEnd int) {
 	if size > sliceLen {
-		return 0, sliceLen
+		return list
 	}
+
+	chessUserList := make([]*ChessUserInfo, 0)
 
 	// 总页数计算
 	pageCount := int(math.Ceil(float64(sliceLen) / float64(size)))
 	if page > pageCount {
-		return 0, 0
+		return chessUserList
 	}
 
-	sliceStart = (page - 1) * size
-	sliceEnd = sliceStart + size
-	if sliceEnd > sliceLen {
-		sliceEnd = sliceLen
+	start := (page - 1) * size
+	end := start + size
+	if end > sliceLen {
+		end = sliceLen
 	}
-	return sliceStart, sliceEnd
+	return list[start:end]
 }
 
 // 调用chess api 给用户加咖豆

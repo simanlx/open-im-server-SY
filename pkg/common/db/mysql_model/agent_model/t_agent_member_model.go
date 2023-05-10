@@ -51,14 +51,19 @@ func FindAgentMemberIds(userId, keyword string) (chessUserIds []int64, err error
 }
 
 // 获取推广员下属成员列表
-func FindAgentMemberList(userId, keyword string, orderBy, page, size int32) (list []*db.TAgentMember, count int64, err error) {
+func FindAgentMemberList(userId, keyword string, chessUserIds []int64, orderBy, page, size int32) (list []*db.TAgentMember, err error) {
 	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_member").Where("user_id = ?", userId)
 
 	if len(keyword) > 0 {
 		model = model.Where("chess_user_id = ? or chess_nickname like ?", keyword, fmt.Sprintf("%%%s%%", keyword))
 	}
 
-	model = model.Count(&count).Limit(int(size)).Offset(int(size * (page - 1)))
+	//按咖豆排序才有的uids
+	if len(chessUserIds) > 0 {
+		model = model.Where("chess_user_id in (?)", chessUserIds)
+	} else {
+		model = model.Limit(int(size)).Offset(int(size * (page - 1)))
+	}
 
 	//排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
 	orderByStr := "id desc"

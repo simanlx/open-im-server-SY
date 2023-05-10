@@ -77,6 +77,7 @@ message UserInfo{
   int32 appMangerLevel = 10;
   int32 globalRecvMsgOpt = 11;
   string birthStr = 12;
+  string unionid = 13;
 }
 
 message FriendInfo{

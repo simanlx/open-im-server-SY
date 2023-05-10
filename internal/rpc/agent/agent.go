@@ -195,45 +195,64 @@ func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMembe
 		return resp, nil
 	}
 
-	// 按成员咖豆排序
-	//if req.OrderBy == 1 || req.OrderBy == 2 {
-	//
-	//} else {
-	//
-	//}
-
+	//req.OrderBy 排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
 	//根据推广员编号获取所有下属成员
-	agentMemberList, err := chessApi.GetAgentChessMemberList(info.AgentNumber, req.OrderBy)
-	if err != nil || len(agentMemberList) == 0 {
+	total, chessUserIds, agentMemberList := chessApi.GetAgentChessMemberList(info.AgentNumber, req.OrderBy, req.Page, req.Size)
+	if len(agentMemberList) == 0 {
 		return resp, nil
 	}
 
-	//req.OrderBy 排序(0默认-绑定时间倒序,1咖豆倒序,2咖豆正序,3贡献值倒序,4贡献值正序)
-
 	//获取条件列表数据
-	list, count, err := imdb.FindAgentMemberList(req.UserId, req.Keyword, req.OrderBy, req.Page, req.Size)
+	list, err := imdb.FindAgentMemberList(req.UserId, req.Keyword, chessUserIds, req.OrderBy, req.Page, req.Size)
 	if err != nil {
 		return resp, nil
 	}
 
-	resp.Total = count
+	resp.Total = total
 	if len(list) > 0 {
+		//按咖豆排序
+		if len(chessUserIds) > 0 {
+			// 下属成员贡献度
+			userContribution := make(map[int64]int64, 0)
+			for _, v := range list {
+				userContribution[v.ChessUserId] = v.Contribution
+			}
 
-		for _, v := range list {
-			resp.AgentMemberList = append(resp.AgentMemberList, &agent.AgentMemberList{
-				ChessUserId:     v.ChessUserId,
-				ChessNickname:   v.ChessNickname,
-				ChessBeanNumber: v.Contribution,
-				Contribution:    v.Contribution,
-			})
+			for _, chessUserId := range chessUserIds {
+				var contribution int64 = 0
+				if c, ok := userContribution[chessUserId]; ok {
+					contribution = c
+				}
+
+				member, _ := agentMemberList[chessUserId]
+				resp.AgentMemberList = append(resp.AgentMemberList, &agent.AgentMemberList{
+					ChessUserId:     member.Uid,
+					ChessNickname:   member.Nickname,
+					ChessBeanNumber: member.Gold,
+					Contribution:    contribution,
+				})
+			}
+		} else {
+			for _, v := range list {
+				chessNickname := v.ChessNickname
+				var chessBeanNumber int64 = 0
+				if member, ok := agentMemberList[v.ChessUserId]; ok {
+					chessNickname = member.Nickname
+					chessBeanNumber = member.Gold
+
+					// 更新冗余昵称数据
+					//if v.ChessNickname != member.Nickname {
+					//
+					//}
+				}
+				resp.AgentMemberList = append(resp.AgentMemberList, &agent.AgentMemberList{
+					ChessUserId:     v.ChessUserId,
+					ChessNickname:   chessNickname,
+					ChessBeanNumber: chessBeanNumber,
+					Contribution:    v.Contribution,
+				})
+			}
 		}
-
-		//排序
-		//if req.OrderBy == 1 {
-		//	sort.Slice(resp.AgentMemberList, func(p, q int) bool {
-		//		return resp.AgentMemberList[p].ChessBeanNumber < resp.AgentMemberList[q].ChessBeanNumber
-		//	})
-		//}
 	}
 	return resp, nil
 }

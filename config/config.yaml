@@ -12,7 +12,7 @@ etcd:
   secret:
 
 mysql:
-  dbMysqlAddress: [ 10.20.0.183:13306 ] #mysql地址 目前仅支持单机，默认即可
+  dbMysqlAddress: [ 192.168.30.87:13306 ] #mysql地址 目前仅支持单机，默认即可
   dbMysqlUserName:  root #mysql用户名，建议修改
   dbMysqlPassword:  openIM123 # mysql密码，建议修改
   dbMysqlDatabaseName: openIM_v2 #默认即可
@@ -25,7 +25,7 @@ mysql:
   slowThreshold: 500
 
 agentmysql:
-    dbMysqlAddress: [ 10.20.0.183:13306 ]
+    dbMysqlAddress: [ 192.168.30.87:13306 ]
     dbMysqlUserName: root
     dbMysqlPassword: openIM123
     dbMysqlDatabaseName: agent_system
@@ -39,7 +39,7 @@ agentmysql:
 mongo:
   dbUri: ""#当dbUri值不为空则直接使用该值
   #dbAddress: 127.0.0.1:37017  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
-  dbAddress: [10.20.0.183:37017]  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
+  dbAddress: [192.168.30.87:37017]  #单机时为mongo地址，使用分片集群时，为mongos地址 默认即可
   dbDirect: false
   dbTimeout: 60
   dbDatabase: openIM  #mongo db 默认即可
@@ -51,7 +51,7 @@ mongo:
   chatRecordsClearTime: "0 3 * * *" # 每天凌晨3点清除消息，该配置和linux定时任务一样， 清理操作建议设置在用户活跃少的时候 # 0 3 * * *
 
 redis:
-  dbAddress: [ 10.20.0.183:16379 ] #redis地址 单机时，填写一个地址即可，使用redis集群时候，填写集群中多个节点地址（主从地址都可以填写，增加容灾能力），默认即可
+  dbAddress: [ 192.168.30.87:16379 ] #redis地址 单机时，填写一个地址即可，使用redis集群时候，填写集群中多个节点地址（主从地址都可以填写，增加容灾能力），默认即可
   dbMaxIdle: 128
   dbMaxActive: 0
   dbIdleTimeout: 120
@@ -63,19 +63,19 @@ kafka:
   SASLUserName: 
   SASLPassword:
   ws2mschat:
-    addr: [10.20.0.183:9092] #kafka配置，默认即可
+    addr: [192.168.30.87:9092] #kafka配置，默认即可
     topic: "ws2ms_chat" #用于mongo和mysql保存消息
 #  ws2mschatoffline:
 #    addr: [ 127.0.0.1:9092 ] #kafka配置，默认即可
 #    topic: "ws2ms_chat_offline" #原为离线用户消息处理，目前暂时弃用
   msgtomongo:
-    addr: [10.20.0.183:9092] #kafka配置，默认即可
+    addr: [192.168.30.87:9092] #kafka配置，默认即可
     topic: "msg_to_mongo"
   ms2pschat:
-    addr: [10.20.0.183:9092] #kafka配置，默认即可
+    addr: [192.168.30.87:9092] #kafka配置，默认即可
     topic: "ms2ps_chat" #消息push
   msgtomodify:
-    addr: [10.20.0.183:9092] #kafka配置，默认即可
+    addr: [192.168.30.87:9092] #kafka配置，默认即可
     topic: "msg_to_modify"
   consumergroupid:
     msgToTransfer: mongo
@@ -148,7 +148,7 @@ credential: #腾讯cos，发送图片、视频、文件时需要，请自行申�
     appBucket: app # 存储app的桶
     location: us-east-1
     endpoint:  #minio外网ip 这个ip是给客户端访问的
-    endpointInner: http://10.20.0.183:9090 #minio内网地址 如果im server 可以通过内网访问到 minio就可以
+    endpointInner: http://192.168.30.87:9090 #minio内网地址 如果im server 可以通过内网访问到 minio就可以
     endpointInnerEnable: true #是否启用minio内网地址 启用可以让桶初始化，IM server连接minio走内网地址访问
     accessKeyID: EZOXISyP9s47h3AR
     secretAccessKey: HgzgXFg0Hov1IjEgMFSnGdHsxhgMDTJW

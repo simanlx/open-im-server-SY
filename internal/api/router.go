@@ -198,7 +198,7 @@ func NewGinRouter() *gin.Engine {
 	//certificate
 	authRouterGroup := r.Group("/auth")
 	{
-		authRouterGroup.POST("/user_register", apiAuth.UserRegister) //1
+		authRouterGroup.POST("/user_register", apiAuth.UserRegister) //account rpc 调用
 		authRouterGroup.POST("/user_token", apiAuth.UserToken)       //1
 		authRouterGroup.POST("/parse_token", apiAuth.ParseToken)     //1
 		authRouterGroup.POST("/force_logout", apiAuth.ForceLogout)   //1
