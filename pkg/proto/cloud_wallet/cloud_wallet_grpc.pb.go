@@ -43,6 +43,8 @@ const (
 	CloudWalletService_ThirdPay_FullMethodName                = "/cloud_wallet.CloudWalletService/ThirdPay"
 	CloudWalletService_CreateThirdPayOrder_FullMethodName     = "/cloud_wallet.CloudWalletService/CreateThirdPayOrder"
 	CloudWalletService_GetThirdPayOrderInfo_FullMethodName    = "/cloud_wallet.CloudWalletService/GetThirdPayOrderInfo"
+	CloudWalletService_PayConfirm_FullMethodName              = "/cloud_wallet.CloudWalletService/PayConfirm"
+	CloudWalletService_PayCallback_FullMethodName             = "/cloud_wallet.CloudWalletService/PayCallback"
 )
 
 // CloudWalletServiceClient is the client API for CloudWalletService service.
@@ -98,6 +100,10 @@ type CloudWalletServiceClient interface {
 	CreateThirdPayOrder(ctx context.Context, in *CreateThirdPayOrderReq, opts ...grpc.CallOption) (*CreateThirdPayOrderResp, error)
 	// 查询
 	GetThirdPayOrderInfo(ctx context.Context, in *GetThirdPayOrderInfoReq, opts ...grpc.CallOption) (*GetThirdPayOrderInfoResp, error)
+	// 第三方支付确认
+	PayConfirm(ctx context.Context, in *PayConfirmReq, opts ...grpc.CallOption) (*CommonResp, error)
+	// 第三方回调接口
+	PayCallback(ctx context.Context, in *PayCallbackReq, opts ...grpc.CallOption) (*PayCallbackResp, error)
 }
 
 type cloudWalletServiceClient struct {
@@ -324,6 +330,24 @@ func (c *cloudWalletServiceClient) GetThirdPayOrderInfo(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *cloudWalletServiceClient) PayConfirm(ctx context.Context, in *PayConfirmReq, opts ...grpc.CallOption) (*CommonResp, error) {
+	out := new(CommonResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_PayConfirm_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cloudWalletServiceClient) PayCallback(ctx context.Context, in *PayCallbackReq, opts ...grpc.CallOption) (*PayCallbackResp, error) {
+	out := new(PayCallbackResp)
+	err := c.cc.Invoke(ctx, CloudWalletService_PayCallback_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CloudWalletServiceServer is the server API for CloudWalletService service.
 // All implementations must embed UnimplementedCloudWalletServiceServer
 // for forward compatibility
@@ -377,6 +401,10 @@ type CloudWalletServiceServer interface {
 	CreateThirdPayOrder(context.Context, *CreateThirdPayOrderReq) (*CreateThirdPayOrderResp, error)
 	// 查询
 	GetThirdPayOrderInfo(context.Context, *GetThirdPayOrderInfoReq) (*GetThirdPayOrderInfoResp, error)
+	// 第三方支付确认
+	PayConfirm(context.Context, *PayConfirmReq) (*CommonResp, error)
+	// 第三方回调接口
+	PayCallback(context.Context, *PayCallbackReq) (*PayCallbackResp, error)
 	mustEmbedUnimplementedCloudWalletServiceServer()
 }
 
@@ -455,6 +483,12 @@ func (UnimplementedCloudWalletServiceServer) CreateThirdPayOrder(context.Context
 }
 func (UnimplementedCloudWalletServiceServer) GetThirdPayOrderInfo(context.Context, *GetThirdPayOrderInfoReq) (*GetThirdPayOrderInfoResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetThirdPayOrderInfo not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) PayConfirm(context.Context, *PayConfirmReq) (*CommonResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PayConfirm not implemented")
+}
+func (UnimplementedCloudWalletServiceServer) PayCallback(context.Context, *PayCallbackReq) (*PayCallbackResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PayCallback not implemented")
 }
 func (UnimplementedCloudWalletServiceServer) mustEmbedUnimplementedCloudWalletServiceServer() {}
 
@@ -901,6 +935,42 @@ func _CloudWalletService_GetThirdPayOrderInfo_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CloudWalletService_PayConfirm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayConfirmReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).PayConfirm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_PayConfirm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).PayConfirm(ctx, req.(*PayConfirmReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CloudWalletService_PayCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PayCallbackReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CloudWalletServiceServer).PayCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CloudWalletService_PayCallback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CloudWalletServiceServer).PayCallback(ctx, req.(*PayCallbackReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CloudWalletService_ServiceDesc is the grpc.ServiceDesc for CloudWalletService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1003,6 +1073,14 @@ var CloudWalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetThirdPayOrderInfo",
 			Handler:    _CloudWalletService_GetThirdPayOrderInfo_Handler,
+		},
+		{
+			MethodName: "PayConfirm",
+			Handler:    _CloudWalletService_PayConfirm_Handler,
+		},
+		{
+			MethodName: "PayCallback",
+			Handler:    _CloudWalletService_PayCallback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

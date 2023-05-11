@@ -497,6 +497,7 @@ message  CreateThirdPayOrderReq {
   string notifyUrl = 3; //异步通知地址
   int32 amount = 4; //金额，单位分
   string operationID = 5; //链路跟踪id
+  string remark = 6; //备注
 }
 
 
@@ -516,8 +517,45 @@ message GetThirdPayOrderInfoResp {
   string merOrderId = 3; //商户订单号 ，全局唯一，不能重复
   string merchantId = 4; //商户号，需要向平台申请
   int32  status = 5; //订单状态 0：未支付 1：支付成功 2：支付失败
-  CommonResp commonResp = 6;
+  string addTime = 6; //创建时间
+  string remark = 7; //支付时间
+  CommonResp commonResp = 8;
 }
+
+message  PayConfirmReq{
+  string orderNo = 1; //订单号
+  string code = 2; //链路跟踪id
+  string operationID = 3; //链路跟踪id
+  string userid = 4; //用户id
+  PayCallbackBusinessType businessType = 5;
+}
+
+// 这里做回调，但是建议使用统一的回调入口，通过业务ID来进行区分，由于之前的回调不是我处理的，所以这里只能做扩展
+// steven
+message PayCallbackReq {
+  string merOrderId = 1;
+  string resultCode = 2;
+  string errorCode = 3;
+  string errorMsg = 4;
+  string ncountOrderId = 5;
+  string tranAmount = 6;
+  string submitTime = 7;
+  string tranFinishTime = 8;
+  string feeAmount = 9;
+  PayCallbackBusinessType businessType = 10;
+}
+
+// 支付回调的统一处理层面
+enum PayCallbackBusinessType {
+  EMOK = 0;
+  P_ThirdPay = 100; //第三方支付 相关的业务
+}
+
+// 这个返回httpcode200就行
+message PayCallbackResp {
+  CommonResp commonResp = 1;
+}
+
 
 // 钱包服务
 service CloudWalletService {
@@ -593,4 +631,10 @@ service CloudWalletService {
 
   // 查询
   rpc GetThirdPayOrderInfo(GetThirdPayOrderInfoReq)returns(GetThirdPayOrderInfoResp);
+
+  // 第三方支付确认
+  rpc PayConfirm(PayConfirmReq)returns(CommonResp);
+
+  // 第三方回调接口
+  rpc PayCallback(PayCallbackReq)returns(PayCallbackResp);
 }
