@@ -100,7 +100,7 @@ func BindAgentNumber(c *gin.Context) {
 
 	operationId := c.GetString("operationId")
 	req := &rpc.BindAgentNumberReq{
-		UserId:        c.GetString("userId"),
+		UserId:        "",
 		AgentNumber:   params.AgentNumber,
 		ChessUserId:   params.ChessUserId,
 		ChessNickname: params.ChessNickname,

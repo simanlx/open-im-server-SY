@@ -146,8 +146,7 @@ message AgentAccountRecordListResp{
 
 message AccountRecordList{
   int32  business_type = 1; //业务类型
-  int64  amount = 2; //金额(分)
-  int64  rebate_amount = 3; //返利金额(分)
+  int32  amount = 2; //金额(分)
   string describe = 4; //描述
   string created_time = 5; //时间
   int32  type = 6; //收支类型(1收入、2支出)
@@ -229,9 +228,9 @@ message AgentBeanAccountRecordListResp{
 message BeanRecordList{
   int32  type = 1; //收支类型(1收入、2支出)
   int32  business_type = 2; //业务类型
-  int64  amount = 3; //金额(单位分)
+  int32  amount = 3; //金额(单位分)
   int64  number = 4; //数量
-  int64  give_number = 5; //赠送数量
+  int32  give_number = 5; //赠送数量
   string describe = 6; //描述
   string created_time = 7; //时间
 }
@@ -281,12 +280,27 @@ message AgentMemberList{
 }
 
 message ChessPurchaseBeanNotifyReq{
-  string OrderNo = 1;//互娱订单号
+  string OrderNo = 1;//平台订单号
   string NcountOrderNo = 2;//新生支付订单号
 }
 
 message ChessPurchaseBeanNotifyResp{
   CommonResp commonResp = 1;
+}
+
+message PlatformPurchaseBeanNotifyReq{
+  string ChessOrderNo = 1; //互娱订单号
+  string NcountOrderNo = 2;//新生支付订单号
+  int32  AgentNumber = 3; //推广员编号
+  int64  ChessUserId = 4; //互娱用户id
+  int64  BeanNumber = 5; //购买数量
+  int32  GiveBeanNumber = 6; //赠送数量
+  int32  Amount = 7; //金额(单位分)
+}
+
+message PlatformPurchaseBeanNotifyResp{
+  string OrderNo = 1;//互娱订单号
+  CommonResp commonResp = 2;
 }
 
 // 推广系统服务
@@ -323,8 +337,11 @@ service AgentSystemService {
   //互娱商城购买咖豆下单(预提交)
   rpc ChessShopPurchaseBean(ChessShopPurchaseBeanReq)returns(ChessShopPurchaseBeanResp);
 
-  //推广员下属购买咖豆(互娱回调)
+  //推广员成员购买咖豆回调(推广员商城) - 互娱回调
   rpc ChessPurchaseBeanNotify(ChessPurchaseBeanNotifyReq)returns(ChessPurchaseBeanNotifyResp);
+
+  //推广员成员购买咖豆回调(平台商城) - 互娱回调
+  rpc PlatformPurchaseBeanNotify(PlatformPurchaseBeanNotifyReq)returns(PlatformPurchaseBeanNotifyResp);
 
 //  //h5咖豆充值下单
 //  rpc WebBeanRecharge(WebBeanRechargeReq)returns(WebBeanRechargeResp);

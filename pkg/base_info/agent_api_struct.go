@@ -70,12 +70,22 @@ type AgentGiveMemberBeanReq struct {
 }
 
 type ChessPurchaseBeanNotifyReq struct {
-	OrderNo       string `json:"order_no"  binding:"required"`        //家等你订单号
+	OrderNo       string `json:"order_no"  binding:"required"`        //平台订单号
 	NcountOrderNo string `json:"ncount_order_no"  binding:"required"` //新生支付订单号
 }
 
 type ChessShopPurchaseBeanReq struct {
-	ChessUserId int64  `json:"chess_user_id"  binding:"required"` //互娱用户id
-	ConfigId    int32  `json:"config_id"  binding:"required"`     //咖豆配置id
-	OrderNo     string `json:"order_no"  binding:"required"`      //互娱订单号
+	ChessUserId  int64  `json:"chess_user_id"  binding:"required"`  //互娱用户id
+	ConfigId     int32  `json:"config_id"  binding:"required"`      //咖豆配置id
+	ChessOrderNo string `json:"chess_order_no"  binding:"required"` //互娱订单号
+}
+
+type PlatformPurchaseBeanNotifyReq struct {
+	ChessOrderNo   string `json:"chess_order_no"  binding:"required"`  //互娱订单号
+	NcountOrderNo  string `json:"ncount_order_no"  binding:"required"` //新生支付订单号
+	AgentNumber    int32  `json:"agent_number"  binding:"required"`    //推广员编号
+	ChessUserId    int64  `json:"chess_user_id"  binding:"required"`   //互娱用户id
+	BeanNumber     int64  `json:"bean_number"  binding:"required"`     //购买数量
+	GiveBeanNumber int32  `json:"give_bean_number"`                    //赠送数量
+	Amount         int32  `json:"amount"  binding:"required"`          //金额(单位分)
 }

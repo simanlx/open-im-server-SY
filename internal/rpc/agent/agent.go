@@ -7,6 +7,7 @@ import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/proto/agent"
 	"context"
+	"time"
 )
 
 // 推广员申请提交
@@ -60,10 +61,11 @@ func (rpc *AgentServer) BindAgentNumber(_ context.Context, req *agent.BindAgentN
 
 	//绑定推广员
 	err = imdb.BindAgentNumber(&db.TAgentMember{
-		UserId:        req.UserId,
+		UserId:        agentInfo.UserId,
 		AgentNumber:   req.AgentNumber,
 		ChessUserId:   req.ChessUserId,
 		ChessNickname: req.ChessNickname,
+		Day:           time.Now().Format("2006-01-02"),
 	})
 
 	if err != nil {
@@ -174,7 +176,6 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 			resp.AccountRecordList = append(resp.AccountRecordList, &agent.AccountRecordList{
 				BusinessType: v.BusinessType,
 				Amount:       v.Amount,
-				RebateAmount: v.RebateAmount,
 				Describe:     v.Describe,
 				CreatedTime:  v.CreatedTime.Format("2006-01-02 15:04:05"),
 				Type:         v.Type,

@@ -49,14 +49,13 @@ func NewGinRouter() *gin.Engine {
 		r.GET("/metrics", promePkg.PrometheusHandler())
 	}
 
-	//推广计划
+	//推广计划(鉴权)
 	agentGroup := r.Group("/agent")
 	agentGroup.Use(middleware.JWTAuth())
 	{
 		//新互娱接口 - start
 		agentGroup.POST("user_agent_info", agent.GetUserAgentInfo)              //获取当前用户的推广员信息以及绑定关系
 		agentGroup.POST("apply", agent.AgentApply)                              //推广员申请提交
-		agentGroup.POST("bind_agent_number", agent.BindAgentNumber)             //绑定推广员
 		agentGroup.POST("game_shop/bean_config", agent.AgentGameShopBeanConfig) //获取推广员游戏商城咖豆配置
 		agentGroup.POST("game_shop/purchase_bean", agent.ChessShopPurchaseBean) //互娱商城购买咖豆下单(预提交)
 		//新互娱接口 - end
@@ -76,10 +75,12 @@ func NewGinRouter() *gin.Engine {
 		agentGroup.POST("give_member_bean", agent.AgentGiveMemberBean) //赠送下属成员咖豆
 	}
 
-	//推广系统-回调
-	agentCallbackGroup := r.Group("/agent/notify")
+	//推广系统(不需要鉴权)
+	agentCallbackGroup := r.Group("/agent")
 	{
-		agentCallbackGroup.POST("chess_purchase_bean", agent.ChessPurchaseBeanNotify) //推广员下属成员购买咖豆 - 互娱回调
+		agentCallbackGroup.POST("bind_agent_number", agent.BindAgentNumber)                        //绑定推广员
+		agentCallbackGroup.POST("notify/agent_purchase_bean", agent.ChessPurchaseBeanNotify)       //推广员成员购买咖豆回调(推广员商城) - 互娱回调
+		agentCallbackGroup.POST("notify/platform_purchase_bean", agent.PlatformPurchaseBeanNotify) //推广员成员购买咖豆回调(平台商城) - 互娱回调
 		//agentCallbackGroup.POST("web_recharge_bean", agent.MemberPurchaseBeanNotify)  //推广员充值咖豆 - 新生支付回调
 		//agentCallbackGroup.POST("withdraw", agent.WithDrawNotify)                     //推广员充值咖豆 - 新生支付回调
 	}

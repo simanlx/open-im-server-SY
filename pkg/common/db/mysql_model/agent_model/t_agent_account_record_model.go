@@ -21,6 +21,14 @@ type AccountIncomeChartData struct {
 	Income int64  `json:"income"` //收益值
 }
 
+// 创建账户余额变更日志
+func CreateAccountRecord(info *db.TAgentAccountRecord) error {
+	info.CreatedTime = time.Now()
+	info.UpdatedTime = time.Now()
+	err := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_account_record").Create(info).Error
+	return err
+}
+
 // 统计推广员收益数据
 func StatAgentIncomeData(userId string) (data *SAgentIncomeData, err error) {
 	today := time.Now().Format("2006-01-02")

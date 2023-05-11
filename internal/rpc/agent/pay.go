@@ -11,13 +11,6 @@ import (
 	"fmt"
 )
 
-// 推广员下属成员购买咖豆 - 互娱回调
-func (rpc *AgentServer) ChessPurchaseBeanNotify(ctx context.Context, req *agent.ChessPurchaseBeanNotifyReq) (*agent.ChessPurchaseBeanNotifyResp, error) {
-	resp := &agent.ChessPurchaseBeanNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
-
-	return resp, nil
-}
-
 // 互娱商城购买咖豆下单(预提交)
 func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.ChessShopPurchaseBeanReq) (*agent.ChessShopPurchaseBeanResp, error) {
 	resp := &agent.ChessShopPurchaseBeanResp{OrderNo: "", CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
@@ -56,7 +49,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	}
 
 	//冻结的咖豆额度
-	freezeBeanBalance := rocksCache.GetAgentFreezeBeanBalance(ctx, agentInfo.AgentNumber)
+	freezeBeanBalance := rocksCache.GetAgentFreezeBeanBalance(ctx, agentInfo.UserId)
 	//校验推广员咖豆余额 + 冻结部分
 	if agentInfo.BeanBalance < (configInfo.BeanNumber + freezeBeanBalance) {
 		log.Error(req.OperationId, fmt.Sprintf("推广员(%d),下属成员(%d)购买咖豆,推广员咖豆余额不足,咖豆余额(%d),冻结咖豆(%d)", agentInfo.AgentNumber, req.ChessUserId, agentInfo.BeanBalance, freezeBeanBalance))
@@ -68,14 +61,15 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	orderNo := utils.GetOrderNo() //平台订单号
 	//生成订单
 	err = imdb.CreatePurchaseBeanOrder(&db.TAgentBeanRechargeOrder{
-		BusinessType: imdb.RechargeOrderBusinessTypeChess,
-		UserId:       req.UserId,
-		ChessUserId:  req.ChessUserId,
-		OrderNo:      orderNo,
-		ChessOrderNo: req.ChessOrderNo,
-		Number:       configInfo.BeanNumber,
-		GiveNumber:   configInfo.GiveBeanNumber,
-		Amount:       configInfo.Amount,
+		BusinessType:      imdb.RechargeOrderBusinessTypeChess,
+		UserId:            req.UserId,
+		ChessUserId:       req.ChessUserId,
+		ChessUserNickname: agentMember.ChessNickname,
+		OrderNo:           orderNo,
+		ChessOrderNo:      req.ChessOrderNo,
+		Number:            configInfo.BeanNumber,
+		GiveNumber:        configInfo.GiveBeanNumber,
+		Amount:            configInfo.Amount,
 	})
 
 	if err != nil {
@@ -86,7 +80,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	}
 
 	//冻结推广员咖豆
-	_ = rocksCache.FreezeAgentBeanBalance(ctx, agentInfo.AgentNumber, req.ChessUserId, configInfo.BeanNumber)
+	_ = rocksCache.FreezeAgentBeanBalance(ctx, agentInfo.UserId, req.ChessUserId, configInfo.BeanNumber)
 
 	resp.OrderNo = orderNo
 	resp.GiveBeanNumber = configInfo.GiveBeanNumber

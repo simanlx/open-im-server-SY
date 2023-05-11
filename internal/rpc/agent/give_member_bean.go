@@ -46,7 +46,7 @@ func (rpc *AgentServer) AgentGiveMemberBean(ctx context.Context, req *agent.Agen
 	}
 
 	//冻结的咖豆额度
-	freezeBeanBalance := rocksCache.GetAgentFreezeBeanBalance(ctx, info.AgentNumber)
+	freezeBeanBalance := rocksCache.GetAgentFreezeBeanBalance(ctx, info.UserId)
 
 	//校验推广员咖豆余额
 	if info.BeanBalance < (req.BeanNumber + freezeBeanBalance) {

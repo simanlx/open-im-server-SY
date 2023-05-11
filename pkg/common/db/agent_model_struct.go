@@ -50,8 +50,7 @@ type TAgentAccountRecord struct {
 	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
 	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
 	Describe     string    `json:"describe"`      // 描述
-	Amount       int64     `json:"amount"`        // 金额(单位:分)
-	RebateAmount int64     `json:"rebate_amount"` // 返利金额(单位:分)
+	Amount       int32     `json:"amount"`        // 金额(单位:分)
 	ChessUserId  int64     `json:"chess_user_id"` // 互娱用户id
 	Day          string    `json:"day"`           // 天
 	Month        string    `json:"month"`         // 月
@@ -72,9 +71,9 @@ type TAgentBeanAccountRecord struct {
 	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
 	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
 	Describe     string    `json:"describe"`      // 描述
-	Amount       int64     `json:"amount"`        // 金额(单位分)
+	Amount       int32     `json:"amount"`        // 金额(单位分)
 	Number       int64     `json:"number"`        // 数量
-	GiveNumber   int64     `json:"give_number"`   // 赠送数量
+	GiveNumber   int32     `json:"give_number"`   // 赠送数量
 	Day          string    `json:"day"`           // 天
 	CreatedTime  time.Time `json:"created_time"`
 	UpdatedTime  time.Time `json:"updated_time"`
@@ -87,21 +86,22 @@ func (TAgentBeanAccountRecord) TableName() string {
 
 // 咖豆充值订单表
 type TAgentBeanRechargeOrder struct {
-	Id            int64     `json:"id"`
-	BusinessType  int32     `json:"business_type"`   // 业务类型(见枚举)
-	UserId        string    `json:"user_id"`         // 平台用户id
-	ChessUserId   int64     `json:"chess_user_id"`   // 互娱用户id
-	OrderNo       string    `json:"order_no"`        // 平台订单号
-	ChessOrderNo  string    `json:"chess_order_no"`  // 互娱订单号
-	NcountOrderNo string    `json:"ncount_order_no"` // 新生支付订单号
-	Number        int64     `json:"number"`          // 充值数量
-	GiveNumber    int32     `json:"give_number"`     // 赠送金额
-	Amount        int32     `json:"amount"`          // 金额(单位:元)
-	PayTime       int32     `json:"pay_time"`        // 支付时间
-	PayStatus     int32     `json:"pay_status"`      // 支付状态
-	CreatedTime   time.Time `json:"created_time"`
-	UpdatedTime   time.Time `json:"updated_time"`
-	DB            *gorm.DB  `gorm:"-" json:"-"`
+	Id                int64     `json:"id"`
+	BusinessType      int32     `json:"business_type"`       // 业务类型(见枚举)
+	UserId            string    `json:"user_id"`             // 平台用户id
+	ChessUserId       int64     `json:"chess_user_id"`       // 互娱用户id
+	ChessUserNickname string    `json:"chess_user_nickname"` // 互娱用户昵称
+	OrderNo           string    `json:"order_no"`            // 平台订单号
+	ChessOrderNo      string    `json:"chess_order_no"`      // 互娱订单号
+	NcountOrderNo     string    `json:"ncount_order_no"`     // 新生支付订单号
+	Number            int64     `json:"number"`              // 充值数量
+	GiveNumber        int32     `json:"give_number"`         // 赠送金额
+	Amount            int32     `json:"amount"`              // 金额(单位:元)
+	PayTime           int64     `json:"pay_time"`            // 支付时间
+	PayStatus         int32     `json:"pay_status"`          // 支付状态
+	CreatedTime       time.Time `json:"created_time"`
+	UpdatedTime       time.Time `json:"updated_time"`
+	DB                *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentBeanRechargeOrder) TableName() string {

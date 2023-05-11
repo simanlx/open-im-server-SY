@@ -649,14 +649,14 @@ func GetAgentPlatformBeanConfigCache() ([]agent_model.BeanShopConfig, error) {
 	return configValue, nil
 }
 
-// 获取推广平台充值返现配置
-func GetAgentPayRebateConfigCache() string {
+// 获取平台value类型配置
+func GetPlatformValueConfigCache(configKey string) string {
 	getBeanConfig := func() (string, error) {
-		configV := agent_model.GetPlatformConfigValue("pay_rebate")
+		configV := agent_model.GetPlatformConfigValue(configKey)
 		return configV, nil
 	}
 
-	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+"pay_rebate", time.Second*600, getBeanConfig)
+	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+configKey, time.Second*600, getBeanConfig)
 	if err != nil {
 		return "0"
 	}
@@ -684,13 +684,18 @@ func GetUsersUnionIdFromCache(UnionId string) string {
 }
 
 // 冻结推广员咖豆
-func FreezeAgentBeanBalance(ctx context.Context, agentNumber int32, chessUserId, beanNumber int64) error {
-	return db.DB.RDB.Set(ctx, fmt.Sprintf("%s%d:%d", AgentFreezeBeanBalanceCache, agentNumber, chessUserId), beanNumber, time.Second*120).Err()
+func FreezeAgentBeanBalance(ctx context.Context, userId string, chessUserId, beanNumber int64) error {
+	return db.DB.RDB.Set(ctx, fmt.Sprintf("%s%s:%d", AgentFreezeBeanBalanceCache, userId, chessUserId), beanNumber, time.Second*120).Err()
+}
+
+// 解冻推广员咖豆
+func DelAgentBeanBalance(ctx context.Context, userId string, chessUserId int64) error {
+	return db.DB.RDB.Del(ctx, fmt.Sprintf("%s%s:%d", AgentFreezeBeanBalanceCache, userId, chessUserId)).Err()
 }
 
 // 获取推广员冻结的咖豆
-func GetAgentFreezeBeanBalance(ctx context.Context, agentNumber int32) (beanBalance int64) {
-	keys, err := db.DB.RDB.Keys(ctx, fmt.Sprintf("%s%d*", AgentFreezeBeanBalanceCache, agentNumber)).Result()
+func GetAgentFreezeBeanBalance(ctx context.Context, userId string) (beanBalance int64) {
+	keys, err := db.DB.RDB.Keys(ctx, fmt.Sprintf("%s%s*", AgentFreezeBeanBalanceCache, userId)).Result()
 	if err != nil {
 		return beanBalance
 	}
