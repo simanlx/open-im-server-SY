@@ -89,3 +89,13 @@ type PlatformPurchaseBeanNotifyReq struct {
 	GiveBeanNumber int32  `json:"give_bean_number"`                    //赠送数量
 	Amount         int32  `json:"amount"  binding:"required"`          //金额(单位分)
 }
+
+type PurchaseBeanReq struct {
+	ConfigId int32 `json:"config_id"  binding:"required"` //咖豆配置id
+}
+
+type WithdrawReq struct {
+	BindCardAgrNo   string `json:"bind_card_agr_no"  binding:"required"` //银行卡协议号
+	Amount          int32  `json:"amount"  binding:"required"`           //金额(单位分)
+	PaymentPassword string `json:"payment_password"  binding:"required"` //支付密码
+}

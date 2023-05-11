@@ -84,3 +84,15 @@ func PlatformPurchaseBeanNotify(c *gin.Context) {
 	return
 
 }
+
+// 推广员充值咖豆 - 新生支付回调
+func RechargeNotify(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": ""})
+	return
+}
+
+// 推广员提现余额 - 新生支付回调
+func WithdrawNotify(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": ""})
+	return
+}

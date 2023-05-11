@@ -299,5 +299,4 @@ func AgentGiveMemberBean(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
-
 }

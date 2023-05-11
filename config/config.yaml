@@ -89,10 +89,10 @@ ncount :
     privateKey: "" #私钥
     merchantId: "" #商户号
     notify:
-      rechargeNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/charge_account_callback" #云钱包充值回调地址
-      withdrawNotifyUrl: "http://office.najieguo.com:10002/cloudWallet/draw_account_callback" #云钱包提现回调地址
-      agentRechargeNotifyUrl: "http://office.najieguo.com:10002/agent/charge_callback" #推广系统充值回调地址
-      agentWithdrawNotifyUrl: "http://office.najieguo.com:10002/agent/draw_callback" #推广系统提现回调地址
+      rechargeNotifyUrl: "http://server.jiadengni.com:10002/cloudWallet/charge_account_callback" #云钱包充值回调地址
+      withdrawNotifyUrl: "http://server.jiadengni.com:10002/cloudWallet/draw_account_callback" #云钱包提现回调地址
+      agentRechargeNotifyUrl: "http://server.jiadengni.com:10002/agent/notify/recharge" #推广系统充值回调地址
+      agentWithdrawNotifyUrl: "http://server.jiadengni.com:10002/agent/notify/withdraw" #推广系统提现回调地址
 
 
 

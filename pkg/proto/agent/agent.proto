@@ -46,15 +46,17 @@ message BindAgentNumberResp{
   CommonResp commonResp = 1;
 }
 
-message WebBeanRechargeReq{
+message AgentPurchaseBeanReq{
   string userId = 1; //用户id
   int32  configId = 2; //配置id
   string operationId = 3;
 }
 
-message WebBeanRechargeResp{
+message AgentPurchaseBeanResp{
   string order_no = 1; //平台订单号
-  CommonResp commonResp = 2;
+  string notify_url = 2; //回调地址
+  int32  amount = 3; //金额(单位分)
+  CommonResp commonResp = 4;
 }
 
 message ChessShopPurchaseBeanReq{
@@ -333,22 +335,17 @@ service AgentSystemService {
   rpc AgentMemberList(AgentMemberListReq)returns(AgentMemberListResp);
   //赠送下属成员咖豆
   rpc AgentGiveMemberBean(AgentGiveMemberBeanReq)returns(AgentGiveMemberBeanResp);
-
   //互娱商城购买咖豆下单(预提交)
   rpc ChessShopPurchaseBean(ChessShopPurchaseBeanReq)returns(ChessShopPurchaseBeanResp);
-
   //推广员成员购买咖豆回调(推广员商城) - 互娱回调
   rpc ChessPurchaseBeanNotify(ChessPurchaseBeanNotifyReq)returns(ChessPurchaseBeanNotifyResp);
-
   //推广员成员购买咖豆回调(平台商城) - 互娱回调
   rpc PlatformPurchaseBeanNotify(PlatformPurchaseBeanNotifyReq)returns(PlatformPurchaseBeanNotifyResp);
+  //推广员购买咖豆下单
+  rpc AgentPurchaseBean(AgentPurchaseBeanReq)returns(AgentPurchaseBeanResp);
+  //推广员余额提现
+  rpc BalanceWithdrawal(BalanceWithdrawalReq)returns(BalanceWithdrawalResp);
 
-//  //h5咖豆充值下单
-//  rpc WebBeanRecharge(WebBeanRechargeReq)returns(WebBeanRechargeResp);
-//  //互娱咖豆充值下单
-//  rpc ChessBeanRecharge(ChessBeanRechargeReq)returns(ChessBeanRechargeResp);
-//  //咖豆充值下单确认-验证码
-//  rpc BeanRechargeConfirm(BeanRechargeConfirmReq)returns(BeanRechargeConfirmResp);
-//  //推广员余额提现
-//  rpc BalanceWithdrawal(BalanceWithdrawalReq)returns(BalanceWithdrawalResp);
+  //回调
+
 }

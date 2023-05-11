@@ -631,7 +631,7 @@ func DelExtendMsg(ID string, index int32, clientMsgID string) error {
 }
 
 // 获取推广平台咖豆商城配置
-func GetAgentPlatformBeanConfigCache() ([]agent_model.BeanShopConfig, error) {
+func GetAgentPlatformBeanConfigCache() ([]*agent_model.BeanShopConfig, error) {
 	getBeanConfig := func() (string, error) {
 		configV := agent_model.GetPlatformConfigValue("bean_shop")
 		return configV, nil
@@ -641,7 +641,7 @@ func GetAgentPlatformBeanConfigCache() ([]agent_model.BeanShopConfig, error) {
 	if err != nil {
 		return nil, utils.Wrap(err, "Fetch failed")
 	}
-	var configValue []agent_model.BeanShopConfig
+	var configValue []*agent_model.BeanShopConfig
 	err = json.Unmarshal([]byte(configStr), &configValue)
 	if err != nil {
 		return nil, utils.Wrap(err, "Unmarshal failed")

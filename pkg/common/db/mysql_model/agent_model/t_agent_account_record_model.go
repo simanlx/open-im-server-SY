@@ -56,7 +56,7 @@ func AccountIncomeChart(userId string, dateType int32) (data []*AccountIncomeCha
 
 // 账户明细变更列表
 func AccountIncomeList(userId, date string, businessType, page, size int32, chessUserIds []int64) (list []*db.TAgentAccountRecord, count int64, err error) {
-	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_account_record").Where("user_id = ? and day = ?", userId, date)
+	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_account_record").Where("user_id = ? and day = ? and status = ?", userId, date, 1)
 
 	if businessType > 0 {
 		model = model.Where("business_type = ?", businessType)

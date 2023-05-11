@@ -9,7 +9,7 @@ import (
 
 const (
 	RechargeOrderBusinessTypeWeb   = 1 //h5
-	RechargeOrderBusinessTypeChess = 2 //互娱
+	RechargeOrderBusinessTypeChess = 2 //互娱app
 )
 
 // 创建购买咖豆订单

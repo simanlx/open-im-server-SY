@@ -54,6 +54,7 @@ type TAgentAccountRecord struct {
 	ChessUserId  int64     `json:"chess_user_id"` // 互娱用户id
 	Day          string    `json:"day"`           // 天
 	Month        string    `json:"month"`         // 月
+	Status       int32     `json:"status"`        // 状态
 	CreatedTime  time.Time `json:"created_time"`
 	UpdatedTime  time.Time `json:"updated_time"`
 	DB           *gorm.DB  `gorm:"-" json:"-"`
