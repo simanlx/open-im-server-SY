@@ -46,6 +46,7 @@ type CloudWalletServer struct {
 
 func NewRpcCloudWalletServer(port int) *CloudWalletServer {
 	log.NewPrivateLog(constant.LogFileName)
+	StarCorn()
 	return &CloudWalletServer{
 		rpcPort:         port,
 		rpcRegisterName: config.Config.RpcRegisterName.OpenImCloudWalletName,

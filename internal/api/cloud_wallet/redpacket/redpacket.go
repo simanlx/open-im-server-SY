@@ -451,6 +451,7 @@ func CreateThirdPayOrder(c *gin.Context) {
 		MerOrderId:  params.MerOrderID,
 		NotifyUrl:   params.NotifyURL,
 		Amount:      params.Amount,
+		Remark:      params.Remark,
 		OperationID: operation,
 	}
 
@@ -506,6 +507,90 @@ func GetThirdPayOrder(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 }
 
+// 第三方回调接口，通过业务的标识的透传来区分业务类型
 func ThirdPayCallback(c *gin.Context) {
-	
+	params := redpacket_struct.ThirdPayCallback{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+	operationID := utils.OperationIDGenerator()
+	// 获取http query参数，查看是否存在query参数
+	bussinessType := c.GetInt("bussinessType")
+	if bussinessType == 0 {
+		bussinessType = 100
+	}
+	// rpc
+	rpcReq := rpc.PayCallbackReq{
+		MerOrderId:     params.MerOrderId,
+		ResultCode:     params.ResultCode,
+		ErrorCode:      params.ErrorCode,
+		ErrorMsg:       params.ErrorMsg,
+		NcountOrderId:  params.NcountOrderId,
+		TranAmount:     params.TranAmount,
+		SubmitTime:     params.SubmitTime,
+		TranFinishTime: params.TranFinishTime,
+		FeeAmount:      params.FeeAmount,
+		BusinessType:   rpc.PayCallbackBusinessType(bussinessType),
+	}
+	//etcdConn
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, operationID)
+	if etcdConn == nil {
+		errMsg := "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.PayCallback(context.Background(), &rpcReq)
+	if err != nil {
+		log.NewError(operationID, "GetVersion failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+}
+
+// 确认支付接口 ,通过typeID来进行业务区别
+func PayConfirm(c *gin.Context) {
+	params := redpacket_struct.ThirdPayConfirm{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	_, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		// 用户token解析失败
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "非法token"})
+		return
+	}
+
+	//rpc
+	rpcReq := rpc.PayConfirmReq{
+		OrderNo:     params.OrderNo,
+		Code:        params.Code,
+		OperationID: params.OperationID,
+	}
+
+	//etcdConn
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
+	if etcdConn == nil {
+		errMsg := params.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.PayConfirm(context.Background(), &rpcReq)
+	if err != nil {
+		log.NewError(params.OperationID, "GetVersion failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 }

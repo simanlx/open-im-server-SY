@@ -104,10 +104,32 @@ type CreateThirdPayOrder struct {
 	MerOrderID string `json:"mer_order_id" binding:"required"` //商户订单号 ，全局唯一，不能重复
 	NotifyURL  string `json:"notify_url" binding:"required"`   //异步通知地址
 	Amount     int32  `json:"amount" binding:"required"`       //金额，单位分
+	Remark     string `json:"remark"`                          //备注
 }
 
 type GetThirdPayOrder struct {
 	// 获取第三方订单
 	OrderNO     string `json:"order_no" binding:"required"`     //订单号
 	OperationID string `json:"operation_id" binding:"required"` // 链路跟踪id
+}
+
+// 通过业务ID来区别确认支付类型
+type ThirdPayConfirm struct {
+	OrderNo      string `json:"order_no" binding:"required"`      //订单号
+	Code         string `json:"code" binding:"required"`          //验证码
+	BusinessType int32  `json:"business_type" binding:"required"` //业务类型
+	OperationID  string `json:"operation_id" binding:"required"`  // 链路跟踪id
+}
+
+// 充值回调
+type ThirdPayCallback struct {
+	MerOrderId     string `json:"merOrderId"  form:"merOrderId"`
+	ResultCode     string `json:"resultCode" form:"resultCode"`
+	ErrorCode      string `json:"errorCode" form:"errorCode"`
+	ErrorMsg       string `json:"errorMsg" form:"errorMsg"`
+	NcountOrderId  string `json:"ncountOrderId" form:"ncountOrderId"`
+	TranAmount     string `json:"tranAmount" form:"tranAmount"`
+	SubmitTime     string `json:"submitTime" form:"submitTime"`
+	TranFinishTime string `json:"tranFinishTime" form:"tranFinishTime"`
+	FeeAmount      string `json:"feeAmount" form:"feeAmount"`
 }

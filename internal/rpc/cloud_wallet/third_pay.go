@@ -9,11 +9,13 @@ import (
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
-	"encoding/json"
+	"fmt"
 	"github.com/spf13/cast"
+	"strconv"
 	"time"
 )
 
+// 第三方支付
 func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (*pb.ThirdPayResp, error) {
 	var (
 		res = &pb.ThirdPayResp{
@@ -50,7 +52,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 	}
 
 	// 查询订单是否存在
-	err, payOrder := imdb.GetThirdPayOrder(in.OrderNo)
+	err, payOrder := imdb.GetThirdPayOrderNo(in.OrderNo)
 	if err != nil {
 		return nil, err
 	}
@@ -60,27 +62,60 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		return res, nil
 	}
 
+	if payOrder.Status != 100 {
+		res.CommonResp.ErrCode = 400
+		res.CommonResp.ErrMsg = "订单状态异常:" + strconv.Itoa(int(payOrder.Status))
+		return res, nil
+	}
+
 	// 计算具体余额
 	totalAmount := cast.ToString(cast.ToFloat64(payOrder.Amount) / 100)
-	merOrderId := ncount.GetMerOrderID()
-	nc := &NcountPay{}
+
+	nc := NewNcountPay()
 	// 发起支付
 	PayRes := &PayResult{}
 	if in.SendType == 1 {
 		// 余额支付
-		PayRes = nc.payByBalance(in.OperationID, fcount.MainAccountId, "300002428690", merOrderId, totalAmount)
+		PayRes = nc.payByBalance(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount)
+		if PayRes.ErrCode == 0 {
+			// 支付成功
+			err = AddNcountTradeLog(BusinessTypeBalanceThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, PayRes.NcountOrderID, "")
+			if err != nil {
+				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
+			}
+			payOrder.Status = 200 // 支付成功
+			// 修改订单状态
+			err := imdb.UpdateThirdPayOrder(payOrder, payOrder.Id)
+			if err != nil {
+				log.Error(in.OperationID, "修改订单状态失败，err: ", err)
+			}
+			// 订单支付成功 ： todo 通知商户
+		} else {
+			// 支付失败
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode(PayRes.ErrCode)
+			res.CommonResp.ErrMsg = "新生支付：" + PayRes.ErrMsg
+		}
 	} else {
 		NotifyUrl := config.Config.Ncount.Notify.ThirdPayNotifyUrl
 		// 银行卡支付 ，需要注意回调接口
-		PayRes = nc.payByBankCard(in.OperationID, fcount.MainAccountId, "300002428690", merOrderId, totalAmount, in.BankcardProtocol, NotifyUrl)
+		PayRes = nc.payByBankCard(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount, in.BankcardProtocol, NotifyUrl)
+		if PayRes.ErrCode == 0 {
+			// 支付成功
+			err = AddNcountTradeLog(BusinessTypeBankcardThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, PayRes.NcountOrderID, "")
+			if err != nil {
+				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
+			}
+		} else {
+			// 支付失败
+			res.CommonResp.ErrCode = pb.CloudWalletErrCode(PayRes.ErrCode)
+			res.CommonResp.ErrMsg = PayRes.ErrMsg
+		}
 	}
-	if err != nil {
-		res.CommonResp.ErrCode = pb.CloudWalletErrCode(PayRes.ErrCode)
-		res.CommonResp.ErrMsg = PayRes.ErrMsg
-	}
+	// 保存交易记录
 	return res, nil
 }
 
+// 创建订单
 func (cl *CloudWalletServer) CreateThirdPayOrder(ctx context.Context, req *pb.CreateThirdPayOrderReq) (*pb.CreateThirdPayOrderResp, error) {
 
 	var (
@@ -106,7 +141,7 @@ func (cl *CloudWalletServer) CreateThirdPayOrder(ctx context.Context, req *pb.Cr
 	}
 
 	// 查询订单是否存在
-	err, payOrder := imdb.GetThirdPayOrder(req.MerOrderId)
+	err, payOrder := imdb.GetThirdPayMerOrderNO(req.MerOrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +150,7 @@ func (cl *CloudWalletServer) CreateThirdPayOrder(ctx context.Context, req *pb.Cr
 		resp.CommonResp.ErrCode = 400
 		return resp, nil
 	}
+	fmt.Println("\n payOrder ", payOrder)
 
 	// 生成随机数5位
 	random := cast.ToString(time.Now().UnixNano())
@@ -127,9 +163,13 @@ func (cl *CloudWalletServer) CreateThirdPayOrder(ctx context.Context, req *pb.Cr
 		OrderNo:        orderNo,
 		MerOrderNo:     req.MerOrderId,
 		MerId:          req.MerchantId,
+		NcountOrderNo:  ncount.GetMerOrderID(),
 		Amount:         int64(req.Amount),
 		Status:         100,
 		RecieveAccount: merchant.NcountAccount,
+		Remark:         req.Remark,
+		NotifyUrl:      req.NotifyUrl,
+		LastNotifyTime: time.Time{},
 		AddTime:        time.Time{},
 		EditTime:       time.Time{},
 	}
@@ -143,6 +183,7 @@ func (cl *CloudWalletServer) CreateThirdPayOrder(ctx context.Context, req *pb.Cr
 	return resp, nil
 }
 
+// 查询红包
 func (cl *CloudWalletServer) GetThirdPayOrderInfo(ctx context.Context, req *pb.GetThirdPayOrderInfoReq) (*pb.GetThirdPayOrderInfoResp, error) {
 	var (
 		resp = &pb.GetThirdPayOrderInfoResp{
@@ -159,7 +200,7 @@ func (cl *CloudWalletServer) GetThirdPayOrderInfo(ctx context.Context, req *pb.G
 		return resp, nil
 	}
 
-	err, payOrder := imdb.GetThirdPayOrder(req.OrderNo)
+	err, payOrder := imdb.GetThirdPayOrderNo(req.OrderNo)
 	if err != nil {
 		log.Error(req.OperationID, "查询订单失败，err: ", err)
 		resp.CommonResp.ErrCode = 400
@@ -176,97 +217,7 @@ func (cl *CloudWalletServer) GetThirdPayOrderInfo(ctx context.Context, req *pb.G
 	resp.MerchantId = payOrder.MerId
 	resp.Amount = int32(payOrder.Amount)
 	resp.Status = payOrder.Status
+	resp.Remark = payOrder.Remark
+	resp.AddTime = payOrder.AddTime.Format("2006-01-02 15:04:05")
 	return resp, nil
-}
-
-type NcountPay struct {
-	count ncount.NCounter
-}
-
-type PayResult struct {
-	ErrMsg  string
-	ErrCode int
-}
-
-// 余额支付
-func (np *NcountPay) payByBalance(operationId, payAccountID, ReceiveAccountId, MerOrderId, totalAmount string) *PayResult {
-	var (
-		resp = &PayResult{
-			ErrCode: 0,
-			ErrMsg:  "支付成功",
-		}
-	)
-	req := &ncount.TransferReq{
-		MerOrderId: MerOrderId,
-		TransferMsgCipher: ncount.TransferMsgCipher{
-			PayUserId:     payAccountID,
-			ReceiveUserId: ReceiveAccountId,
-			TranAmount:    totalAmount, //分转元
-		},
-	}
-
-	escap := time.Now()
-	transferResult, err := np.count.Transfer(req)
-	log.Info(operationId, "transfer req", req, "耗费时间:", time.Since(escap))
-	if err != nil {
-		//这里是网络层面的错误
-		log.Error(operationId, "调用第三方支付出现网络错误", err)
-		resp.ErrMsg = "调用第三方支付出现网络错误"
-		resp.ErrCode = 400
-		return resp
-	}
-	// 备注； 现在一般httpcode是自有逻辑实现，不用在专门判断
-
-	//=========================成功返回=========================
-	if transferResult.ResultCode != ncount.ResultCodeSuccess {
-		remark := "余额发送红包失败： "
-		co, _ := json.Marshal(transferResult)
-		err := imdb.CreateErrorLog(remark, operationId, MerOrderId, transferResult.ErrorMsg, transferResult.ErrorCode, string(co))
-		if err != nil {
-			log.Error(operationId, "创建错误日志失败", err)
-		}
-		resp.ErrCode = 400
-	}
-	resp.ErrMsg = transferResult.ErrorMsg
-	return resp
-}
-
-// 银行卡支付
-func (np *NcountPay) payByBankCard(operationId, payAccountID, ReceiveAccountId, MerOrderId, totalAmount, BankProtocol, NotifyUrl string) *PayResult {
-	var (
-		resp = &PayResult{
-			ErrCode: 0,
-			ErrMsg:  "支付成功",
-		}
-	)
-	//充值支付
-	transferResult, err := np.count.QuickPayOrder(&ncount.QuickPayOrderReq{
-		MerOrderId: MerOrderId,
-		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
-			PayType:       "3", //绑卡协议号充值
-			TranAmount:    totalAmount,
-			NotifyUrl:     NotifyUrl,
-			BindCardAgrNo: BankProtocol,
-			ReceiveUserId: ReceiveAccountId, //收款账户
-			UserId:        payAccountID,
-			SubMerchantId: "2206301126073014978", // 子商户编号
-		}})
-	if err != nil {
-		//这里是网络层面的错误
-		log.Error(operationId, "调用第三方支付出现网络错误", err)
-		resp.ErrMsg = "调用第三方支付出现网络错误"
-		resp.ErrCode = 400
-		return resp
-	}
-	if transferResult.ResultCode != ncount.ResultCodeSuccess {
-		remark := "余额发送红包失败： "
-		co, _ := json.Marshal(transferResult)
-		err := imdb.CreateErrorLog(remark, operationId, MerOrderId, transferResult.ErrorMsg, transferResult.ErrorCode, string(co))
-		if err != nil {
-			log.Error(operationId, "创建错误日志失败", err)
-		}
-		resp.ErrCode = 400
-	}
-	resp.ErrMsg = transferResult.ErrorMsg
-	return resp
 }
