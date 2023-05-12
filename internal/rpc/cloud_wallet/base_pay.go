@@ -6,6 +6,7 @@ import (
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -162,7 +163,7 @@ func (cl *CloudWalletServer) PayConfirm(ctx context.Context, in *pb.PayConfirmRe
 			ErrMsg:  "支付成功",
 		}
 	)
-	// 查询订单
+	// 通过平台订单号码查询订单
 	err, outTrade := imdb.GetThirdPayOrderNo(in.OrderNo)
 	if err != nil {
 		return nil, err
@@ -177,7 +178,9 @@ func (cl *CloudWalletServer) PayConfirm(ctx context.Context, in *pb.PayConfirmRe
 	// 查询交易记录
 	tradeInfo, err := imdb.GetFNcountTradeByOrderNo(outTrade.NcountOrderNo, in.Userid)
 	if err != nil {
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, err
+		}
 	}
 	if tradeInfo.ID == 0 {
 		resp.ErrCode = 400
