@@ -9,6 +9,8 @@ import (
 func InsertThirdPayOrder(tp *db.ThirdPayOrder) error {
 	tp.AddTime = time.Now()
 	tp.EditTime = time.Now()
+	tp.LastNotifyTime = time.Now()
+	tp.PayTime = time.Now()
 	result := db.DB.MysqlDB.DefaultGormDB().Table("third_pay_order").Create(tp)
 	if result.Error != nil {
 		return result.Error
