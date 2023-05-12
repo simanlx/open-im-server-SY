@@ -1,12 +1,16 @@
 package cloud_wallet
 
 import (
+	"Open_IM/pkg/cloud_wallet/ncount"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
+	"Open_IM/pkg/contrive_msg"
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
@@ -17,6 +21,7 @@ var NotifyChannel = make(chan string, 100)
 
 func StarCorn() {
 	CornSelect()
+	CornReturn()
 	for i := 0; i < 50; i++ {
 		go func() {
 			defer func() {
@@ -138,6 +143,81 @@ func CornSelect() {
 			time.Sleep(time.Minute)
 		}
 	}()
+}
+
+// 退款
+func CornReturn() {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error("Panic ,定时任务：进行红包退回，err: ", err)
+			}
+		}()
+		for {
+			// 查询一段时间内的红包
+			PacektSet, err := imdb.GetExpiredRedPacketListByPage()
+			if err != nil {
+				time.Sleep(time.Minute)
+				continue
+			}
+			for _, v := range PacektSet {
+				// 这里进行退款操作
+				err = returnRedPacket(v.PacketID)
+				if err != nil {
+					log.Error("红包退款失败，err: ", err)
+					continue
+				}
+			}
+			time.Sleep(time.Minute)
+		}
+	}()
+}
+
+// 查询所有的红包进行退款
+// 红包退款
+func returnRedPacket(RedPacketID string) error {
+	// 查询红包信息
+	PacketInfo, err := imdb.GetRedPacketInfo(RedPacketID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil
+		}
+		return err
+	}
+	// 查询用户信息
+	User, err := rocksCache.GetUserAccountInfoFromCache(PacketInfo.UserID)
+	if err != nil {
+		return err
+	}
+	// 将红包的剩余的金额退回到用户的账户中
+	nc := NewNcountPay()
+	merOrderID := ncount.GetMerOrderID()
+	remainAmout := PacketInfo.RemainAmout
+	totalAmount := cast.ToString(cast.ToFloat64(remainAmout) / 100)
+	payResult := nc.payByBalance("红包退款", User.PacketAccountId, UserMainAccountPrefix, merOrderID, totalAmount)
+	if payResult.ErrCode == 0 {
+		// 红包退款成功
+		PacketInfo.Status = 100
+		PacketInfo.Remark = "红包已退款"
+
+		// 发送红包退回消息
+		contrive_msg.SendRebackMessage()
+	} else {
+		// 红包退款失败 红包退款异常，需要进行数据库核查
+		PacketInfo.Status = 200
+		PacketInfo.Remark = "红包退款失败，需要进行数据核查:" + payResult.ErrMsg
+	}
+
+	PacketInfo.UpdatedTime = time.Now().Unix()
+	err = imdb.UpdateRedPacketInfo(PacketInfo.PacketID, PacketInfo)
+	if err != nil {
+		return err
+	}
+
+	// 修改用户交易记录
+	err = AddNcountTradeLog(BusinessTypePacketExpire, int32(remainAmout), PacketInfo.UserID, User.MainAccountId, merOrderID, payResult.NcountOrderID, "")
+	return err
+
 }
 
 func notifyThirdPay(MerOrderID string) {

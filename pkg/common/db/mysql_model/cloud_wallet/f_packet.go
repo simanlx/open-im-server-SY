@@ -147,3 +147,13 @@ func GetExpiredRedPacketList() ([]*db.FPacket, error) {
 	}
 	return fPacketList, nil
 }
+
+// 查询过期的红包： 过期时间小于当前时间，状态为正常，红包剩余余额大于0， 每次查询100条
+func GetExpiredRedPacketListByPage() ([]*db.FPacket, error) {
+	var fPacketList []*db.FPacket
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("expire_time < ? and status = ? and remain > ?", time.Now().Unix(), RedPacketStatusNormal, 0).Limit(100).Find(&fPacketList)
+	if result.Error != nil {
+		return nil, errors.Wrap(result.Error, "查询过期红包失败")
+	}
+	return fPacketList, nil
+}
