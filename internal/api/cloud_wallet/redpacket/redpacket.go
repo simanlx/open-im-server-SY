@@ -510,7 +510,7 @@ func GetThirdPayOrder(c *gin.Context) {
 // 第三方回调接口，通过业务的标识的透传来区分业务类型
 func ThirdPayCallback(c *gin.Context) {
 	params := redpacket_struct.ThirdPayCallback{}
-	if err := c.BindJSON(&params); err != nil {
+	if err := c.ShouldBind(&params); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
 		return
 	}

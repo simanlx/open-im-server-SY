@@ -3,7 +3,6 @@ package cloud_wallet
 import (
 	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/config"
-	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
@@ -45,7 +44,7 @@ type CloudWalletServer struct {
 }
 
 func NewRpcCloudWalletServer(port int) *CloudWalletServer {
-	log.NewPrivateLog(constant.LogFileName)
+	log.NewPrivateLog("open_im_cloud_wallet")
 	StarCorn()
 	return &CloudWalletServer{
 		rpcPort:         port,

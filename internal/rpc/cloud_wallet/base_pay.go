@@ -233,17 +233,19 @@ func ThirdPayCallBack(in *pb.PayCallbackReq) error {
 	// 查询订单，通过mer_order_id
 	err, outTrade := imdb.GetThirdPayNcountMerOrderID(in.NcountOrderId)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return errors.New("订单不存在")
+		} else {
+			return err
+		}
 		return err
 	}
 
-	if outTrade.Id == 0 {
-		return errors.New("订单不存在")
-	}
-
 	// 修改订单状态
-	if in.ResultCode != ncount.ResultCodeSuccess {
+	if in.ResultCode == ncount.ResultCodeSuccess {
 		// 支付成功
 		outTrade.Status = 200
+		outTrade.PayTime = time.Now()
 		err = imdb.UpdateThirdPayOrder(outTrade, outTrade.Id)
 		if err != nil {
 			return err
@@ -257,7 +259,9 @@ func ThirdPayCallBack(in *pb.PayCallbackReq) error {
 		return err
 	}
 
-	// 发起回调
-	NotifyChannel <- in.MerOrderId
+	log.Info("新生支付回调成功", in)
+
+	// 传入的ID是MerID
+	notifyThirdPay(in.MerOrderId)
 	return nil
 }
