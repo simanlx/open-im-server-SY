@@ -84,6 +84,8 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
 			}
 			payOrder.Status = 200 // 支付成功
+			payOrder.PayTime = time.Now()
+			payOrder.NcountTureNo = PayRes.NcountOrderID
 			// 修改订单状态
 			err := imdb.UpdateThirdPayOrder(payOrder, payOrder.Id)
 			if err != nil {

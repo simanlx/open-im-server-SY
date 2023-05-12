@@ -601,7 +601,8 @@ CREATE TABLE `third_pay_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_no` varchar(255) DEFAULT NULL COMMENT '订单ID，用于提供支付的',
   `mer_order_no` varchar(255) DEFAULT NULL COMMENT '商户订单ID',
-  `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '我们每次调用新生支付的时候需要传人的操作ID',
+  `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '调用新生支付的mer_order_id',
+  `ncount_ture_order_no` varchar(255) DEFAULT NULL COMMENT '新生支付的orderID',
   `mer_id` varchar(255) DEFAULT NULL COMMENT '商户ID',
   `amount` int(11) DEFAULT NULL COMMENT '订单金额',
   `recieve_account` varchar(255) DEFAULT NULL COMMENT '收款方的新生支付的acount',
@@ -615,7 +616,7 @@ CREATE TABLE `third_pay_order` (
   `add_time` datetime DEFAULT NULL,
   `edit_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
 */
 
 type ThirdPayOrder struct {
@@ -623,6 +624,7 @@ type ThirdPayOrder struct {
 	OrderNo        string    `gorm:"column:order_no;not null" json:"order_no"`
 	MerOrderNo     string    `gorm:"column:mer_order_no;not null" json:"mer_order_no"`
 	NcountOrderNo  string    `gorm:"column:ncount_order_no;not null" json:"ncount_order_no"`
+	NcountTureNo   string    `gorm:"column:ncount_ture_order_no;not null" json:"ncount_ture_order_no"`
 	MerId          string    `gorm:"column:mer_id;not null" json:"mer_id"`
 	Status         int32     `gorm:"column:status;not null" json:"status" `
 	Amount         int64     `gorm:"column:amount;not null" json:"amount"`
