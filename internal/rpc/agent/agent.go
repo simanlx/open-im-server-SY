@@ -121,7 +121,7 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 
 	resp.AgentNumber = info.AgentNumber
 	resp.AgentName = info.Name
-	resp.Balance = info.Balance
+	resp.Balance = info.Balance + info.FreezeBalance //加上冻结的余额
 	resp.BeanBalance = info.BeanBalance
 
 	//累计收益、今日收益
@@ -176,7 +176,6 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 			resp.AccountRecordList = append(resp.AccountRecordList, &agent.AccountRecordList{
 				BusinessType:      v.BusinessType,
 				Amount:            v.Amount,
-				Describe:          v.Describe,
 				CreatedTime:       v.CreatedTime.Format("2006-01-02 15:04:05"),
 				Type:              v.Type,
 				ChessUserId:       v.ChessUserId,

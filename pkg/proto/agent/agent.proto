@@ -309,6 +309,27 @@ message PlatformPurchaseBeanNotifyResp{
   CommonResp commonResp = 2;
 }
 
+message RechargeNotifyReq{
+  string orderNo = 1;//平台订单号
+  string ncountOrderNo = 2;//新生支付订单号
+  string payTime = 3; //支付时间
+  int32  amount = 4; //支付金额(单位分)
+}
+message RechargeNotifyResp{
+  CommonResp commonResp = 1;
+}
+
+message WithdrawNotifyReq{
+  string orderNo = 1;//平台订单号
+  string ncountOrderNo = 2;//新生支付订单号
+  string payTime = 3; //到账时间
+  int32  amount = 4; //提现金额(单位分)
+}
+message WithdrawNotifyResp{
+  CommonResp commonResp = 1;
+}
+
+
 // 推广系统服务
 service AgentSystemService {
   // 获取用户推广员信息
@@ -349,7 +370,9 @@ service AgentSystemService {
   rpc AgentPurchaseBean(AgentPurchaseBeanReq)returns(AgentPurchaseBeanResp);
   //推广员余额提现
   rpc BalanceWithdrawal(BalanceWithdrawalReq)returns(BalanceWithdrawalResp);
-
-  //回调
+  //推广员充值咖豆回调
+  rpc RechargeNotify(RechargeNotifyReq)returns(RechargeNotifyResp);
+  //推广员提现余额回调
+  rpc WithdrawNotify(WithdrawNotifyReq)returns(WithdrawNotifyResp);
 
 }

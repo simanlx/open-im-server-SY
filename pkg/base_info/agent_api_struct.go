@@ -100,3 +100,11 @@ type WithdrawReq struct {
 	Amount          int32  `json:"amount"  binding:"required"`           //金额(单位分)
 	PaymentPassword string `json:"payment_password"  binding:"required"` //支付密码
 }
+
+type NcountNotifyReq struct {
+	OrderId    string `json:"OrderId"  binding:"required"`    //新生支付订单id
+	MerOrderId string `json:"MerOrderId"  binding:"required"` //平台订单id
+	Status     int32  `json:"Status"  binding:"required"`     //状态 100 未支付、200 支付成功、300支付失败
+	PayTime    string `json:"PayTime"  binding:"required"`    //支付时间
+	Amount     int32  `json:"Amount"  binding:"required"`     //金额(单位分)
+}
