@@ -57,7 +57,6 @@ func NewGinRouter() *gin.Engine {
 		agentGroup.POST("user_agent_info", agent.GetUserAgentInfo)              //获取当前用户的推广员信息以及绑定关系
 		agentGroup.POST("apply", agent.AgentApply)                              //推广员申请提交
 		agentGroup.POST("game_shop/bean_config", agent.AgentGameShopBeanConfig) //获取推广员游戏商城咖豆配置
-		agentGroup.POST("game_shop/purchase_bean", agent.ChessShopPurchaseBean) //互娱商城购买咖豆下单(预提交)
 		//新互娱接口 - end
 
 		agentGroup.POST("main", agent.AgentMainInfo)                           //推广员主页信息
@@ -81,6 +80,7 @@ func NewGinRouter() *gin.Engine {
 	agentCallbackGroup := r.Group("/agent")
 	{
 		agentCallbackGroup.POST("bind_agent_number", agent.BindAgentNumber)                        //绑定推广员
+		agentCallbackGroup.POST("game_shop/purchase_bean", agent.ChessShopPurchaseBean)            //互娱商城购买咖豆下单(预提交)
 		agentCallbackGroup.POST("notify/agent_purchase_bean", agent.ChessPurchaseBeanNotify)       //推广员成员购买咖豆回调(推广员商城) - 互娱回调
 		agentCallbackGroup.POST("notify/platform_purchase_bean", agent.PlatformPurchaseBeanNotify) //推广员成员购买咖豆回调(平台商城) - 互娱回调
 

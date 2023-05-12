@@ -164,7 +164,7 @@ func (rpc *AgentServer) PlatformPurchaseBeanNotify(ctx context.Context, req *age
 	}
 
 	//校验订单号
-	_, err = imdb.GetOrderByNcountOrderNo(req.NcountOrderNo)
+	_, err = imdb.GetOrderByChessOrderNo(req.ChessOrderNo)
 	if err == nil {
 		return resp, nil
 	}

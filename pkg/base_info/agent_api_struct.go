@@ -75,6 +75,7 @@ type ChessPurchaseBeanNotifyReq struct {
 }
 
 type ChessShopPurchaseBeanReq struct {
+	AgentNumber  int32  `json:"agent_number"  binding:"required"`   //推广员编号
 	ChessUserId  int64  `json:"chess_user_id"  binding:"required"`  //互娱用户id
 	ConfigId     int32  `json:"config_id"  binding:"required"`      //咖豆配置id
 	ChessOrderNo string `json:"chess_order_no"  binding:"required"` //互娱订单号

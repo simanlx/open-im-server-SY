@@ -30,7 +30,7 @@ func ChessShopPurchaseBean(c *gin.Context) {
 	}
 
 	req := &rpc.ChessShopPurchaseBeanReq{
-		UserId:       c.GetString("userId"),
+		AgentNumber:  params.AgentNumber,
 		ChessOrderNo: params.ChessOrderNo,
 		ChessUserId:  params.ChessUserId,
 		ConfigId:     params.ConfigId,

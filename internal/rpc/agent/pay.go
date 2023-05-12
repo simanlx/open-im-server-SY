@@ -28,7 +28,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	defer utils.UnLock(ctx, lockKey)
 
 	//获取推广员信息
-	agentInfo, err := imdb.GetAgentByUserId(req.UserId)
+	agentInfo, err := imdb.GetAgentByAgentNumber(req.AgentNumber)
 	if err != nil || agentInfo.OpenStatus == 0 {
 		resp.CommonResp.Code = 400
 		resp.CommonResp.Msg = "推广员信息有误"
@@ -36,7 +36,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	}
 
 	//校验咖豆配置
-	configInfo, err := imdb.GetAgentBeanConfigById(req.UserId, req.ConfigId)
+	configInfo, err := imdb.GetAgentBeanConfigById(agentInfo.UserId, req.ConfigId)
 	if err != nil || configInfo.Status == 0 {
 		resp.CommonResp.Code = 400
 		resp.CommonResp.Msg = "咖豆配置有误"
@@ -45,7 +45,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 
 	//是否为下属成员
 	agentMember, err := imdb.AgentNumberByChessUserId(req.ChessUserId)
-	if err != nil || req.UserId != agentMember.UserId {
+	if err != nil || agentInfo.UserId != agentMember.UserId {
 		resp.CommonResp.Code = 400
 		resp.CommonResp.Msg = "该用户不是推广员下成员"
 		return resp, nil
@@ -65,7 +65,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	//生成订单
 	err = imdb.CreatePurchaseBeanOrder(&db.TAgentBeanRechargeOrder{
 		BusinessType:      imdb.RechargeOrderBusinessTypeChess,
-		UserId:            req.UserId,
+		UserId:            agentInfo.UserId,
 		ChessUserId:       req.ChessUserId,
 		ChessUserNickname: agentMember.ChessNickname,
 		OrderNo:           orderNo,

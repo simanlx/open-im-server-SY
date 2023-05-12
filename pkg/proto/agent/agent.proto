@@ -60,7 +60,7 @@ message AgentPurchaseBeanResp{
 }
 
 message ChessShopPurchaseBeanReq{
-  string userId = 1; //用户id
+  int32  agentNumber = 1; //推广员编号
   string chessOrderNo = 2; //互娱订单号
   int64  chessUserId = 3; //互娱用户id
   int32  configId = 4; //配置id

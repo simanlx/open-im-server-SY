@@ -29,9 +29,9 @@ func GetOrderByOrderNo(orderNo string) (info *db.TAgentBeanRechargeOrder, err er
 	return
 }
 
-// 获取咖豆购买订单by ncount_order_no
-func GetOrderByNcountOrderNo(ncountOrderNo string) (info *db.TAgentBeanRechargeOrder, err error) {
-	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_recharge_order").Where("ncount_order_no = ?", ncountOrderNo).Take(&info).Error
+// 获取咖豆购买订单by chess_order_no
+func GetOrderByChessOrderNo(chessOrderNo string) (info *db.TAgentBeanRechargeOrder, err error) {
+	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_recharge_order").Where("chess_order_no = ?", chessOrderNo).Take(&info).Error
 	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
 		return nil, errors.Wrap(err, "")
 	}
