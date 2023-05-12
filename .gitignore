@@ -26,3 +26,4 @@ deploy/Open-IM-SDK-Core
 /cmd/Open-IM-SDK-Core
 /pkg/proto/Open_IM
 /cmd/rpc/open_im_cloud_wallet/open_im_cloud_wallet
+/config
