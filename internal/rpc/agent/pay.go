@@ -183,16 +183,17 @@ func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.Balanc
 
 	//增加余额变更日志
 	err = imdb.CreateAccountRecord(&db.TAgentAccountRecord{
-		OrderNo:      orderNo,
-		UserId:       req.UserId,
-		Type:         2,
-		BusinessType: imdb.AccountBusinessTypeWithdraw,
-		Describe:     "提现到银行卡",
-		Amount:       req.Amount,
-		ChessUserId:  0,
-		Day:          time.Now().Format("2006-01-02"),
-		Month:        time.Now().Format("2006-01"),
-		Status:       0,
+		OrderNo:           orderNo,
+		UserId:            req.UserId,
+		Type:              2,
+		BusinessType:      imdb.AccountBusinessTypeWithdraw,
+		Describe:          "提现到银行卡",
+		Amount:            req.Amount,
+		ChessUserId:       0,
+		ChessUserNickname: "",
+		Day:               time.Now().Format("2006-01-02"),
+		Month:             time.Now().Format("2006-01"),
+		Status:            0,
 	})
 
 	if err != nil {

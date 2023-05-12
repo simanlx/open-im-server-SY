@@ -44,20 +44,21 @@ func (TAgentAccount) TableName() string {
 
 // 推广员余额账户变更记录表
 type TAgentAccountRecord struct {
-	Id           int64     `json:"id"`
-	OrderNo      string    `json:"order_no"`      // 订单号
-	UserId       string    `json:"user_id"`       // 用户id
-	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
-	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
-	Describe     string    `json:"describe"`      // 描述
-	Amount       int32     `json:"amount"`        // 金额(单位:分)
-	ChessUserId  int64     `json:"chess_user_id"` // 互娱用户id
-	Day          string    `json:"day"`           // 天
-	Month        string    `json:"month"`         // 月
-	Status       int32     `json:"status"`        // 状态
-	CreatedTime  time.Time `json:"created_time"`
-	UpdatedTime  time.Time `json:"updated_time"`
-	DB           *gorm.DB  `gorm:"-" json:"-"`
+	Id                int64     `json:"id"`
+	OrderNo           string    `json:"order_no"`            // 订单号
+	UserId            string    `json:"user_id"`             // 用户id
+	Type              int32     `json:"type"`                // 收支类型(1收入、2支出)
+	BusinessType      int32     `json:"business_type"`       // 业务类型(见枚举)
+	Describe          string    `json:"describe"`            // 描述
+	Amount            int32     `json:"amount"`              // 金额(单位:分)
+	ChessUserId       int64     `json:"chess_user_id"`       // 互娱用户id
+	ChessUserNickname string    `json:"chess_user_nickname"` // 互娱用户昵称
+	Day               string    `json:"day"`                 // 天
+	Month             string    `json:"month"`               // 月
+	Status            int32     `json:"status"`              // 状态
+	CreatedTime       time.Time `json:"created_time"`
+	UpdatedTime       time.Time `json:"updated_time"`
+	DB                *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentAccountRecord) TableName() string {
@@ -66,19 +67,21 @@ func (TAgentAccountRecord) TableName() string {
 
 // 推广员咖豆账户变更记录表
 type TAgentBeanAccountRecord struct {
-	Id           int64     `json:"id"`
-	OrderNo      string    `json:"order_no"`      // 订单号
-	UserId       string    `json:"user_id"`       // 用户id
-	Type         int32     `json:"type"`          // 收支类型(1收入、2支出)
-	BusinessType int32     `json:"business_type"` // 业务类型(见枚举)
-	Describe     string    `json:"describe"`      // 描述
-	Amount       int32     `json:"amount"`        // 金额(单位分)
-	Number       int64     `json:"number"`        // 数量
-	GiveNumber   int32     `json:"give_number"`   // 赠送数量
-	Day          string    `json:"day"`           // 天
-	CreatedTime  time.Time `json:"created_time"`
-	UpdatedTime  time.Time `json:"updated_time"`
-	DB           *gorm.DB  `gorm:"-" json:"-"`
+	Id                int64     `json:"id"`
+	OrderNo           string    `json:"order_no"`            // 订单号
+	UserId            string    `json:"user_id"`             // 用户id
+	Type              int32     `json:"type"`                // 收支类型(1收入、2支出)
+	BusinessType      int32     `json:"business_type"`       // 业务类型(见枚举)
+	ChessUserId       int64     `json:"chess_user_id"`       // 互娱用户id
+	ChessUserNickname string    `json:"chess_user_nickname"` // 互娱用户昵称
+	Describe          string    `json:"describe"`            // 描述
+	Amount            int32     `json:"amount"`              // 金额(单位分)
+	Number            int64     `json:"number"`              // 数量
+	GiveNumber        int32     `json:"give_number"`         // 赠送数量
+	Day               string    `json:"day"`                 // 天
+	CreatedTime       time.Time `json:"created_time"`
+	UpdatedTime       time.Time `json:"updated_time"`
+	DB                *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentBeanAccountRecord) TableName() string {

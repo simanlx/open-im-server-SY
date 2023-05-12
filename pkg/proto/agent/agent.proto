@@ -152,6 +152,8 @@ message AccountRecordList{
   string describe = 4; //描述
   string created_time = 5; //时间
   int32  type = 6; //收支类型(1收入、2支出)
+  int64 chess_user_id = 7; //互娱用户id
+  string chess_user_nickname = 8; //互娱用户昵称
 }
 
 message AgentDiyBeanShopConfigReq{
@@ -235,6 +237,8 @@ message BeanRecordList{
   int32  give_number = 5; //赠送数量
   string describe = 6; //描述
   string created_time = 7; //时间
+  int64 chess_user_id = 8; //互娱用户id
+  string chess_user_nickname = 9; //互娱用户昵称
 }
 
 message AgentGiveMemberBeanReq{

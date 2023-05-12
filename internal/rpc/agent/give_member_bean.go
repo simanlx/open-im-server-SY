@@ -83,18 +83,20 @@ func GiveChessUserBean(userId string, agentNumber int32, agentId, beanNumber, ch
 	//2、增加咖豆变更日志
 	orderNo := utils.GetOrderNo()
 	record := &db.TAgentBeanAccountRecord{
-		OrderNo:      orderNo,
-		UserId:       userId,
-		Type:         2,
-		BusinessType: imdb.BeanAccountBusinessTypeGive,
-		Describe:     fmt.Sprintf("赠送给%sID%d %d咖豆", chessNickname, chessUserId, beanNumber),
-		Amount:       0,
-		Number:       beanNumber,
-		GiveNumber:   0,
-		Day:          time.Now().Format("2006-01-02"),
-		CreatedTime:  time.Now(),
-		UpdatedTime:  time.Now(),
-		DB:           tx,
+		OrderNo:           orderNo,
+		UserId:            userId,
+		Type:              2,
+		BusinessType:      imdb.BeanAccountBusinessTypeGive,
+		ChessUserId:       chessUserId,
+		ChessUserNickname: chessNickname,
+		Describe:          fmt.Sprintf("赠送给%sID%d %d咖豆", chessNickname, chessUserId, beanNumber),
+		Amount:            0,
+		Number:            beanNumber,
+		GiveNumber:        0,
+		Day:               time.Now().Format("2006-01-02"),
+		CreatedTime:       time.Now(),
+		UpdatedTime:       time.Now(),
+		DB:                tx,
 	}
 	err = tx.Table("t_agent_bean_account_record").Create(&record).Error
 	if err != nil {

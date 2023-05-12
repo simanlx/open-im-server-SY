@@ -85,18 +85,19 @@ func handelChessPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, ncountOrderN
 
 	//3、增加余额变更日志
 	balanceRecord := &db.TAgentAccountRecord{
-		OrderNo:      info.OrderNo,
-		UserId:       info.UserId,
-		Type:         1,
-		BusinessType: imdb.AccountBusinessTypeShop,
-		Describe:     fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
-		Amount:       info.Amount,
-		ChessUserId:  info.ChessUserId,
-		Day:          time.Now().Format("2006-01-02"),
-		Month:        time.Now().Format("2006-01"),
-		CreatedTime:  time.Now(),
-		UpdatedTime:  time.Now(),
-		DB:           tx,
+		OrderNo:           info.OrderNo,
+		UserId:            info.UserId,
+		Type:              1,
+		BusinessType:      imdb.AccountBusinessTypeShop,
+		ChessUserId:       info.ChessUserId,
+		ChessUserNickname: info.ChessUserNickname,
+		Describe:          fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
+		Amount:            info.Amount,
+		Day:               time.Now().Format("2006-01-02"),
+		Month:             time.Now().Format("2006-01"),
+		CreatedTime:       time.Now(),
+		UpdatedTime:       time.Now(),
+		DB:                tx,
 	}
 	err = tx.Table("t_agent_account_record").Create(&balanceRecord).Error
 	if err != nil {
@@ -106,18 +107,20 @@ func handelChessPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, ncountOrderN
 
 	//4、增加咖豆变更日志
 	beanRecord := &db.TAgentBeanAccountRecord{
-		OrderNo:      info.OrderNo,
-		UserId:       info.UserId,
-		Type:         2,
-		BusinessType: imdb.BeanAccountBusinessTypeSale,
-		Describe:     fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
-		Amount:       info.Amount,
-		Number:       info.Number,
-		GiveNumber:   info.GiveNumber,
-		Day:          time.Now().Format("2006-01-02"),
-		CreatedTime:  time.Now(),
-		UpdatedTime:  time.Now(),
-		DB:           tx,
+		OrderNo:           info.OrderNo,
+		UserId:            info.UserId,
+		Type:              2,
+		BusinessType:      imdb.BeanAccountBusinessTypeSale,
+		ChessUserId:       info.ChessUserId,
+		ChessUserNickname: info.ChessUserNickname,
+		Describe:          fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
+		Amount:            info.Amount,
+		Number:            info.Number,
+		GiveNumber:        info.GiveNumber,
+		Day:               time.Now().Format("2006-01-02"),
+		CreatedTime:       time.Now(),
+		UpdatedTime:       time.Now(),
+		DB:                tx,
 	}
 	err = tx.Table("t_agent_bean_account_record").Create(&beanRecord).Error
 	if err != nil {
@@ -228,18 +231,19 @@ func handelPlatformPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, agentMemb
 
 	//3、增加余额变更日志
 	balanceRecord := &db.TAgentAccountRecord{
-		OrderNo:      info.OrderNo,
-		UserId:       info.UserId,
-		Type:         1,
-		BusinessType: imdb.AccountBusinessTypePay,
-		Describe:     fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
-		Amount:       contribution,
-		ChessUserId:  info.ChessUserId,
-		Day:          time.Now().Format("2006-01-02"),
-		Month:        time.Now().Format("2006-01"),
-		CreatedTime:  time.Now(),
-		UpdatedTime:  time.Now(),
-		DB:           tx,
+		OrderNo:           info.OrderNo,
+		UserId:            info.UserId,
+		Type:              1,
+		BusinessType:      imdb.AccountBusinessTypePay,
+		ChessUserId:       info.ChessUserId,
+		ChessUserNickname: info.ChessUserNickname,
+		Describe:          fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
+		Amount:            contribution,
+		Day:               time.Now().Format("2006-01-02"),
+		Month:             time.Now().Format("2006-01"),
+		CreatedTime:       time.Now(),
+		UpdatedTime:       time.Now(),
+		DB:                tx,
 	}
 	err = tx.Table("t_agent_account_record").Create(&balanceRecord).Error
 	if err != nil {

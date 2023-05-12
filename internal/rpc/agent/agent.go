@@ -174,11 +174,13 @@ func (rpc *AgentServer) AgentAccountRecordList(_ context.Context, req *agent.Age
 	if len(list) > 0 {
 		for _, v := range list {
 			resp.AccountRecordList = append(resp.AccountRecordList, &agent.AccountRecordList{
-				BusinessType: v.BusinessType,
-				Amount:       v.Amount,
-				Describe:     v.Describe,
-				CreatedTime:  v.CreatedTime.Format("2006-01-02 15:04:05"),
-				Type:         v.Type,
+				BusinessType:      v.BusinessType,
+				Amount:            v.Amount,
+				Describe:          v.Describe,
+				CreatedTime:       v.CreatedTime.Format("2006-01-02 15:04:05"),
+				Type:              v.Type,
+				ChessUserId:       v.ChessUserId,
+				ChessUserNickname: v.ChessUserNickname,
 			})
 		}
 	}
