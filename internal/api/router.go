@@ -125,6 +125,16 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token
 		cloudWalletGroup.POST("/translateVideo", redpacket.TranslateVideo) // 翻译文字
 		cloudWalletGroup.POST("/getVersion", redpacket.GetVersion)         // 获取版本
+
+		// 这里是做第三方支付
+		cloudWalletGroup.POST("/create_third_pay_order", redpacket.CreateThirdPayOrder) // 创建第三方订单 - 竞技使用
+		cloudWalletGroup.POST("/get_third_pay_order", redpacket.GetThirdPayOrder)       // 查询第三方订单
+		cloudWalletGroup.POST("/third_pay", redpacket.ThirdPay)                         // 第三方支付
+
+		// 这里做新生支付的统一封装
+		cloudWalletGroup.POST("/pay_callback", redpacket.ThirdPayCallback) // 第三方支付
+		cloudWalletGroup.POST("/pay_confirm", redpacket.PayConfirm)        // 第三方支付
+
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
 			context.JSON(200, gin.H{

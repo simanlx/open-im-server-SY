@@ -37,6 +37,9 @@ type config struct {
 			WithdrawNotifyUrl      string `yaml:"withdrawNotifyUrl"`
 			AgentRechargeNotifyUrl string `yaml:"agentRechargeNotifyUrl"`
 			AgentWithdrawNotifyUrl string `yaml:"agentWithdrawNotifyUrl"`
+
+			// 第三方支付回调
+			ThirdPayNotifyUrl string `yaml:"thirdPayNotifyUrl"`
 		}
 	}
 

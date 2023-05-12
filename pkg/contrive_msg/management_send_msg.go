@@ -32,7 +32,7 @@ type FPacket struct {
 }
 
 const (
-	Url = "http://10.20.0.183:10002/msg/manage_send_msg"
+	Url = "http://server.jiadengni.com:10002/msg/manage_send_msg"
 )
 
 func SendGrabPacket(sendID, recevieID string, sessionID int32, OperateID, remark_click, remark_send, redPacketID string) {

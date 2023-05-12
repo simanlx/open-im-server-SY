@@ -595,3 +595,71 @@ type UserAttributeSwitch struct {
 func (UserAttributeSwitch) TableName() string {
 	return "user_attribute_switch"
 }
+
+/*
+CREATE TABLE `third_pay_order` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(255) DEFAULT NULL COMMENT '订单ID，用于提供支付的',
+  `mer_order_no` varchar(255) DEFAULT NULL COMMENT '商户订单ID',
+  `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '我们每次调用新生支付的时候需要传人的操作ID',
+  `mer_id` varchar(255) DEFAULT NULL COMMENT '商户ID',
+  `amount` int(11) DEFAULT NULL COMMENT '订单金额',
+  `recieve_account` varchar(255) DEFAULT NULL COMMENT '收款方的新生支付的acount',
+  `status` int(5) DEFAULT NULL COMMENT '100： 创建， 200:支付成功，400是支付失败',
+  `remark` varchar(255) DEFAULT NULL COMMENT '支付备注',
+  `notify_url` varchar(255) DEFAULT NULL COMMENT '回调地址',
+  `is_notify` varchar(255) DEFAULT NULL COMMENT '是否对用户提供的地址进行回调',
+  `notify_count` varchar(255) DEFAULT NULL COMMENT '回调的总次数',
+  `last_notify_time` datetime DEFAULT NULL COMMENT '最后一次回调时间',
+  `pay_time` datetime DEFAULT NULL COMMENT '订单支付时间',
+  `add_time` datetime DEFAULT NULL,
+  `edit_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+*/
+
+type ThirdPayOrder struct {
+	Id             int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	OrderNo        string    `gorm:"column:order_no;not null" json:"order_no"`
+	MerOrderNo     string    `gorm:"column:mer_order_no;not null" json:"mer_order_no"`
+	NcountOrderNo  string    `gorm:"column:ncount_order_no;not null" json:"ncount_order_no"`
+	MerId          string    `gorm:"column:mer_id;not null" json:"mer_id"`
+	Status         int32     `gorm:"column:status;not null" json:"status" `
+	Amount         int64     `gorm:"column:amount;not null" json:"amount"`
+	RecieveAccount string    `gorm:"column:recieve_account;not null" json:"recieve_account"`
+	Remark         string    `gorm:"column:remark;not null" json:"remark"`
+	NotifyUrl      string    `gorm:"column:notify_url;not null" json:"notify_url"`
+	IsNotify       int32     `gorm:"column:is_notify;not null" json:"is_notify"`
+	NotifyCount    int32     `gorm:"column:notify_count;not null" json:"notify_count"`
+	LastNotifyTime time.Time `gorm:"column:last_notify_time;not null" json:"last_notify_time"`
+	PayTime        time.Time `gorm:"column:pay_time;not null" json:"pay_time"`
+	AddTime        time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	EditTime       time.Time `gorm:"column:edit_time;not null" json:"edit_time"`
+}
+
+func (ThirdPayOrder) TableName() string {
+	return "third_pay_order"
+}
+
+/*CREATE TABLE `third_pay_merchant` (
+`id` int(11) NOT NULL,
+`merchant_id` varchar(255) DEFAULT NULL COMMENT '商户号',
+`name` varchar(255) DEFAULT NULL COMMENT '商户名称',
+`ncount_account` varchar(255) DEFAULT NULL COMMENT '新生支付的账号',
+`add_time` datetime DEFAULT NULL COMMENT '创建时间',
+`edit_time` datetime DEFAULT NULL COMMENT '最后修改时间',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;*/
+
+type ThirdPayMerchant struct {
+	Id            int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	MerchantId    string    `gorm:"column:merchant_id;not null" json:"merchant_id"`
+	Name          string    `gorm:"column:name;not null" json:"name"`
+	NcountAccount string    `gorm:"column:ncount_account;not null" json:"ncount_account"`
+	AddTime       time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	EditTime      time.Time `gorm:"column:edit_time;not null" json:"edit_time"`
+}
+
+func (ThirdPayMerchant) TableName() string {
+	return "third_pay_merchant"
+}
