@@ -79,7 +79,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		PayRes = nc.payByBalance(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount)
 		if PayRes.ErrCode == 0 {
 			// 支付成功
-			err = AddNcountTradeLog(BusinessTypeBalanceThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, PayRes.NcountOrderID, "")
+			err = AddNcountTradeLog(BusinessTypeBalanceThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, payOrder.NcountOrderNo, PayRes.NcountOrderID, "")
 			if err != nil {
 				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
 			}
@@ -106,7 +106,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		PayRes = nc.payByBankCard(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount, in.BankcardProtocol, NotifyUrl)
 		if PayRes.ErrCode == 0 {
 			// 支付成功
-			err = AddNcountTradeLog(BusinessTypeBankcardThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, PayRes.NcountOrderID, "")
+			err = AddNcountTradeLog(BusinessTypeBankcardThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, payOrder.NcountOrderNo, PayRes.NcountOrderID, "")
 			if err != nil {
 				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
 			}
