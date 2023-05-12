@@ -396,7 +396,7 @@ func (h *handlerSendRedPacket) walletTransfer(fncount *db.FNcountAccount, in *pb
 				log.Error(in.OperationID, "增加账户变更日志失败:Panic", zap.Any("err", err))
 			}
 		}()
-		err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, transferResult.MerOrderId, redPacket.PacketID)
+		err = AddNcountTradeLog(BusinessTypeBalanceSendPacket, int32(in.Amount), in.UserId, fncount.MainAccountId, merOrderID, transferResult.NcountOrderId, redPacket.PacketID)
 		if err != nil {
 			log.Error(in.OperationID, "增加账户变更日志失败", zap.Error(err))
 		}
@@ -541,8 +541,9 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 	}
 
 	//充值支付
+	merOrderId := ncount.GetMerOrderID()
 	accountResp, err := ncount.NewCounter().QuickPayOrder(&ncount.QuickPayOrderReq{
-		MerOrderId: ncount.GetMerOrderID(),
+		MerOrderId: merOrderId,
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
 			TranAmount:    cast.ToString(cast.ToFloat64(amount) / 100),
@@ -561,7 +562,7 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 	}
 
 	//增加账户变更日志
-	err = AddNcountTradeLog(BusinessTypeBankcardSendPacket, amount, userId, accountInfo.MainAccountId, accountResp.NcountOrderId, packetID)
+	err = AddNcountTradeLog(BusinessTypeBankcardSendPacket, amount, userId, accountInfo.MainAccountId, merOrderId, accountResp.NcountOrderId, packetID)
 	if err != nil {
 		return errors.New(fmt.Sprintf("增加账户变更日志失败(%s)", err.Error()))
 	}

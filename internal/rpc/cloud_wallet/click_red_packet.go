@@ -211,7 +211,7 @@ func (h *handlerClickRedPacket) ClickRedPacket(req *pb.ClickRedPacketReq) (*pb.C
 			SendRedPacketMsg(redPacketInfo, req.OperateID, req.UserId)
 		}
 
-		err = AddNcountTradeLog(BusinessTypeReceivePacket, int32(amount), req.UserId, "", respNcount.NcountOrderId, redPacketInfo.PacketID)
+		err = AddNcountTradeLog(BusinessTypeReceivePacket, int32(amount), req.UserId, "", merOrderID, respNcount.NcountOrderId, redPacketInfo.PacketID)
 		if err != nil {
 			log.Error(req.OperateID, "添加交易记录失败", err)
 		}
