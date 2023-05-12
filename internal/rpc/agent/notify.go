@@ -288,3 +288,219 @@ func computeRechargeRebate(amount int32) int32 {
 
 	return cast.ToInt32(rebateAmount)
 }
+
+// 推广员充值咖豆 - 新生支付回调
+func (rpc *AgentServer) RechargeNotify(ctx context.Context, req *agent.RechargeNotifyReq) (*agent.RechargeNotifyResp, error) {
+	resp := &agent.RechargeNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+
+	// 加锁
+	lockKey := fmt.Sprintf("RechargeNotify:%s", req.OrderNo)
+	if err := utils.Lock(ctx, lockKey); err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "操作加锁失败"
+		return resp, nil
+	}
+	defer utils.UnLock(ctx, lockKey)
+
+	//校验订单号
+	orderInfo, err := imdb.GetOrderByOrderNo(req.OrderNo)
+	if err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "订单不存在"
+		return resp, nil
+	}
+
+	//校验订单状态、已处理
+	if orderInfo.PayStatus == 1 {
+		return resp, nil
+	}
+
+	//校验金额
+	if orderInfo.Amount > req.Amount {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = fmt.Sprintf("订单支付金额错误,订单金额(%d),支付金额(%d)", orderInfo.Amount, req.Amount)
+		log.Error("", fmt.Sprintf("推广员充值咖豆-新生支付回调订单号:(%s),err:%s", req.OrderNo, resp.CommonResp.Msg))
+		return resp, nil
+	}
+
+	//处理充值咖豆逻辑：1、改订单状态 、2给推广员增加咖豆、3记录咖豆账户变更日志
+	err = handelRechargeNotifyLogic(orderInfo, req.NcountOrderNo, req.PayTime)
+	if err != nil {
+		log.Error("", fmt.Sprintf("推广员充值咖豆-新生支付回调订单号:(%s),err:%s", req.OrderNo, err.Error()))
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = err.Error()
+		return resp, nil
+	}
+
+	return resp, nil
+}
+
+// 处理充值咖豆逻辑：1、改订单状态 、2给推广员增加咖豆、3记录咖豆账户变更日志
+func handelRechargeNotifyLogic(info *db.TAgentBeanRechargeOrder, ncountOrderNo, payTime string) error {
+	//开启事务
+	tx := db.DB.AgentMysqlDB.DefaultGormDB().Begin()
+
+	//1、更新订单状态
+	var payT int64
+	payTimeInt, err := time.Parse("2006-01-02 15:14:15", payTime)
+	if err == nil {
+		payT = payTimeInt.Unix()
+	}
+
+	err = tx.Table("t_agent_bean_recharge_order").Where("id = ?", info.Id).Updates(map[string]interface{}{
+		"ncount_order_no": ncountOrderNo,
+		"pay_status":      1,
+		"pay_time":        payT,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, "更新订单状态失败")
+	}
+
+	//2、推广员增加咖豆
+	err = tx.Table("t_agent_account").Where("user_id = ? ", info.UserId).UpdateColumn("bean_balance", gorm.Expr(" bean_balance + ? ", info.Number+int64(info.GiveNumber))).Error
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, fmt.Sprintf("给推广员(%s)增加咖豆(%d)失败：%s", info.UserId, info.Number, err.Error()))
+	}
+
+	//3、记录咖豆账户变更日志
+	beanRecord := &db.TAgentBeanAccountRecord{
+		OrderNo:           info.OrderNo,
+		UserId:            info.UserId,
+		Type:              1,
+		BusinessType:      imdb.BeanAccountBusinessTypePay,
+		ChessUserId:       info.ChessUserId,
+		ChessUserNickname: info.ChessUserNickname,
+		Describe:          fmt.Sprintf("购买%d咖豆", info.Number),
+		Amount:            info.Amount,
+		Number:            info.Number,
+		GiveNumber:        info.GiveNumber,
+		Day:               time.Now().Format("2006-01-02"),
+		CreatedTime:       time.Now(),
+		UpdatedTime:       time.Now(),
+		DB:                tx,
+	}
+	err = tx.Table("t_agent_bean_account_record").Create(&beanRecord).Error
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, "增加咖豆变更日志失败")
+	}
+
+	//提交事务
+	err = tx.Commit().Error
+	if err != nil {
+		log.NewError("", "handelRechargeNotifyLogic commit error:", err, "tx.Rollback().Error :", tx.Rollback().Error)
+		return errors.Wrap(err, "事务提交失败")
+	}
+	return nil
+}
+
+// 推广员提现余额 - 新生支付回调
+func (rpc *AgentServer) WithdrawNotify(ctx context.Context, req *agent.WithdrawNotifyReq) (*agent.WithdrawNotifyResp, error) {
+	resp := &agent.WithdrawNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+
+	// 加锁
+	lockKey := fmt.Sprintf("WithdrawNotify:%s", req.OrderNo)
+	if err := utils.Lock(ctx, lockKey); err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "操作加锁失败"
+		return resp, nil
+	}
+	defer utils.UnLock(ctx, lockKey)
+
+	//校验订单号
+	orderInfo, err := imdb.GetWithdrawOrderByOrderNo(req.OrderNo)
+	if err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "订单不存在"
+		return resp, nil
+	}
+
+	//校验订单状态、已处理
+	if orderInfo.Status == 1 {
+		return resp, nil
+	}
+
+	//校验金额、提现金额和新生支付返回不同、群业务告警
+	if orderInfo.Balance != req.Amount {
+		errMsg := fmt.Sprintf("推广员提现余额回调校验金额异常，订单号:(%s),提现金额(%d)、新生支付回调金额(%d)", req.OrderNo, orderInfo.Balance, req.Amount)
+		log.Error("", errMsg)
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = errMsg
+		return resp, nil
+	}
+
+	//处理提现余额逻辑：1、更新提现订单状态 、2扣除冻结余额 、3记录余额账户变更日志
+	err = handelWithdrawNotifyLogic(orderInfo, req.NcountOrderNo, req.PayTime)
+	if err != nil {
+		log.Error("", fmt.Sprintf("推广员提现余额-新生支付回调订单号:(%s),err:%s", req.OrderNo, err.Error()))
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = err.Error()
+		return resp, nil
+	}
+
+	return resp, nil
+}
+
+// 处理提现余额逻辑：1、更新提现订单状态 、2扣除冻结余额 、3记录余额账户变更日志
+func handelWithdrawNotifyLogic(info *db.TAgentWithdraw, ncountOrderNo, payTime string) error {
+	//开启事务
+	tx := db.DB.AgentMysqlDB.DefaultGormDB().Begin()
+
+	//1、更新订单状态
+	var payT int64
+	payTimeInt, err := time.Parse("2006-01-02 15:04:05", payTime)
+	if err == nil {
+		payT = payTimeInt.Unix()
+	}
+
+	err = tx.Table("t_agent_withdraw").Where("id = ?", info.Id).Updates(map[string]interface{}{
+		"ncount_order_no":  ncountOrderNo,
+		"status":           1,
+		"transferred_time": payT,
+		"updated_time":     time.Now(),
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, "更新提现订单状态失败")
+	}
+
+	//2、扣除冻结余额
+	err = tx.Table("t_agent_account").Where("user_id = ? and freeze_balance >= ? ", info.UserId, info.Balance).UpdateColumn("freeze_balance", gorm.Expr(" freeze_balance - ? ", info.Balance)).Error
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, fmt.Sprintf("扣推广员(%s)除冻结余额(%d)失败：%s", info.UserId, info.Balance, err.Error()))
+	}
+
+	//3、增加余额变更日志
+	balanceRecord := &db.TAgentAccountRecord{
+		OrderNo:           info.OrderNo,
+		UserId:            info.UserId,
+		Type:              2,
+		BusinessType:      imdb.AccountBusinessTypeWithdraw,
+		ChessUserId:       0,
+		ChessUserNickname: "",
+		Describe:          "提现到银行卡",
+		Amount:            info.Balance,
+		Day:               time.Now().Format("2006-01-02"),
+		Month:             time.Now().Format("2006-01"),
+		CreatedTime:       time.Now(),
+		UpdatedTime:       time.Now(),
+		DB:                tx,
+	}
+	err = tx.Table("t_agent_account_record").Create(&balanceRecord).Error
+	if err != nil {
+		tx.Rollback()
+		return errors.Wrap(err, "增加余额变更日志失败")
+	}
+
+	//提交事务
+	err = tx.Commit().Error
+	if err != nil {
+		log.NewError("", "handelWithdrawNotifyLogic commit error:", err, "tx.Rollback().Error :", tx.Rollback().Error)
+		return errors.Wrap(err, "事务提交失败")
+	}
+
+	return nil
+}
