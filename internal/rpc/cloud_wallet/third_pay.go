@@ -21,7 +21,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		res = &pb.ThirdPayResp{
 			CommonResp: &pb.CommonResp{
 				ErrCode: 0,
-				ErrMsg:  "领取成功",
+				ErrMsg:  "支付成功",
 			},
 		}
 	)
@@ -72,38 +72,53 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 	totalAmount := cast.ToString(cast.ToFloat64(payOrder.Amount) / 100)
 
 	nc := NewNcountPay()
+	recieve := config.Config.Ncount.MerchantId
 	// 发起支付
 	PayRes := &PayResult{}
 	if in.SendType == 1 {
 		// 余额支付
-		PayRes = nc.payByBalance(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount)
+		PayRes = nc.payByBalance(in.OperationID, fcount.MainAccountId, recieve, payOrder.NcountOrderNo, totalAmount)
 		if PayRes.ErrCode == 0 {
 			// 支付成功
-			err = AddNcountTradeLog(BusinessTypeBalanceThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, PayRes.NcountOrderID, "")
+			err = AddNcountTradeLog(BusinessTypeBalanceThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, payOrder.NcountOrderNo, PayRes.NcountOrderID, "")
 			if err != nil {
 				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
 			}
 			payOrder.Status = 200 // 支付成功
+			payOrder.PayTime = time.Now()
+			payOrder.NcountTureNo = PayRes.NcountOrderID
 			// 修改订单状态
 			err := imdb.UpdateThirdPayOrder(payOrder, payOrder.Id)
 			if err != nil {
 				log.Error(in.OperationID, "修改订单状态失败，err: ", err)
 			}
 			// 订单支付成功 ： todo 通知商户
+			notifyThirdPay(payOrder.NcountOrderNo)
 		} else {
 			// 支付失败
 			res.CommonResp.ErrCode = pb.CloudWalletErrCode(PayRes.ErrCode)
 			res.CommonResp.ErrMsg = "新生支付：" + PayRes.ErrMsg
 		}
 	} else {
+		res.CommonResp.ErrMsg = "支付已提交，还需要进行支付确认"
+		res.CommonResp.ErrCode = 101
+
 		NotifyUrl := config.Config.Ncount.Notify.ThirdPayNotifyUrl
+
 		// 银行卡支付 ，需要注意回调接口
-		PayRes = nc.payByBankCard(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount, in.BankcardProtocol, NotifyUrl)
+		PayRes = nc.payByBankCard(in.OperationID, fcount.MainAccountId, recieve, payOrder.NcountOrderNo, totalAmount, in.BankcardProtocol, NotifyUrl)
 		if PayRes.ErrCode == 0 {
 			// 支付成功
-			err = AddNcountTradeLog(BusinessTypeBankcardThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, PayRes.NcountOrderID, "")
+			err = AddNcountTradeLog(BusinessTypeBankcardThirdPay, int32(payOrder.Amount), in.Userid, fcount.MainAccountId, payOrder.NcountOrderNo, PayRes.NcountOrderID, "")
 			if err != nil {
 				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
+			}
+			// 修改订单信息
+			payOrder.NcountTureNo = PayRes.NcountOrderID
+			// 修改订单状态
+			err := imdb.UpdateThirdPayOrder(payOrder, payOrder.Id)
+			if err != nil {
+				log.Error(in.OperationID, "修改订单状态失败，err: ", err)
 			}
 		} else {
 			// 支付失败

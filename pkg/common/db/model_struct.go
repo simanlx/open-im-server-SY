@@ -433,6 +433,7 @@ type FNcountTrade struct {
 	Amount       int32  `gorm:"column:amount;not null" json:"amount"`      //变更金额(单位：分)
 	//BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
 	AfterAmount  int32     `gorm:"column:after_amount" json:"after_amount"`     //变更后金额(单位：分)
+	MerOrderId   string    `gorm:"column:mer_order_id" json:"mer_order_id"`     //平台订单号
 	ThirdOrderNo string    `gorm:"column:third_order_no" json:"third_order_no"` //第三方订单号
 	NcountStatus int32     `gorm:"column:ncount_status" json:"ncount_status"`   //异步通知状态（0未生效，1生效）
 	PacketID     string    `gorm:"column:packet_id" json:"packet_id"`           //红包id
@@ -601,7 +602,8 @@ CREATE TABLE `third_pay_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_no` varchar(255) DEFAULT NULL COMMENT '订单ID，用于提供支付的',
   `mer_order_no` varchar(255) DEFAULT NULL COMMENT '商户订单ID',
-  `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '我们每次调用新生支付的时候需要传人的操作ID',
+  `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '调用新生支付的mer_order_id',
+  `ncount_ture_order_no` varchar(255) DEFAULT NULL COMMENT '新生支付的orderID',
   `mer_id` varchar(255) DEFAULT NULL COMMENT '商户ID',
   `amount` int(11) DEFAULT NULL COMMENT '订单金额',
   `recieve_account` varchar(255) DEFAULT NULL COMMENT '收款方的新生支付的acount',
@@ -615,7 +617,7 @@ CREATE TABLE `third_pay_order` (
   `add_time` datetime DEFAULT NULL,
   `edit_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
 */
 
 type ThirdPayOrder struct {
@@ -623,6 +625,7 @@ type ThirdPayOrder struct {
 	OrderNo        string    `gorm:"column:order_no;not null" json:"order_no"`
 	MerOrderNo     string    `gorm:"column:mer_order_no;not null" json:"mer_order_no"`
 	NcountOrderNo  string    `gorm:"column:ncount_order_no;not null" json:"ncount_order_no"`
+	NcountTureNo   string    `gorm:"column:ncount_ture_order_no;not null" json:"ncount_ture_order_no"`
 	MerId          string    `gorm:"column:mer_id;not null" json:"mer_id"`
 	Status         int32     `gorm:"column:status;not null" json:"status" `
 	Amount         int64     `gorm:"column:amount;not null" json:"amount"`

@@ -46,7 +46,7 @@ func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int3
 }
 
 // 增加账户变更日志
-func AddNcountTradeLog(businessType, amount int32, userId, mainAccountId, thirdOrderNo, packetID string) (err error) {
+func AddNcountTradeLog(businessType, amount int32, userId, mainAccountId, merOrderNo, thirdOrderNo, packetID string) (err error) {
 	if len(mainAccountId) < 1 {
 		//获取用户账户信息
 		accountInfo, err := imdb.GetNcountAccountByUserId(userId)
@@ -89,5 +89,6 @@ func AddNcountTradeLog(businessType, amount int32, userId, mainAccountId, thirdO
 		ThirdOrderNo: thirdOrderNo,
 		NcountStatus: ncountStatus,
 		PacketID:     packetID,
+		MerOrderId:   merOrderNo,
 	})
 }
