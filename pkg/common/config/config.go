@@ -45,6 +45,9 @@ type config struct {
 		Notify     struct {
 			RechargeNotifyUrl string `yaml:"rechargeNotifyUrl"`
 			WithdrawNotifyUrl string `yaml:"withdrawNotifyUrl"`
+
+			// 第三方支付回调
+			ThirdPayNotifyUrl string `yaml:"thirdPayNotifyUrl"`
 		}
 	}
 
