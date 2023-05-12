@@ -433,6 +433,7 @@ type FNcountTrade struct {
 	Amount       int32  `gorm:"column:amount;not null" json:"amount"`      //变更金额(单位：分)
 	//BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
 	AfterAmount  int32     `gorm:"column:after_amount" json:"after_amount"`     //变更后金额(单位：分)
+	MerOrderId   string    `gorm:"column:mer_order_id" json:"mer_order_id"`     //平台订单号
 	ThirdOrderNo string    `gorm:"column:third_order_no" json:"third_order_no"` //第三方订单号
 	NcountStatus int32     `gorm:"column:ncount_status" json:"ncount_status"`   //异步通知状态（0未生效，1生效）
 	PacketID     string    `gorm:"column:packet_id" json:"packet_id"`           //红包id

@@ -582,8 +582,9 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 	}
 
 	//充值支付
+	merOrderID := ncount.GetMerOrderID()
 	accountResp, err := rpc.count.QuickPayOrder(&ncount.QuickPayOrderReq{
-		MerOrderId: ncount.GetMerOrderID(),
+		MerOrderId: merOrderID,
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
 			TranAmount:    cast.ToString(cast.ToFloat64(req.Amount) / 100),
@@ -608,7 +609,7 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 	}
 
 	//增加账户变更日志
-	err = AddNcountTradeLog(BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
+	err = AddNcountTradeLog(BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, merOrderID, accountResp.NcountOrderId, "")
 	if err != nil {
 		log.Error(req.OperationID, "增加账户变更日志失败[%s]", err.Error(), "参数：", BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId)
 	}
@@ -686,8 +687,9 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 	}
 
 	//调用新生支付提现接口
+	merOrderID := ncount.GetMerOrderID()
 	accountResp, err := rpc.count.Withdraw(&ncount.WithdrawReq{
-		MerOrderID: ncount.GetMerOrderID(),
+		MerOrderID: merOrderID,
 		MsgCipher: ncount.WithdrawMsgCipher{
 			BusinessType:    "08",
 			TranAmount:      cast.ToFloat32(cast.ToFloat64(req.Amount) / 100),
@@ -713,7 +715,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 	}
 
 	//增加账户变更日志
-	err = AddNcountTradeLog(BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
+	err = AddNcountTradeLog(BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, merOrderID, accountResp.NcountOrderId, "")
 	if err != nil {
 		log.Error(req.OperationID, "增加账户变更日志失败[%s]", err.Error(), "参数：", BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId)
 	}
