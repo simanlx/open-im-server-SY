@@ -6,10 +6,10 @@ import (
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -116,6 +116,12 @@ func (np *NcountPay) payByBankCard(operationId, payAccountID, ReceiveAccountId, 
 
 // 支付确认
 func (np *NcountPay) payComfirm(OrderNo, Code string) *PayResult {
+	if OrderNo == "" || Code == "" {
+		return &PayResult{
+			ErrCode: 400,
+			ErrMsg:  "参数错误",
+		}
+	}
 	var (
 		resp = &PayResult{
 			ErrCode: 0,
@@ -137,11 +143,12 @@ func (np *NcountPay) payComfirm(OrderNo, Code string) *PayResult {
 	if err != nil {
 		//这里是网络层面的错误
 		log.Error("调用第三方支付出现网络错误", err)
+		fmt.Println(err)
 		resp.ErrMsg = "调用第三方支付出现网络错误"
 		resp.ErrCode = 400
 		return resp
 	}
-	if accountResp.ResultCode != ncount.ResultCodeSuccess {
+	if accountResp.ResultCode == ncount.ResultCodeFail {
 		remark := "确认支付失败： "
 		co, _ := json.Marshal(accountResp)
 		err := imdb.CreateErrorLog(remark, "", OrderNo, accountResp.ErrorMsg, accountResp.ErrorCode, string(co))
@@ -150,6 +157,12 @@ func (np *NcountPay) payComfirm(OrderNo, Code string) *PayResult {
 		}
 		resp.ErrCode = 400
 	}
+	if accountResp.ResultCode == ncount.ResultCodeInProcess {
+		resp.ErrCode = 0
+		resp.ErrMsg = "该笔订单正在处理中，请耐心等待"
+		return resp
+	}
+	resp.NcountOrderID = accountResp.NcountOrderId
 	resp.ErrMsg = accountResp.ErrorMsg
 	return resp
 }
@@ -166,7 +179,13 @@ func (cl *CloudWalletServer) PayConfirm(ctx context.Context, in *pb.PayConfirmRe
 	// 通过平台订单号码查询订单
 	err, outTrade := imdb.GetThirdPayOrderNo(in.OrderNo)
 	if err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			resp.ErrCode = 400
+			resp.ErrMsg = "订单不存在"
+			return resp, nil
+		} else {
+			return nil, err
+		}
 	}
 
 	if outTrade.Id == 0 {
@@ -175,27 +194,15 @@ func (cl *CloudWalletServer) PayConfirm(ctx context.Context, in *pb.PayConfirmRe
 		return resp, nil
 	}
 
-	// 查询交易记录
-	tradeInfo, err := imdb.GetFNcountTradeByOrderNo(outTrade.NcountOrderNo, in.Userid)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, err
-		}
-	}
-	if tradeInfo.ID == 0 {
-		resp.ErrCode = 400
-		resp.ErrMsg = "交易记录不存在"
-		return resp, nil
-	}
+	fmt.Println("outTrade", outTrade)
 
 	// 梳理逻辑
 	nc := NewNcountPay()
-	payConfirmResp := nc.payComfirm(tradeInfo.ThirdOrderNo, in.Code)
+	payConfirmResp := nc.payComfirm(outTrade.NcountTureNo, in.Code)
 
 	resp.ErrMsg = payConfirmResp.ErrMsg
 	resp.ErrCode = pb.CloudWalletErrCode(payConfirmResp.ErrCode)
 	return resp, nil
-
 }
 
 // 第三方支付回调

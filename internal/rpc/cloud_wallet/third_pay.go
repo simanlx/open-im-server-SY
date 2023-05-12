@@ -21,7 +21,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		res = &pb.ThirdPayResp{
 			CommonResp: &pb.CommonResp{
 				ErrCode: 0,
-				ErrMsg:  "领取成功",
+				ErrMsg:  "支付成功",
 			},
 		}
 	)
@@ -98,6 +98,9 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 			res.CommonResp.ErrMsg = "新生支付：" + PayRes.ErrMsg
 		}
 	} else {
+		res.CommonResp.ErrMsg = "支付已提交，还需要进行支付确认"
+		res.CommonResp.ErrCode = 101
+
 		NotifyUrl := config.Config.Ncount.Notify.ThirdPayNotifyUrl
 		// 银行卡支付 ，需要注意回调接口
 		PayRes = nc.payByBankCard(in.OperationID, fcount.MainAccountId, "300002428690", payOrder.NcountOrderNo, totalAmount, in.BankcardProtocol, NotifyUrl)
@@ -107,6 +110,14 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 			if err != nil {
 				log.Error(in.OperationID, "添加交易记录失败，err: ", err)
 			}
+			// 修改订单信息
+			payOrder.NcountTureNo = PayRes.NcountOrderID
+			// 修改订单状态
+			err := imdb.UpdateThirdPayOrder(payOrder, payOrder.Id)
+			if err != nil {
+				log.Error(in.OperationID, "修改订单状态失败，err: ", err)
+			}
+
 		} else {
 			// 支付失败
 			res.CommonResp.ErrCode = pb.CloudWalletErrCode(PayRes.ErrCode)
