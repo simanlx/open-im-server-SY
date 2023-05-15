@@ -21,8 +21,6 @@ import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/utils"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"io"
 	"os"
 
@@ -40,7 +38,6 @@ func NewGinRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(utils.CorsHandler())
 	log.Info("load config: ", config.Config)
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	if config.Config.Prometheus.Enable {
 		promePkg.NewApiRequestCounter()
 		promePkg.NewApiRequestFailedCounter()

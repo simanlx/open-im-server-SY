@@ -602,6 +602,7 @@ type config struct {
 		ChessApiDomain         string `yaml:"chessApiDomain"`
 		AgentRechargeNotifyUrl string `yaml:"agentRechargeNotifyUrl"`
 		AgentWithdrawNotifyUrl string `yaml:"agentWithdrawNotifyUrl"`
+		WxApiWebhookKey        string `yaml:"wxApiWebhookKey"`
 	} `yaml:"agent"`
 }
 type PConversation struct {

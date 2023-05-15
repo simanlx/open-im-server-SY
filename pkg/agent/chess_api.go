@@ -136,7 +136,7 @@ func ChessApiGiveUserBean(orderNo string, agentNumber int32, chessUserId, beanNu
 	resp, err := http.Post(config.Config.Agent.ChessApiDomain+"/v1/rechargeUserGold", data, 3)
 	if err != nil {
 		//企业微信告警
-		go utils.AgentGiveMemberBean(agentNumber, chessUserId, beanNumber, err.Error())
+		go utils.AgentGiveMemberBeanWarn(agentNumber, chessUserId, beanNumber, err.Error())
 
 		log.Error("", "请求chess api rechargeUserGold失败", err.Error())
 		return errors.Wrap(err, "请求chess api rechargeUserGold失败")
@@ -146,7 +146,7 @@ func ChessApiGiveUserBean(orderNo string, agentNumber int32, chessUserId, beanNu
 	_ = json.Unmarshal(resp, &chessApiResp)
 	if chessApiResp.Code != 200 {
 		//企业微信告警
-		go utils.AgentGiveMemberBean(agentNumber, chessUserId, beanNumber, err.Error())
+		go utils.AgentGiveMemberBeanWarn(agentNumber, chessUserId, beanNumber, err.Error())
 
 		errMsg := fmt.Sprintf("调用chess api 给用户加咖豆失败, 订单号(%s),推广员编号(%d),互娱用户id(%d),咖豆数(%d),err:%s", orderNo, agentNumber, chessUserId, beanNumber, chessApiResp.Msg)
 		log.Error("", "请求chess api rechargeUserGold失败", errMsg)
