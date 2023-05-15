@@ -7,11 +7,14 @@ import (
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/utils"
+	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	"Open_IM/pkg/proto/agent"
+	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -98,6 +101,15 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 func (rpc *AgentServer) AgentPurchaseBean(ctx context.Context, req *agent.AgentPurchaseBeanReq) (*agent.AgentPurchaseBeanResp, error) {
 	resp := &agent.AgentPurchaseBeanResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
+	// 加锁
+	lockKey := fmt.Sprintf("AgentPurchaseBean:%s", req.UserId)
+	if err := utils.Lock(ctx, lockKey); err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "操作加锁失败"
+		return resp, nil
+	}
+	defer utils.UnLock(ctx, lockKey)
+
 	configInfo, err := GetPlatformBeanConfigInfo(req.ConfigId)
 	if err != nil || configInfo == nil {
 		log.Error(req.OperationId, "获取平台咖豆商城配置缓存-GetAgentPlatformBeanConfigCache err :", err)
@@ -107,7 +119,16 @@ func (rpc *AgentServer) AgentPurchaseBean(ctx context.Context, req *agent.AgentP
 	}
 
 	orderNo := utils.GetOrderNo() //平台订单号
-	//生成订单
+
+	// rpc 调用新生支付下单接口
+	ncountOrderNo, err := RpcCreateThirdPayOrder(ctx, orderNo, configInfo.Amount, req.OperationId)
+	if err != nil {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = err.Error()
+		return resp, nil
+	}
+
+	//创建充值咖豆订单
 	err = imdb.CreatePurchaseBeanOrder(&db.TAgentBeanRechargeOrder{
 		BusinessType:      imdb.RechargeOrderBusinessTypeWeb,
 		UserId:            req.UserId,
@@ -115,24 +136,53 @@ func (rpc *AgentServer) AgentPurchaseBean(ctx context.Context, req *agent.AgentP
 		ChessUserNickname: "",
 		OrderNo:           orderNo,
 		ChessOrderNo:      "",
+		NcountOrderNo:     ncountOrderNo,
 		Number:            configInfo.BeanNumber,
 		GiveNumber:        configInfo.GiveBeanNumber,
 		Amount:            configInfo.Amount,
 	})
-
 	if err != nil {
-		log.Error(req.OperationId, "推广员购买咖豆下单，生成订单失败err:", err.Error())
+		errMsg := fmt.Sprintf("处理推广员购买咖豆逻辑逻辑下单失败,推广员id(%s),err:%s", req.UserId, err.Error())
+		log.Error("", errMsg)
+
 		resp.CommonResp.Code = 400
-		resp.CommonResp.Msg = "生成订单失败"
+		resp.CommonResp.Msg = errMsg
 		return resp, nil
 	}
 
-	//组装数据下发
-	resp.OrderNo = orderNo
-	resp.Amount = configInfo.Amount
-	resp.NotifyUrl = config.Config.Ncount.Notify.AgentRechargeNotifyUrl
+	//返回新生支付订单号给 app sdk
+	resp.NcountOrderNo = ncountOrderNo
 
 	return resp, nil
+}
+
+// rpc 调用新生支付 CreateThirdPayOrder 下单接口
+func RpcCreateThirdPayOrder(ctx context.Context, orderNo string, amount int32, operationID string) (string, error) {
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, operationID)
+	if etcdConn == nil {
+		errMsg := operationID + "getcdv3.GetDefaultConn CreateThirdPayOrder == nil"
+		log.NewError(operationID, errMsg)
+		return "", errors.New(errMsg)
+	}
+
+	//组装数据
+	rpcReq := rpc.CreateThirdPayOrderReq{
+		MerchantId:  config.Config.Agent.MerchantId, //商户号
+		MerOrderId:  orderNo,
+		NotifyUrl:   config.Config.Agent.AgentRechargeNotifyUrl,
+		Amount:      amount,
+		Remark:      "推广员充值咖豆",
+		OperationID: operationID,
+	}
+
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, _ := client.CreateThirdPayOrder(ctx, &rpcReq)
+	if RpcResp.CommonResp != nil && RpcResp.CommonResp.ErrCode != 0 {
+		log.NewError(operationID, "client.CreateThirdPayOrder 调用失败:", RpcResp.CommonResp.ErrMsg)
+		return "", errors.New(RpcResp.CommonResp.ErrMsg)
+	}
+
+	return RpcResp.OrderNo, nil
 }
 
 // 获取平台咖豆配置项
