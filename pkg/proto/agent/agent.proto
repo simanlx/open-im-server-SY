@@ -53,10 +53,8 @@ message AgentPurchaseBeanReq{
 }
 
 message AgentPurchaseBeanResp{
-  string order_no = 1; //平台订单号
-  string notify_url = 2; //回调地址
-  int32  amount = 3; //金额(单位分)
-  CommonResp commonResp = 4;
+  string ncount_order_no = 1; //新生支付订单号
+  CommonResp commonResp = 2;
 }
 
 message ChessShopPurchaseBeanReq{

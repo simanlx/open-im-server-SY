@@ -33,10 +33,8 @@ type config struct {
 		PrivateKey string `yaml:"privateKey"`
 		MerchantId string `yaml:"merchantId"`
 		Notify     struct {
-			RechargeNotifyUrl      string `yaml:"rechargeNotifyUrl"`
-			WithdrawNotifyUrl      string `yaml:"withdrawNotifyUrl"`
-			AgentRechargeNotifyUrl string `yaml:"agentRechargeNotifyUrl"`
-			AgentWithdrawNotifyUrl string `yaml:"agentWithdrawNotifyUrl"`
+			RechargeNotifyUrl string `yaml:"rechargeNotifyUrl"`
+			WithdrawNotifyUrl string `yaml:"withdrawNotifyUrl"`
 
 			// 第三方支付回调
 			ThirdPayNotifyUrl string `yaml:"thirdPayNotifyUrl"`
@@ -599,8 +597,12 @@ type config struct {
 	} `yaml:"prometheus"`
 
 	Agent struct {
-		SecretKey      string `yaml:"secretKey"`
-		ChessApiDomain string `yaml:"chessApiDomain"`
+		SecretKey              string `yaml:"secretKey"`
+		MerchantId             string `yaml:"merchantId"`
+		ChessApiDomain         string `yaml:"chessApiDomain"`
+		AgentRechargeNotifyUrl string `yaml:"agentRechargeNotifyUrl"`
+		AgentWithdrawNotifyUrl string `yaml:"agentWithdrawNotifyUrl"`
+		WxApiWebhookKey        string `yaml:"wxApiWebhookKey"`
 	} `yaml:"agent"`
 }
 type PConversation struct {

@@ -422,8 +422,11 @@ func (rpc *AgentServer) WithdrawNotify(ctx context.Context, req *agent.WithdrawN
 		return resp, nil
 	}
 
-	//校验金额、提现金额和新生支付返回不同、群业务告警
+	//校验金额、提现金额和新生支付返回不同
 	if orderInfo.Balance != req.Amount {
+		//群业务告警
+		go utils.WithdrawNotifyWarn(req.OrderNo, orderInfo.AgentNumber, orderInfo.Balance, req.Amount)
+
 		errMsg := fmt.Sprintf("推广员提现余额回调校验金额异常，订单号:(%s),提现金额(%d)、新生支付回调金额(%d)", req.OrderNo, orderInfo.Balance, req.Amount)
 		log.Error("", errMsg)
 		resp.CommonResp.Code = 400

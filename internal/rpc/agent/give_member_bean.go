@@ -104,7 +104,7 @@ func GiveChessUserBean(userId string, agentNumber int32, agentId, beanNumber, ch
 		return errors.Wrap(err, "增加咖豆变更日志失败")
 	}
 
-	//3、调用chess api 给用户加咖豆
+	//3、调用chess api 给用户加咖豆、企业微信告警
 	if !GiveUserBeanRetry(orderNo, agentNumber, chessUserId, beanNumber, []int{0, 3}) {
 		tx.Rollback()
 		return errors.New("调用chess api 给用户加咖豆失败")
