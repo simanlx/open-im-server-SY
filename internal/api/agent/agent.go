@@ -289,3 +289,41 @@ func AgentMemberList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
 	return
 }
+
+// 开通推广员
+func OpenAgent(c *gin.Context) {
+	params := base_info.OpenAgentReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	req := &rpc.OpenAgentReq{
+		ApplyId: params.ApplyId,
+	}
+
+	operationId := ""
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		errMsg := operationId + "getcdv3.GetDefaultConn == nil"
+		log.NewError(operationId, errMsg)
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": errMsg})
+		return
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.OpenAgent(c, req)
+	if err != nil {
+		log.NewError(operationId, "OpenAgent failed ", err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	// handle rpc err
+	if common.HandleAgentCommonRespErr(RpcResp.CommonResp, c) {
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": RpcResp})
+	return
+}

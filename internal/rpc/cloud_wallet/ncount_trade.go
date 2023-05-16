@@ -27,7 +27,7 @@ func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int3
 	case BusinessTypeBankcardRecharge:
 		return 1, 0, balAmount + amount, "银行卡充值", nil
 	case BusinessTypeBankcardWithdrawal:
-		return 2, 0, balAmount - amount, "提现到银行卡", nil
+		return 2, 0, balAmount, "提现到银行卡", nil
 	case BusinessTypeBankcardSendPacket:
 		return 2, 0, balAmount, "银行卡支付发送红包", nil
 	case BusinessTypeBalanceSendPacket:

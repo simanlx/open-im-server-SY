@@ -113,7 +113,6 @@ func Withdraw(c *gin.Context) {
 
 	req := &rpc.BalanceWithdrawalReq{
 		UserId:          c.GetString("userId"),
-		BindCardAgrNo:   params.BindCardAgrNo,
 		Amount:          params.Amount,
 		PaymentPassword: params.PaymentPassword,
 		OperationId:     operationId,

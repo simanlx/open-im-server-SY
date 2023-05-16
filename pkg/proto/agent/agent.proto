@@ -87,10 +87,9 @@ message BeanRechargeConfirmResp{
 
 message BalanceWithdrawalReq{
   string userId = 1; //用户id
-  string bindCardAgrNo = 2;//绑卡协议号
-  int32  amount = 3;//提现金额 单位：分
-  string paymentPassword = 4; //支付密码
-  string operationId = 5;
+  int32  amount = 2;//提现金额 单位：分
+  string paymentPassword = 3; //支付密码
+  string operationId = 4;
 }
 
 message BalanceWithdrawalResp{
@@ -317,16 +316,13 @@ message RechargeNotifyResp{
   CommonResp commonResp = 1;
 }
 
-message WithdrawNotifyReq{
-  string orderNo = 1;//平台订单号
-  string ncountOrderNo = 2;//新生支付订单号
-  string payTime = 3; //到账时间
-  int32  amount = 4; //提现金额(单位分)
-}
-message WithdrawNotifyResp{
-  CommonResp commonResp = 1;
+message OpenAgentReq{
+  int32 applyId = 1;//申请id
 }
 
+message OpenAgentResp{
+  CommonResp commonResp = 1;
+}
 
 // 推广系统服务
 service AgentSystemService {
@@ -370,7 +366,8 @@ service AgentSystemService {
   rpc BalanceWithdrawal(BalanceWithdrawalReq)returns(BalanceWithdrawalResp);
   //推广员充值咖豆回调
   rpc RechargeNotify(RechargeNotifyReq)returns(RechargeNotifyResp);
-  //推广员提现余额回调
-  rpc WithdrawNotify(WithdrawNotifyReq)returns(WithdrawNotifyResp);
+  //开通推广员
+  rpc OpenAgent(OpenAgentReq)returns(OpenAgentResp);
+
 
 }

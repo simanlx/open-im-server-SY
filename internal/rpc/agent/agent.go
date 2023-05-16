@@ -7,6 +7,7 @@ import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/proto/agent"
 	"context"
+	"math/rand"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func (rpc *AgentServer) AgentApply(_ context.Context, req *agent.AgentApplyReq) 
 	resp := &agent.AgentApplyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
 	//查询是否已申请
-	_, err := imdb.ApplyInfo(req.ChessUserId)
+	_, err := imdb.GetApplyByChessUserId(req.ChessUserId)
 	if err == nil {
 		resp.CommonResp.Msg = "已提交申请，请勿重复提交"
 		resp.CommonResp.Code = 400
@@ -94,7 +95,7 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 		resp.AgentNumber = info.AgentNumber
 	} else {
 		//是否申请
-		_, err = imdb.ApplyInfo(req.ChessUserId)
+		_, err = imdb.GetApplyByChessUserId(req.ChessUserId)
 		if err == nil {
 			resp.IsApply = true
 		}
@@ -121,7 +122,7 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 
 	resp.AgentNumber = info.AgentNumber
 	resp.AgentName = info.Name
-	resp.Balance = info.Balance + info.FreezeBalance //加上冻结的余额
+	resp.Balance = info.Balance
 	resp.BeanBalance = info.BeanBalance
 
 	//累计收益、今日收益
@@ -257,4 +258,62 @@ func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMembe
 		}
 	}
 	return resp, nil
+}
+
+// 开通推广员
+func (rpc *AgentServer) OpenAgent(_ context.Context, req *agent.OpenAgentReq) (*agent.OpenAgentResp, error) {
+	resp := &agent.OpenAgentResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+
+	//获取推广员申请记录
+	info, err := imdb.GetApplyById(req.ApplyId)
+	if err != nil {
+		resp.CommonResp.Msg = "推广员申请记录不存在"
+		resp.CommonResp.Code = 400
+		return resp, nil
+	}
+
+	//已审批
+	if info.AuditStatus == 1 {
+		return resp, nil
+	}
+
+	//创建推广员账户
+	err = imdb.CreateAgentAccount(&db.TAgentAccount{
+		UserId:      info.UserId,
+		Name:        info.Name,
+		Mobile:      info.Mobile,
+		ChessUserId: info.ChessUserId,
+		AgentNumber: CreateAgentNumber(),
+		OpenStatus:  1,
+	})
+	if err != nil {
+		log.Error("", "开通推广员失败:%s", err.Error())
+		resp.CommonResp.Msg = "开通推广员失败"
+		resp.CommonResp.Code = 400
+		return resp, nil
+	}
+
+	//更新审核状态
+	err = imdb.UpApplyAuditStatus(req.ApplyId)
+	if err != nil {
+		log.Error("", "更新推广员申请记录失败:%s", err.Error())
+		resp.CommonResp.Msg = "开通推广员失败"
+		resp.CommonResp.Code = 400
+		return resp, nil
+	}
+
+	return resp, nil
+}
+
+// 生成推广员编号
+func CreateAgentNumber() int32 {
+	rand.Seed(time.Now().UnixNano())
+	agentNumber := int32(100000 + rand.Intn(900000))
+
+	_, err := imdb.GetAgentByAgentNumber(agentNumber)
+	if err != nil {
+		return agentNumber
+	}
+
+	return int32(100000 + rand.Intn(900000))
 }
