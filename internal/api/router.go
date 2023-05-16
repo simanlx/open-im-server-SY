@@ -76,13 +76,12 @@ func NewGinRouter() *gin.Engine {
 	//推广系统(不需要鉴权)
 	agentCallbackGroup := r.Group("/agent")
 	{
+		agentCallbackGroup.POST("open", agent.OpenAgent)                                           //推广员开通
 		agentCallbackGroup.POST("bind_agent_number", agent.BindAgentNumber)                        //绑定推广员
 		agentCallbackGroup.POST("game_shop/purchase_bean", agent.ChessShopPurchaseBean)            //互娱商城购买咖豆下单(预提交)
 		agentCallbackGroup.POST("notify/agent_purchase_bean", agent.ChessPurchaseBeanNotify)       //推广员成员购买咖豆回调(推广员商城) - 互娱回调
 		agentCallbackGroup.POST("notify/platform_purchase_bean", agent.PlatformPurchaseBeanNotify) //推广员成员购买咖豆回调(平台商城) - 互娱回调
-
-		agentCallbackGroup.POST("notify/recharge", agent.RechargeNotify) //推广员充值咖豆 - 新生支付回调
-		agentCallbackGroup.POST("notify/withdraw", agent.WithdrawNotify) //推广员提现余额 - 新生支付回调
+		agentCallbackGroup.POST("notify/recharge", agent.RechargeNotify)                           //推广员充值咖豆 - 新生支付回调
 	}
 
 	// CloudWallet

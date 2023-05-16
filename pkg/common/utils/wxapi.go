@@ -22,7 +22,7 @@ type QyApiResp struct {
 
 // 推广员提现告警
 func WithdrawNotifyWarn(orderNo string, agentNumber, balance, amount int32) {
-	content := fmt.Sprintf("推广系统业务告警\n> 业务类型 : <font color=\"warning\">推广员提现金额异常</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 订单号 : <font color=\"comment\">%s</font>\n> 提现金额 : <font color=\"comment\">%d</font>\n> 到账金额 : <font color=\"comment\">%d</font> ", agentNumber, orderNo, balance, amount)
+	content := fmt.Sprintf("推广系统业务告警\n> 业务类型 : <font color=\"warning\">推广员提现金额异常</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 订单号 : <font color=\"comment\">%s</font>\n> 提现金额 : <font color=\"comment\">%d</font>\n> 到账通知金额 : <font color=\"comment\">%d</font> ", agentNumber, orderNo, balance, amount)
 
 	//内容格式 - markdown
 	qyApi := &QyApi{}
@@ -35,6 +35,18 @@ func WithdrawNotifyWarn(orderNo string, agentNumber, balance, amount int32) {
 // 推广员赠送咖豆告警
 func AgentGiveMemberBeanWarn(agentNumber int32, chessUserId, beanNumber int64, errMsg string) {
 	content := fmt.Sprintf("推广系统业务告警\n> 业务类型 : <font color=\"warning\">推广员赠送咖豆</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 互娱用户ID : <font color=\"comment\">%d</font>\n> 赠送咖豆数 : <font color=\"comment\">%d</font>\n> 错误原因 : <font color=\"comment\">%s</font> ", agentNumber, chessUserId, beanNumber, errMsg)
+
+	//内容格式 - markdown
+	qyApi := &QyApi{}
+	qyApi.Msgtype = "markdown"
+	qyApi.Markdown.Content = content
+
+	WxApi(qyApi, content)
+}
+
+// 推广员提现申请通知
+func WithdrawApplyNotify(agentNumber, amount int32, balance, commission, commissionFee int64) {
+	content := fmt.Sprintf("推广系统业务通知\n> 业务类型 : <font color=\"warning\">推广员提现申请</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 余额 : <font color=\"comment\">%d</font>\n> 提现金额 : <font color=\"comment\">%d</font>\n> 提现手续费 : <font color=\"comment\">%d (%d‰)</font> ", agentNumber, balance, amount, commissionFee, commission)
 
 	//内容格式 - markdown
 	qyApi := &QyApi{}

@@ -13,9 +13,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 	"strings"
-	"time"
 )
 
 // 互娱商城购买咖豆下单(预提交)
@@ -200,99 +198,4 @@ func GetPlatformBeanConfigInfo(configId int32) (*imdb.BeanShopConfig, error) {
 	}
 
 	return nil, errors.Wrap(err, "获取平台咖豆redis缓存配置失败.")
-}
-
-// 推广员余额提现
-func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.BalanceWithdrawalReq) (*agent.BalanceWithdrawalResp, error) {
-	resp := &agent.BalanceWithdrawalResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
-
-	// 加锁
-	lockKey := fmt.Sprintf("BalanceWithdrawal:%s", req.UserId)
-	if err := utils.Lock(ctx, lockKey); err != nil {
-		resp.CommonResp.Code = 400
-		resp.CommonResp.Msg = "操作加锁失败"
-		return resp, nil
-	}
-	defer utils.UnLock(ctx, lockKey)
-
-	//获取推广员信息
-	agentInfo, err := imdb.GetAgentByUserId(req.UserId)
-	if err != nil || agentInfo.OpenStatus == 0 {
-		resp.CommonResp.Code = 400
-		resp.CommonResp.Msg = "信息有误"
-		return resp, nil
-	}
-
-	//校验推广员余额
-	if int64(req.Amount) > agentInfo.Balance {
-		resp.CommonResp.Code = 400
-		resp.CommonResp.Msg = "账户余额不足"
-		return resp, nil
-	}
-
-	orderNo := utils.GetOrderNo()                                                 //平台订单号
-	commission := rocksCache.GetPlatformValueConfigCache("withdrawal_commission") //获取提现手续费
-
-	info := &db.TAgentWithdraw{
-		OrderNo:             orderNo,
-		NcountOrderNo:       "",
-		UserId:              agentInfo.UserId,
-		AgentNumber:         agentInfo.AgentNumber,
-		BeforeBalance:       agentInfo.Balance,
-		BeforeFreezeBalance: agentInfo.FreezeBalance,
-		Balance:             req.Amount,
-		NcountBalance:       0,
-		Commission:          commission,
-		CreatedTime:         time.Now(),
-		UpdatedTime:         time.Now(),
-	}
-
-	//处理推广员余额提现逻辑
-	err = BalanceWithdrawalSubmitLogic(info)
-	if err != nil {
-		log.Error("", fmt.Sprintf("处理推广员余额提现逻辑失败,推广员id(%s),err:%s", req.UserId, err.Error()))
-		resp.CommonResp.Code = 400
-		resp.CommonResp.Msg = err.Error()
-		return resp, nil
-	}
-
-	return resp, nil
-}
-
-// 处理推广员余额提现逻辑
-func BalanceWithdrawalSubmitLogic(info *db.TAgentWithdraw) error {
-	//开启事务
-	tx := db.DB.AgentMysqlDB.DefaultGormDB().Begin()
-
-	// 1、写入提现记录数据
-	err := tx.Table("t_agent_withdraw").Create(&info).Error
-	if err != nil {
-		tx.Rollback()
-		return errors.Wrap(err, "写入提现记录数据失败")
-	}
-
-	// 2、冻结推广员余额
-	err = tx.Table("t_agent_account").Where("user_id = ? and balance >= ?", info.UserId, info.Balance).UpdateColumns(map[string]interface{}{
-		"balance":        gorm.Expr(" balance - ? ", info.Balance),
-		"freeze_balance": gorm.Expr(" freeze_balance + ? ", info.Balance),
-	}).Error
-	if err != nil {
-		tx.Rollback()
-		return errors.Wrap(err, fmt.Sprintf("修改推广员(%s)余额失败,余额(%d),冻结余额(%d),提现余额(%d)", info.UserId, info.BeforeBalance, info.BeforeFreezeBalance, info.Balance))
-	}
-
-	//3、调用rpc提现接口
-
-	//notifyUrl := config.Config.Ncount.Notify.AgentWithdrawNotifyUrl //回调地址
-
-	//调用rpc提现接口
-
-	//提交事务
-	err = tx.Commit().Error
-	if err != nil {
-		log.NewError("", "BalanceWithdrawalSubmitLogic commit error:", err, "tx.Rollback().Error :", tx.Rollback().Error)
-		return errors.Wrap(err, "事务提交失败")
-	}
-
-	return nil
 }
