@@ -11,7 +11,6 @@ import (
 func InsertThirdWithdraw(data *db.ThirdWithdraw) (err error) {
 	data.AddTime = time.Now()
 	data.UpdateTime = time.Now()
-	data.LastNotifyTime = time.Now()
 	result := db.DB.MysqlDB.DefaultGormDB().Table("third_withdraw").Create(data)
 	if result.Error != nil {
 		return result.Error

@@ -250,6 +250,13 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 		}
 	)
 
+	// 单笔提现金额不能大于10000
+	if req.Amount > 10000*100 && req.Amount < 10*100 {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "单笔提现金额不能大于10000元，且不能小于10元"
+		return resp, nil
+	}
+
 	// 获取用户实名信息
 	account, err := rocksCache.GetUserAccountInfoFromCache(req.UserId)
 	if err != nil {
@@ -276,7 +283,17 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 	receiveAccount := account.MainAccountId
 	merOrderID := ncount.GetMerOrderID()
 	nc := NewNcountPay()
-	totalAmount := cast.ToString(cast.ToFloat64(req.Amount) / 100)
+	realAmount := req.Amount - req.Commission
+	if realAmount <= 0 {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "提现金额不能小于手续费"
+		return resp, nil
+	}
+
+	// 真正的时候，需要关闭这里
+	temAmount := 1
+
+	totalAmount := cast.ToString(cast.ToFloat64(temAmount) / 100)
 	payresult := nc.payByBalance(req.OperationID, payAccount, receiveAccount, merOrderID, totalAmount)
 	if payresult.ErrCode != 0 {
 		// 如果转账失败，这里是返回错误信息
@@ -297,13 +314,14 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 
 	// 保存回调记录
 	thirdWithdraw := &db.ThirdWithdraw{
+		Id:            0,
 		UserId:        req.UserId,
 		MerOrderId:    merOrderID,
 		NcountOrderId: payresult.NcountOrderID,
 		Account:       receiveAccount,
 		Amount:        int64(req.Amount),
-		NotifyUrl:     req.NotifyUrl,
-		NotifyCount:   0,
+		Commission:    int64(req.Commission),
+		RecevieAmount: int64(realAmount),
 		Status:        200,
 		Remark:        "提现到云钱包",
 		AddTime:       time.Time{},
@@ -316,6 +334,7 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 		resp.CommonResp.ErrMsg = "网络错误"
 		return resp, nil
 	}
+	resp.Amount = realAmount
 
 	return resp, nil
 }

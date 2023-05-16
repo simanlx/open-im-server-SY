@@ -457,6 +457,7 @@ func ThirdWithdraw(c *gin.Context) {
 	rpcReq := rpc.ThirdWithdrawalReq{
 		NotifyUrl:   params.NotifyUrl,
 		Amount:      params.Amount,
+		Commission:  params.Commission,
 		Password:    params.Password,
 		UserId:      userid,
 		OperationID: params.OperationID,

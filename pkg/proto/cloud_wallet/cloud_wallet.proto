@@ -569,11 +569,13 @@ message ThirdWithdrawalReq {
   string password = 3; //支付密码
   string userId = 4; // 链路跟踪id
   string operationID = 5; // 链路跟踪id
+  int32   commission = 6; //手续费用
 }
 
 message ThirdWithdrawalResp {
   CommonResp commonResp = 1;
   string orderID = 2; //订单号
+  int32 amount = 3; //实际到账金额
 }
 
 // 钱包服务

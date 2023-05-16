@@ -672,36 +672,34 @@ func (ThirdPayMerchant) TableName() string {
 }
 
 //CREATE TABLE `third_withdraw` (
-//  `id` int(11) NOT NULL,
-//  `user_id` varchar(255) DEFAULT NULL COMMENT '用户的id',
-//  `mer_order_id` varchar(255) DEFAULT NULL COMMENT '家等你订单',
-//  `ncount_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付的订单ID',
-//  `account` varchar(255) DEFAULT NULL COMMENT '提现账户',
-//  `amount` int(11) DEFAULT NULL COMMENT '提现金额',
-//  `notify_url` varchar(255) DEFAULT NULL COMMENT '订单url',
-//  `notify_count` int(1) DEFAULT NULL COMMENT '回调次数',
-//  `last_notify_time` datetime DEFAULT NULL,
-//  `status` varchar(255) DEFAULT NULL COMMENT '提现状态 : 100 发起提现，200 提现中，300，提现失败',
-//  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
-//  `add_time` datetime NOT NULL,
-//  `update_time` datetime DEFAULT NULL,
-//  PRIMARY KEY (`id`)
-//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`user_id` varchar(255) DEFAULT NULL COMMENT '用户的id',
+//`mer_order_id` varchar(255) DEFAULT NULL COMMENT '家等你订单',
+//`ncount_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付的订单ID',
+//`account` varchar(255) DEFAULT NULL COMMENT '提现账户',
+//`amount` int(11) DEFAULT NULL COMMENT '提现金额',
+//`recevie_amount` varchar(255) DEFAULT NULL COMMENT '到账金额',
+//`commission` int(11) DEFAULT NULL COMMENT '手续费',
+//`status` varchar(255) DEFAULT NULL COMMENT '提现状态 : 100 发起提现，200 提现成功未回调，300，提现成功&&回调成功',
+//`remark` varchar(255) DEFAULT NULL COMMENT '备注',
+//`add_time` datetime NOT NULL,
+//`update_time` datetime DEFAULT NULL,
+//PRIMARY KEY (`id`)
+//) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 
 type ThirdWithdraw struct {
-	Id             int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
-	UserId         string    `gorm:"column:user_id;not null" json:"user_id"`
-	MerOrderId     string    `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
-	NcountOrderId  string    `gorm:"column:ncount_order_id;not null" json:"ncount_order_id"`
-	Account        string    `gorm:"column:account;not null" json:"account"`
-	Amount         int64     `gorm:"column:amount;not null" json:"amount"`
-	NotifyUrl      string    `gorm:"column:notify_url;not null" json:"notify_url"`
-	NotifyCount    int32     `gorm:"column:notify_count;not null" json:"notify_count"`
-	LastNotifyTime time.Time `gorm:"column:last_notify_time;not null" json:"last_notify_time"`
-	Status         int32     `gorm:"column:status;not null" json:"status"`
-	Remark         string    `gorm:"column:remark;not null" json:"remark"`
-	AddTime        time.Time `gorm:"column:add_time;not null" json:"add_time"`
-	UpdateTime     time.Time `gorm:"column:update_time;not null" json:"update_time"`
+	Id            int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserId        string    `gorm:"column:user_id;not null" json:"user_id"`
+	MerOrderId    string    `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	NcountOrderId string    `gorm:"column:ncount_order_id;not null" json:"ncount_order_id"`
+	Account       string    `gorm:"column:account;not null" json:"account"`
+	Amount        int64     `gorm:"column:amount;not null" json:"amount"`
+	RecevieAmount int64     `gorm:"column:recevie_amount;not null" json:"recevie_amount"`
+	Commission    int64     `gorm:"column:commission;not null" json:"commission"`
+	Status        int32     `gorm:"column:status;not null" json:"status"`
+	Remark        string    `gorm:"column:remark;not null" json:"remark"`
+	AddTime       time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	UpdateTime    time.Time `gorm:"column:update_time;not null" json:"update_time"`
 }
 
 func (ThirdWithdraw) TableName() string {
