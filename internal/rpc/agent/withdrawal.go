@@ -127,7 +127,7 @@ func BalanceWithdrawalSubmitLogic(ctx context.Context, info *db.TAgentWithdraw, 
 	ncountOrderNo, err := RpcBalanceWithdrawal(ctx, info, paymentPassword, operationId)
 	if err != nil {
 		tx.Rollback()
-		return errors.Wrap(err, "新生支付提现接失败")
+		return err
 	}
 
 	//5、更新提现记录
@@ -180,17 +180,23 @@ func RpcBalanceWithdrawal(ctx context.Context, info *db.TAgentWithdraw, paymentP
 
 	//组装数据
 	rpcReq := rpc.ThirdWithdrawalReq{
-		Amount:      info.Balance,
-		Password:    paymentPassword,
-		UserId:      info.UserId,
-		OperationID: operationID,
-		Commission:  info.CommissionFee,
+		Amount:       info.Balance,
+		Password:     paymentPassword,
+		UserId:       info.UserId,
+		OperationID:  operationID,
+		Commission:   info.CommissionFee,
+		ThirdOrderId: info.OrderNo,
 	}
 
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
-	RpcResp, _ := client.ThirdWithdrawal(ctx, &rpcReq)
+	RpcResp, err := client.ThirdWithdrawal(ctx, &rpcReq)
+	if err != nil {
+		log.NewError(operationID, "rpc client.ThirdWithdrawal err 调用失败:", err.Error())
+		return "", err
+	}
+
 	if RpcResp.CommonResp != nil && RpcResp.CommonResp.ErrCode != 0 {
-		log.NewError(operationID, "rpc client.ThirdWithdrawal 调用失败:", RpcResp.CommonResp.ErrMsg)
+		log.NewError(operationID, "rpc client.ThirdWithdrawal RpcResp 调用失败:", RpcResp.CommonResp.ErrMsg)
 		return "", errors.New(RpcResp.CommonResp.ErrMsg)
 	}
 
