@@ -676,6 +676,7 @@ func (ThirdPayMerchant) TableName() string {
 //`user_id` varchar(255) DEFAULT NULL COMMENT '用户的id',
 //`mer_order_id` varchar(255) DEFAULT NULL COMMENT '家等你订单',
 //`ncount_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付的订单ID',
+//`third_order_id` varchar(255) DEFAULT NULL COMMENT '第三方订单号',
 //`account` varchar(255) DEFAULT NULL COMMENT '提现账户',
 //`amount` int(11) DEFAULT NULL COMMENT '提现金额',
 //`recevie_amount` varchar(255) DEFAULT NULL COMMENT '到账金额',
@@ -685,13 +686,14 @@ func (ThirdPayMerchant) TableName() string {
 //`add_time` datetime NOT NULL,
 //`update_time` datetime DEFAULT NULL,
 //PRIMARY KEY (`id`)
-//) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+//) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
 
 type ThirdWithdraw struct {
 	Id            int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	UserId        string    `gorm:"column:user_id;not null" json:"user_id"`
 	MerOrderId    string    `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
 	NcountOrderId string    `gorm:"column:ncount_order_id;not null" json:"ncount_order_id"`
+	ThirdOrderId  string    `gorm:"column:third_order_id;not null" json:"third_order_id"`
 	Account       string    `gorm:"column:account;not null" json:"account"`
 	Amount        int64     `gorm:"column:amount;not null" json:"amount"`
 	RecevieAmount int64     `gorm:"column:recevie_amount;not null" json:"recevie_amount"`

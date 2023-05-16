@@ -136,9 +136,9 @@ type ThirdPayCallback struct {
 
 // 提现，咖豆提现到云钱包
 type ThirdWithdrawReq struct {
-	NotifyUrl   string `json:"notify_url" binding:"required"`  //异步通知地址
-	Amount      int32  `json:"amount" binding:"required"`      //金额，单位分
-	Commission  int32  `json:"commission" binding:"required"`  //手续费，单位分
-	Password    string `json:"password" binding:"required"`    //支付密码
-	OperationID string `json:"operationID" binding:"required"` // 链路跟踪id
+	ThirdOrderId string `json:"thirdOrderId" binding:"required"` //第三方订单号
+	Amount       int32  `json:"amount" binding:"required"`       //金额，单位分
+	Commission   int32  `json:"commission" binding:"required"`   //手续费，单位分
+	Password     string `json:"password" binding:"required"`     //支付密码
+	OperationID  string `json:"operationID" binding:"required"`  // 链路跟踪id
 }

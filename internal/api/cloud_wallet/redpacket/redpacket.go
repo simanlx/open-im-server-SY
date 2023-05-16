@@ -455,12 +455,12 @@ func ThirdWithdraw(c *gin.Context) {
 
 	//rpc
 	rpcReq := rpc.ThirdWithdrawalReq{
-		NotifyUrl:   params.NotifyUrl,
-		Amount:      params.Amount,
-		Commission:  params.Commission,
-		Password:    params.Password,
-		UserId:      userid,
-		OperationID: params.OperationID,
+		ThirdOrderId: params.ThirdOrderId,
+		Amount:       params.Amount,
+		Commission:   params.Commission,
+		Password:     params.Password,
+		UserId:       userid,
+		OperationID:  params.OperationID,
 	}
 	//etcdConn
 	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
