@@ -27,6 +27,16 @@ func UpdateThirdWithdraw(data *db.ThirdWithdraw, id int64) (err error) {
 	return nil
 }
 
+// 通过第三方的订单ID查询订单记录
+func GetThirdWithdrawByThirdOrderNo(orderNo string) (*db.ThirdWithdraw, error) {
+	resp := &db.ThirdWithdraw{}
+	result := db.DB.MysqlDB.DefaultGormDB().Table("third_withdraw").Where("third_order_id = ?", orderNo).Find(&resp)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return resp, nil
+}
+
 // 查询方法 ThirdWithdraw
 // 1. 查询一段时间内的提现记录
 func GetThirdWithdrawByTime(startTime, endTime time.Time) (error, []*db.ThirdWithdraw) {

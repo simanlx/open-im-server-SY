@@ -257,6 +257,20 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 		return resp, nil
 	}
 
+	// 查询订单信息
+	history, err := imdb.GetThirdWithdrawByThirdOrderNo(req.ThirdOrderId)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "网络错误"
+		return resp, nil
+	}
+
+	if history.Id != 0 {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "该订单提现记录已存在"
+		return resp, nil
+	}
+
 	// 获取用户实名信息
 	account, err := rocksCache.GetUserAccountInfoFromCache(req.UserId)
 	if err != nil {
@@ -318,6 +332,7 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 		UserId:        req.UserId,
 		MerOrderId:    merOrderID,
 		NcountOrderId: payresult.NcountOrderID,
+		ThirdOrderId:  req.ThirdOrderId,
 		Account:       receiveAccount,
 		Amount:        int64(req.Amount),
 		Commission:    int64(req.Commission),

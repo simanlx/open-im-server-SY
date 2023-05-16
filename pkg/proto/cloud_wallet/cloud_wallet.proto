@@ -564,12 +564,12 @@ message PayCallbackResp {
 //	OperationID string `json:"operationID" binding:"required"` // 链路跟踪id
 //}
 message ThirdWithdrawalReq {
-  string notifyUrl = 1; //异步通知地址
-  int32 amount = 2; //金额，单位分
-  string password = 3; //支付密码
-  string userId = 4; // 链路跟踪id
-  string operationID = 5; // 链路跟踪id
-  int32   commission = 6; //手续费用
+  int32 amount = 1; //金额，单位分
+  string password =2; //支付密码
+  string userId = 3; // 链路跟踪id
+  string operationID = 4; // 链路跟踪id
+  int32   commission = 5; //手续费用
+  string  thirdOrderId = 6; //第三方订单号
 }
 
 message ThirdWithdrawalResp {
