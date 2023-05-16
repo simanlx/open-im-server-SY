@@ -4,6 +4,7 @@ import (
 	"Open_IM/pkg/common/db"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
+	"time"
 )
 
 // 获取推广员信息AgentNumber
@@ -31,4 +32,12 @@ func GetAgentByUserId(userId string) (info *db.TAgentAccount, err error) {
 		return nil, errors.Wrap(err, "")
 	}
 	return
+}
+
+// 创建推广员账户
+func CreateAgentAccount(info *db.TAgentAccount) error {
+	info.CreatedTime = time.Now()
+	info.UpdatedTime = time.Now()
+	err := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_account").Create(info).Error
+	return err
 }

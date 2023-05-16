@@ -124,10 +124,10 @@ func DrawAccount(c *gin.Context) {
 	}
 
 	//提现金额限制
-	//if params.Amount < 1 {
-	//	c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少1元"})
-	//	return
-	//}
+	if params.Amount < 1000 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少10元"})
+		return
+	}
 
 	//解析token、获取用户id
 	userId, ok := common.ParseImToken(c, params.OperationID)

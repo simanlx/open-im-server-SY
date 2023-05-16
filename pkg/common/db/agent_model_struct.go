@@ -24,19 +24,18 @@ func (TAgentApplyRecord) TableName() string {
 
 // 推广员账户表
 type TAgentAccount struct {
-	Id            int64     `gorm:"column:id" json:"id"`
-	UserId        string    `gorm:"column:user_id" json:"user_id"`               //用户id
-	Name          string    `gorm:"column:name" json:"name"`                     //推广员姓名
-	Mobile        string    `gorm:"column:mobile" json:"mobile"`                 //推广员电话
-	ChessUserId   int64     `gorm:"column:chess_user_id" json:"chess_user_id"`   //互娱用户id
-	AgentNumber   int32     `gorm:"column:agent_number" json:"agent_number"`     //推广员编号
-	Balance       int64     `gorm:"column:balance" json:"balance"`               //余额(单位:分)
-	FreezeBalance int64     `gorm:"column:freeze_balance" json:"freeze_balance"` //冻结余额(单位:分)
-	BeanBalance   int64     `gorm:"column:bean_balance" json:"bean_balance"`     //咖豆余额
-	OpenStatus    int32     `gorm:"column:open_status" json:"open_status"`       //开通状态(1开通、0关闭)
-	CreatedTime   time.Time `gorm:"column:created_time" json:"created_time"`
-	UpdatedTime   time.Time `gorm:"column:updated_time" json:"updated_time"`
-	DB            *gorm.DB  `gorm:"-" json:"-"`
+	Id          int64     `gorm:"column:id" json:"id"`
+	UserId      string    `gorm:"column:user_id" json:"user_id"`             //用户id
+	Name        string    `gorm:"column:name" json:"name"`                   //推广员姓名
+	Mobile      string    `gorm:"column:mobile" json:"mobile"`               //推广员电话
+	ChessUserId int64     `gorm:"column:chess_user_id" json:"chess_user_id"` //互娱用户id
+	AgentNumber int32     `gorm:"column:agent_number" json:"agent_number"`   //推广员编号
+	Balance     int64     `gorm:"column:balance" json:"balance"`             //余额(单位:分)
+	BeanBalance int64     `gorm:"column:bean_balance" json:"bean_balance"`   //咖豆余额
+	OpenStatus  int32     `gorm:"column:open_status" json:"open_status"`     //开通状态(1开通、0关闭)
+	CreatedTime time.Time `gorm:"column:created_time" json:"created_time"`
+	UpdatedTime time.Time `gorm:"column:updated_time" json:"updated_time"`
+	DB          *gorm.DB  `gorm:"-" json:"-"`
 }
 
 func (TAgentAccount) TableName() string {
@@ -160,20 +159,20 @@ func (TAgentPlatformConfig) TableName() string {
 }
 
 type TAgentWithdraw struct {
-	Id                  int32     `json:"id"`
-	OrderNo             string    `json:"order_no"`              // 平台订单号
-	NcountOrderNo       string    `json:"ncount_order_no"`       // 新生支付订单号
-	UserId              string    `json:"user_id"`               // 用户id
-	AgentNumber         int32     `json:"agent_number"`          // 推广员编号
-	BeforeBalance       int64     `json:"before_balance"`        // 提现前余额(单位:分)
-	BeforeFreezeBalance int64     `json:"before_freeze_balance"` // 提现前冻结余额(单位:分)
-	Balance             int32     `json:"balance"`               // 提现余额(单位:分)
-	NcountBalance       int64     `json:"ncount_balance"`        // 新生支付到账金额(单位:分)
-	TransferredTime     int32     `json:"transferred_time"`      // 到账时间
-	Commission          string    `json:"commission"`            // 手续费百分值
-	Status              int8      `json:"status"`                // 状态
-	CreatedTime         time.Time `json:"created_time"`
-	UpdatedTime         time.Time `json:"updated_time"`
+	Id              int32     `json:"id"`
+	OrderNo         string    `json:"order_no"`         // 平台订单号
+	NcountOrderNo   string    `json:"ncount_order_no"`  // 新生支付订单号
+	UserId          string    `json:"user_id"`          // 用户id
+	AgentNumber     int32     `json:"agent_number"`     // 推广员编号
+	BeforeBalance   int64     `json:"before_balance"`   // 提现前余额(单位:分)
+	Balance         int32     `json:"balance"`          // 提现余额(单位:分)
+	NcountBalance   int64     `json:"ncount_balance"`   // 新生支付到账金额(单位:分)
+	TransferredTime int32     `json:"transferred_time"` // 到账时间
+	Commission      int64     `json:"commission"`       // 手续费率千分几
+	CommissionFee   int64     `json:"commission_fee"`   // 手续费(单位分)
+	Status          int8      `json:"status"`           // 状态
+	CreatedTime     time.Time `json:"created_time"`
+	UpdatedTime     time.Time `json:"updated_time"`
 }
 
 func (TAgentWithdraw) TableName() string {
