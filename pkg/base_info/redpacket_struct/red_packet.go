@@ -133,3 +133,11 @@ type ThirdPayCallback struct {
 	TranFinishTime string `json:"tranFinishTime" form:"tranFinishTime"`
 	FeeAmount      string `json:"feeAmount" form:"feeAmount"`
 }
+
+// 提现，咖豆提现到云钱包
+type ThirdWithdrawReq struct {
+	NotifyUrl   string `json:"notify_url" binding:"required"`  //异步通知地址
+	Amount      int32  `json:"amount" binding:"required"`      //金额，单位分
+	Password    string `json:"password" binding:"required"`    //支付密码
+	OperationID string `json:"operationID" binding:"required"` // 链路跟踪id
+}

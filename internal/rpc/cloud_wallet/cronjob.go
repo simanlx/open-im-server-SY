@@ -5,7 +5,6 @@ import (
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
-	"Open_IM/pkg/contrive_msg"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -20,8 +19,8 @@ import (
 var NotifyChannel = make(chan string, 100)
 
 func StarCorn() {
-	CornSelect()
-	CornReturn()
+	HandleNotifyPay() // 处理支付回调
+	// CornReturn()
 	for i := 0; i < 50; i++ {
 		go func() {
 			defer func() {
@@ -96,8 +95,8 @@ func StarCorn() {
 	}
 }
 
-// 每分钟查询过去2个小时的所有订单
-func CornSelect() {
+// 这里来处理所有的支付回调
+func HandleNotifyPay() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -200,8 +199,6 @@ func returnRedPacket(RedPacketID string) error {
 		PacketInfo.Status = 100
 		PacketInfo.Remark = "红包已退款"
 
-		// 发送红包退回消息
-		contrive_msg.SendRebackMessage()
 	} else {
 		// 红包退款失败 红包退款异常，需要进行数据库核查
 		PacketInfo.Status = 200

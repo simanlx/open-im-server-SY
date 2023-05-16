@@ -9,8 +9,10 @@ import (
 	"Open_IM/pkg/common/log"
 	pb "Open_IM/pkg/proto/cloud_wallet"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/spf13/cast"
+	"gorm.io/gorm"
 	"strconv"
 	"time"
 )
@@ -234,5 +236,86 @@ func (cl *CloudWalletServer) GetThirdPayOrderInfo(ctx context.Context, req *pb.G
 	resp.Status = payOrder.Status
 	resp.Remark = payOrder.Remark
 	resp.AddTime = payOrder.AddTime.Format("2006-01-02 15:04:05")
+	return resp, nil
+}
+
+// 第三方提现到云钱包
+func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdWithdrawalReq) (*pb.ThirdWithdrawalResp, error) {
+	var (
+		resp = &pb.ThirdWithdrawalResp{
+			CommonResp: &pb.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "提现成功",
+			},
+		}
+	)
+
+	// 获取用户实名信息
+	account, err := rocksCache.GetUserAccountInfoFromCache(req.UserId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			resp.CommonResp.ErrCode = 400
+			resp.CommonResp.ErrMsg = "您还未进行实名认证，请先实名认证"
+			return resp, nil
+		}
+		log.Error(req.OperationID, "查询用户信息失败，err: ", err)
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "网络错误"
+		return resp, nil
+	}
+
+	// 校验密码
+	if req.Password != account.PaymentPassword {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "支付密码错误"
+		return resp, nil
+	}
+
+	// 进行转账操作
+	payAccount := config.Config.Ncount.MerchantId
+	receiveAccount := account.MainAccountId
+	merOrderID := ncount.GetMerOrderID()
+	nc := NewNcountPay()
+	totalAmount := cast.ToString(cast.ToFloat64(req.Amount) / 100)
+	payresult := nc.payByBalance(req.OperationID, payAccount, receiveAccount, merOrderID, totalAmount)
+	if payresult.ErrCode != 0 {
+		// 如果转账失败，这里是返回错误信息
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = payresult.ErrMsg
+		return resp, nil
+	}
+
+	// 添加交易记录
+	err = AddNcountTradeLog(BusinessTypeThirdWithDraw, req.Amount, req.UserId, receiveAccount, merOrderID, payresult.NcountOrderID, "")
+	if err != nil {
+		log.Error(req.OperationID, "添加交易记录失败，err: ", err)
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "网络错误"
+		return resp, nil
+	}
+	resp.OrderID = merOrderID
+
+	// 保存回调记录
+	thirdWithdraw := &db.ThirdWithdraw{
+		UserId:        req.UserId,
+		MerOrderId:    merOrderID,
+		NcountOrderId: payresult.NcountOrderID,
+		Account:       receiveAccount,
+		Amount:        int64(req.Amount),
+		NotifyUrl:     req.NotifyUrl,
+		NotifyCount:   0,
+		Status:        200,
+		Remark:        "提现到云钱包",
+		AddTime:       time.Time{},
+		UpdateTime:    time.Time{},
+	}
+	err = imdb.InsertThirdWithdraw(thirdWithdraw)
+	if err != nil {
+		log.Error(req.OperationID, "保存提现记录失败，err: ", err)
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = "网络错误"
+		return resp, nil
+	}
+
 	return resp, nil
 }

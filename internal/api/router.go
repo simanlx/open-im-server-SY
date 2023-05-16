@@ -127,6 +127,7 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/create_third_pay_order", redpacket.CreateThirdPayOrder) // 创建第三方订单 - 竞技使用
 		cloudWalletGroup.POST("/get_third_pay_order", redpacket.GetThirdPayOrder)       // 查询第三方订单
 		cloudWalletGroup.POST("/third_pay", redpacket.ThirdPay)                         // 第三方支付
+		cloudWalletGroup.POST("/third_withdraw", redpacket.ThirdWithdraw)               // 提现到用户的银行卡
 
 		// 这里做新生支付的统一封装
 		cloudWalletGroup.POST("/pay_callback", redpacket.ThirdPayCallback) // 第三方支付

@@ -436,6 +436,50 @@ func ThirdPay(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
 }
 
+// 从新生账户提现到用户的银行卡
+func ThirdWithdraw(c *gin.Context) {
+	params := redpacket_struct.ThirdWithdrawReq{}
+	// 创建提现订单
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	userid, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		// 用户token解析失败
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "非法token"})
+		return
+	}
+
+	//rpc
+	rpcReq := rpc.ThirdWithdrawalReq{
+		NotifyUrl:   params.NotifyUrl,
+		Amount:      params.Amount,
+		Password:    params.Password,
+		UserId:      userid,
+		OperationID: params.OperationID,
+	}
+	//etcdConn
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, params.OperationID)
+	if etcdConn == nil {
+		errMsg := "getcdv3.GetDefaultConn == nil"
+		log.NewError(params.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.ThirdWithdrawal(context.Background(), &rpcReq)
+	if err != nil {
+		log.NewError(params.OperationID, "GetVersion failed ", err.Error(), params)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": RpcResp})
+}
+
 // 创建第三方支付订单
 func CreateThirdPayOrder(c *gin.Context) {
 	params := redpacket_struct.CreateThirdPayOrder{}

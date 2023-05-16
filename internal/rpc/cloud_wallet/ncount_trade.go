@@ -20,6 +20,8 @@ const (
 
 	BusinessTypeBankcardThirdPay = 7 //银行卡第三方支付
 	BusinessTypeBalanceThirdPay  = 8 //余额第三方支付
+
+	BusinessTypeThirdWithDraw = 9 //第三方提现到余额
 )
 
 func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int32, string, error) {
@@ -40,6 +42,8 @@ func BusinessTypeAttr(businessType, amount, balAmount int32) (int32, int32, int3
 		return 2, 0, balAmount, "银行卡支付第三方", nil // 支付用户第三方内容
 	case BusinessTypeBalanceThirdPay:
 		return 2, 1, balAmount, "余额支付第三方", nil // 支付用户第三方内容
+	case BusinessTypeThirdWithDraw:
+		return 1, 1, balAmount + amount, "第三方提现到余额", nil // 第三方提现到余额
 	default:
 		return 0, 0, 0, "", errors.New("业务类型错误")
 	}
