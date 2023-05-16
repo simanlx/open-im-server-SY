@@ -606,6 +606,7 @@ CREATE TABLE `third_pay_order` (
   `mer_order_no` varchar(255) DEFAULT NULL COMMENT '商户订单ID',
   `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '调用新生支付的mer_order_id',
   `ncount_ture_order_no` varchar(255) DEFAULT NULL COMMENT '新生支付的orderID',
+  `order_type` int(11) DEFAULT '100' COMMENT '100 是支付 ；200是提现 ；',
   `mer_id` varchar(255) DEFAULT NULL COMMENT '商户ID',
   `amount` int(11) DEFAULT NULL COMMENT '订单金额',
   `recieve_account` varchar(255) DEFAULT NULL COMMENT '收款方的新生支付的acount',
@@ -619,7 +620,7 @@ CREATE TABLE `third_pay_order` (
   `add_time` datetime DEFAULT NULL,
   `edit_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8;
 */
 
 type ThirdPayOrder struct {
@@ -628,6 +629,7 @@ type ThirdPayOrder struct {
 	MerOrderNo     string    `gorm:"column:mer_order_no;not null" json:"mer_order_no"`
 	NcountOrderNo  string    `gorm:"column:ncount_order_no;not null" json:"ncount_order_no"`
 	NcountTureNo   string    `gorm:"column:ncount_ture_order_no;not null" json:"ncount_ture_order_no"`
+	OderType       int32     `gorm:"column:order_type;not null" json:"order_type"`
 	MerId          string    `gorm:"column:mer_id;not null" json:"mer_id"`
 	Status         int32     `gorm:"column:status;not null" json:"status" `
 	Amount         int64     `gorm:"column:amount;not null" json:"amount"`
@@ -667,4 +669,41 @@ type ThirdPayMerchant struct {
 
 func (ThirdPayMerchant) TableName() string {
 	return "third_pay_merchant"
+}
+
+//CREATE TABLE `third_withdraw` (
+//  `id` int(11) NOT NULL,
+//  `user_id` varchar(255) DEFAULT NULL COMMENT '用户的id',
+//  `mer_order_id` varchar(255) DEFAULT NULL COMMENT '家等你订单',
+//  `ncount_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付的订单ID',
+//  `account` varchar(255) DEFAULT NULL COMMENT '提现账户',
+//  `amount` int(11) DEFAULT NULL COMMENT '提现金额',
+//  `notify_url` varchar(255) DEFAULT NULL COMMENT '订单url',
+//  `notify_count` int(1) DEFAULT NULL COMMENT '回调次数',
+//  `last_notify_time` datetime DEFAULT NULL,
+//  `status` varchar(255) DEFAULT NULL COMMENT '提现状态 : 100 发起提现，200 提现中，300，提现失败',
+//  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
+//  `add_time` datetime NOT NULL,
+//  `update_time` datetime DEFAULT NULL,
+//  PRIMARY KEY (`id`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+type ThirdWithdraw struct {
+	Id             int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserId         string    `gorm:"column:user_id;not null" json:"user_id"`
+	MerOrderId     string    `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	NcountOrderId  string    `gorm:"column:ncount_order_id;not null" json:"ncount_order_id"`
+	Account        string    `gorm:"column:account;not null" json:"account"`
+	Amount         int64     `gorm:"column:amount;not null" json:"amount"`
+	NotifyUrl      string    `gorm:"column:notify_url;not null" json:"notify_url"`
+	NotifyCount    int32     `gorm:"column:notify_count;not null" json:"notify_count"`
+	LastNotifyTime time.Time `gorm:"column:last_notify_time;not null" json:"last_notify_time"`
+	Status         int32     `gorm:"column:status;not null" json:"status"`
+	Remark         string    `gorm:"column:remark;not null" json:"remark"`
+	AddTime        time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	UpdateTime     time.Time `gorm:"column:update_time;not null" json:"update_time"`
+}
+
+func (ThirdWithdraw) TableName() string {
+	return "third_withdraw"
 }
