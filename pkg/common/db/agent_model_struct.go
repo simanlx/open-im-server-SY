@@ -168,8 +168,8 @@ type TAgentWithdraw struct {
 	Balance         int32     `json:"balance"`          // 提现余额(单位:分)
 	NcountBalance   int64     `json:"ncount_balance"`   // 新生支付到账金额(单位:分)
 	TransferredTime int32     `json:"transferred_time"` // 到账时间
-	Commission      int64     `json:"commission"`       // 手续费率千分几
-	CommissionFee   int64     `json:"commission_fee"`   // 手续费(单位分)
+	Commission      int32     `json:"commission"`       // 手续费率千分几
+	CommissionFee   int32     `json:"commission_fee"`   // 手续费(单位分)
 	Status          int8      `json:"status"`           // 状态
 	CreatedTime     time.Time `json:"created_time"`
 	UpdatedTime     time.Time `json:"updated_time"`

@@ -218,7 +218,8 @@ message AgentBeanAccountRecordListReq{
   int32  page = 3;
   int32  size = 4;
   int32  businessType = 5; //业务类型
-  string operationId = 6;
+  string keyword = 6; //搜索关键字
+  string operationId = 7;
 }
 
 message AgentBeanAccountRecordListResp{

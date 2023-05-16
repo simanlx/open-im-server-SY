@@ -95,7 +95,16 @@ func (rpc *AgentServer) AgentDiyBeanShopConfig(_ context.Context, req *agent.Age
 func (rpc *AgentServer) AgentBeanAccountRecordList(_ context.Context, req *agent.AgentBeanAccountRecordListReq) (*agent.AgentBeanAccountRecordListResp, error) {
 	resp := &agent.AgentBeanAccountRecordListResp{BeanRecordList: []*agent.BeanRecordList{}, Total: 0}
 
-	list, count, err := imdb.BeanAccountRecordList(req.UserId, req.Date, req.BusinessType, req.Page, req.Size)
+	//搜索用户
+	chessUserIds := make([]int64, 0)
+	if len(req.Keyword) > 0 {
+		chessUserIds, _ = imdb.FindAgentMemberIds(req.UserId, req.Keyword)
+		if len(chessUserIds) == 0 {
+			return resp, nil
+		}
+	}
+
+	list, count, err := imdb.BeanAccountRecordList(req.UserId, req.Date, req.BusinessType, req.Page, req.Size, chessUserIds)
 	if err != nil {
 		return resp, nil
 	}

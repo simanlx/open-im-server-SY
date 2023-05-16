@@ -1,18 +1,22 @@
 package agent
 
 import (
+	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/agent_model"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/utils"
+	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	"Open_IM/pkg/proto/agent"
+	rpc "Open_IM/pkg/proto/cloud_wallet"
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 )
 
@@ -67,7 +71,7 @@ func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.Balanc
 	}
 
 	//处理推广员余额提现逻辑
-	err = BalanceWithdrawalSubmitLogic(ctx, info, req.OperationId)
+	err = BalanceWithdrawalSubmitLogic(ctx, info, req.PaymentPassword, req.OperationId)
 	if err != nil {
 		log.Error(req.OperationId, fmt.Sprintf("处理推广员余额提现逻辑失败,推广员id(%s),err:%s", req.UserId, err.Error()))
 		resp.CommonResp.Code = 400
@@ -79,7 +83,7 @@ func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.Balanc
 }
 
 // 处理推广员余额提现逻辑
-func BalanceWithdrawalSubmitLogic(ctx context.Context, info *db.TAgentWithdraw, operationId string) error {
+func BalanceWithdrawalSubmitLogic(ctx context.Context, info *db.TAgentWithdraw, paymentPassword, operationId string) error {
 	//开启事务
 	tx := db.DB.AgentMysqlDB.DefaultGormDB().Begin()
 
@@ -120,13 +124,11 @@ func BalanceWithdrawalSubmitLogic(ctx context.Context, info *db.TAgentWithdraw, 
 	}
 
 	//4、rpc 调用新生支付提现接口-到主账户余额
-	_, err = RpcBalanceWithdrawal(ctx, info.OrderNo, info.Balance, operationId)
+	ncountOrderNo, err := RpcBalanceWithdrawal(ctx, info, paymentPassword, operationId)
 	if err != nil {
 		tx.Rollback()
 		return errors.Wrap(err, "新生支付提现接失败")
 	}
-
-	ncountOrderNo := ""
 
 	//5、更新提现记录
 	err = tx.Table("t_agent_withdraw").Where("id = ?", info.Id).Updates(map[string]interface{}{
@@ -151,7 +153,7 @@ func BalanceWithdrawalSubmitLogic(ctx context.Context, info *db.TAgentWithdraw, 
 }
 
 // 计算提现手续费
-func computeWithdrawalCommissionFee(amount int32) (int64, int64) {
+func computeWithdrawalCommissionFee(amount int32) (int32, int32) {
 	//提现手续费比例、千分比
 	withdrawalCommission := rocksCache.GetPlatformValueConfigCache("withdrawal_commission") //获取提现手续费比例(‰)千分之几
 	withdrawalCommissionDecimal, _ := decimal.NewFromString(withdrawalCommission)
@@ -164,35 +166,33 @@ func computeWithdrawalCommissionFee(amount int32) (int64, int64) {
 	feeAmount, _ := amountDecimal.Mul(withdrawalCommissionDecimal).Div(decimal.NewFromInt(1000)).RoundFloor(0).Float64() //(a * b) / 1000 取整
 	log.Info("", "计算提现手续费 computeWithdrawalCommissionFee,提现金额,提现手续比例,提现手续费 ", amount, withdrawalCommission, feeAmount)
 
-	return cast.ToInt64(withdrawalCommission), cast.ToInt64(feeAmount)
+	return cast.ToInt32(withdrawalCommission), cast.ToInt32(feeAmount)
 }
 
 // rpc 调用新生支付提现接口-到主账户余额
-func RpcBalanceWithdrawal(ctx context.Context, orderNo string, amount int32, operationID string) (string, error) {
-	return "xdfwf", nil
-	//etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, operationID)
-	//if etcdConn == nil {
-	//	errMsg := operationID + "getcdv3.GetDefaultConn CreateThirdPayOrder == nil"
-	//	log.NewError(operationID, errMsg)
-	//	return "", errors.New(errMsg)
-	//}
-	//
-	////组装数据
-	//rpcReq := rpc.CreateThirdPayOrderReq{
-	//	MerchantId:  config.Config.Agent.MerchantId, //商户号
-	//	MerOrderId:  orderNo,
-	//	NotifyUrl:   config.Config.Agent.AgentRechargeNotifyUrl,
-	//	Amount:      amount,
-	//	Remark:      "推广员充值咖豆",
-	//	OperationID: operationID,
-	//}
-	//
-	//client := rpc.NewCloudWalletServiceClient(etcdConn)
-	//RpcResp, _ := client.CreateThirdPayOrder(ctx, &rpcReq)
-	//if RpcResp.CommonResp != nil && RpcResp.CommonResp.ErrCode != 0 {
-	//	log.NewError(operationID, "client.CreateThirdPayOrder 调用失败:", RpcResp.CommonResp.ErrMsg)
-	//	return "", errors.New(RpcResp.CommonResp.ErrMsg)
-	//}
-	//
-	//return RpcResp.OrderNo, nil
+func RpcBalanceWithdrawal(ctx context.Context, info *db.TAgentWithdraw, paymentPassword, operationID string) (string, error) {
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, operationID)
+	if etcdConn == nil {
+		errMsg := operationID + "getcdv3.GetDefaultConn CreateThirdPayOrder == nil"
+		log.NewError(operationID, errMsg)
+		return "", errors.New(errMsg)
+	}
+
+	//组装数据
+	rpcReq := rpc.ThirdWithdrawalReq{
+		Amount:      info.Balance,
+		Password:    paymentPassword,
+		UserId:      info.UserId,
+		OperationID: operationID,
+		Commission:  info.CommissionFee,
+	}
+
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, _ := client.ThirdWithdrawal(ctx, &rpcReq)
+	if RpcResp.CommonResp != nil && RpcResp.CommonResp.ErrCode != 0 {
+		log.NewError(operationID, "rpc client.ThirdWithdrawal 调用失败:", RpcResp.CommonResp.ErrMsg)
+		return "", errors.New(RpcResp.CommonResp.ErrMsg)
+	}
+
+	return RpcResp.OrderID, nil
 }

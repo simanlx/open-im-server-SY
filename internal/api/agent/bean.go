@@ -140,6 +140,7 @@ func AgentBeanAccountRecordList(c *gin.Context) {
 		Page:         params.Page,
 		Size:         params.Size,
 		BusinessType: params.BusinessType,
+		Keyword:      params.Keyword,
 		OperationId:  operationId,
 	}
 

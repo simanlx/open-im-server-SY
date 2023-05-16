@@ -36,6 +36,7 @@ type AgentGameShopBeanConfigReq struct {
 type AgentBeanAccountRecordListReq struct {
 	Date         string `json:"date"`          //日期
 	BusinessType int32  `json:"business_type"` //业务类型
+	Keyword      string `json:"keyword"`       //搜索关键字
 	Page         int32  `json:"page"`
 	Size         int32  `json:"size"`
 }

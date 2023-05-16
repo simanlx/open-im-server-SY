@@ -26,11 +26,15 @@ func GetAgentTodaySalesNumber(userId string) int64 {
 }
 
 // 账户明细变更列表
-func BeanAccountRecordList(userId, date string, businessType, page, size int32) (list []*db.TAgentBeanAccountRecord, count int64, err error) {
+func BeanAccountRecordList(userId, date string, businessType, page, size int32, chessUserIds []int64) (list []*db.TAgentBeanAccountRecord, count int64, err error) {
 	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_account_record").Where("user_id = ? and day = ?", userId, date)
 
 	if businessType > 0 {
 		model = model.Where("business_type = ?", businessType)
+	}
+
+	if len(chessUserIds) > 0 {
+		model = model.Where("chess_user_id in (?)", chessUserIds)
 	}
 
 	err = model.Count(&count).Limit(int(size)).Offset(int(size * (page - 1))).Order("id desc").Find(&list).Error

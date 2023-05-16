@@ -340,6 +340,9 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 		return resp, nil
 	}
 
+	//删除缓存
+	_ = rocksCache.DeleteAccountInfoFromCache(req.UserId)
+
 	resp.Step = 2
 	return resp, nil
 }
