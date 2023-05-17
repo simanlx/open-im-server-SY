@@ -102,7 +102,7 @@ message AgentMainInfoReq{
 }
 
 message AgentMainInfoResp{
-  int32 agent_number = 1; //推广员编号
+  int32  agent_number = 1; //推广员编号
   string agent_name = 2; //推广员姓名
 //  string avatar = 3; //推广员头像
   int64  balance = 4; //余额
@@ -111,6 +111,7 @@ message AgentMainInfoResp{
   int64  accumulated_income = 7; //累计收益
   int64  today_bind_user = 8; //今日推广用户
   int64  accumulated_bind_user = 9; //累计推广用户
+  int32  commission = 10; //提现手续比例
 }
 
 message AgentAccountIncomeChartReq{

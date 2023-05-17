@@ -4,9 +4,11 @@ import (
 	chessApi "Open_IM/pkg/agent"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/agent_model"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/proto/agent"
 	"context"
+	"github.com/spf13/cast"
 	"math/rand"
 	"time"
 )
@@ -134,6 +136,10 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 	statMember, _ := imdb.StatAgentMemberData(req.UserId)
 	resp.TodayBindUser = statMember.TodayBindUser
 	resp.AccumulatedBindUser = statMember.AccumulatedBindUser
+
+	//获取提现手续费比例(‰)千分之几
+	commission := rocksCache.GetPlatformValueConfigCache("withdrawal_commission")
+	resp.Commission = cast.ToInt32(commission)
 	return resp, nil
 }
 

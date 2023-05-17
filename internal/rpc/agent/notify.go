@@ -7,6 +7,7 @@ import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/utils"
 	"Open_IM/pkg/proto/agent"
+	utils2 "Open_IM/pkg/utils"
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
@@ -19,7 +20,7 @@ import (
 // 推广员下属成员购买咖豆 - 互娱回调
 func (rpc *AgentServer) ChessPurchaseBeanNotify(ctx context.Context, req *agent.ChessPurchaseBeanNotifyReq) (*agent.ChessPurchaseBeanNotifyResp, error) {
 	resp := &agent.ChessPurchaseBeanNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
-	log.Info("", fmt.Sprintf("start 推广员下属成员购买咖豆 - 互娱回调, 订单号(%s),新生支付订单号(%s),", req.OrderNo, req.NcountOrderNo))
+	log.Info("", fmt.Sprintf("start 推广员下属成员购买咖豆 - 互娱回调, 订单号(%s),新生支付订单号(%s),", req.OrderNo, req.NcountOrderNo), utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("ChessPurchaseBeanNotify:%s", req.OrderNo)
@@ -148,7 +149,7 @@ func handelChessPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, ncountOrderN
 // 推广员成员购买咖豆回调(平台商城) - 互娱回调
 func (rpc *AgentServer) PlatformPurchaseBeanNotify(ctx context.Context, req *agent.PlatformPurchaseBeanNotifyReq) (*agent.PlatformPurchaseBeanNotifyResp, error) {
 	resp := &agent.PlatformPurchaseBeanNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
-	log.Info("", fmt.Sprintf("start 推广员成员购买咖豆回调(平台商城) - 互娱回调, 互娱订单号(%s),新生支付订单号(%s),", req.ChessOrderNo, req.NcountOrderNo))
+	log.Info("", fmt.Sprintf("start 推广员成员购买咖豆回调(平台商城) - 互娱回调, 互娱订单号(%s),新生支付订单号(%s),", req.ChessOrderNo, req.NcountOrderNo), utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("PlatformPurchaseBeanNotify:%s", req.ChessOrderNo)
@@ -293,6 +294,7 @@ func computeRechargeRebate(amount int32) int32 {
 // 推广员充值咖豆 - 新生支付回调
 func (rpc *AgentServer) RechargeNotify(ctx context.Context, req *agent.RechargeNotifyReq) (*agent.RechargeNotifyResp, error) {
 	resp := &agent.RechargeNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+	log.Info("", fmt.Sprintf("推广员充值咖豆 - 新生支付回调, 订单号(%s),新生支付订单号(%s),", req.OrderNo, req.NcountOrderNo), utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("RechargeNotify:%s", req.OrderNo)
@@ -343,7 +345,7 @@ func handelRechargeNotifyLogic(info *db.TAgentBeanRechargeOrder, ncountOrderNo, 
 
 	//1、更新订单状态
 	var payT int64
-	payTimeInt, err := time.Parse("2006-01-02 15:14:15", payTime)
+	payTimeInt, err := time.Parse("2006-01-02 15:04:05", payTime)
 	if err == nil {
 		payT = payTimeInt.Unix()
 	}
