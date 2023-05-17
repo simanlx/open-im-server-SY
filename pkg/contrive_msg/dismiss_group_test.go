@@ -160,7 +160,30 @@ func TestSendRebackMessage(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "测试发送消息: 个人红包退回消息",
+			args: args{
+				OperationID: "123",
+				redPacketID: "123",
+				content:     "123",
+				sessionID:   1,
+				SenderID:    "1084429537",
+				ReciveID:    "1713362799", // 发送个人会话消息
+			},
+			wantErr: false,
+		},
+		{
+			name: "测试发送消息: 群红包退回消息",
+			args: args{
+				OperationID: "123",
+				redPacketID: "123",
+				content:     "123",
+				sessionID:   2,
+				SenderID:    "1084429537",
+				ReciveID:    "2886082825", // 发送给群聊绘画消息
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

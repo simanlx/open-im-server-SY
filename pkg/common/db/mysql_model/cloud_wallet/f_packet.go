@@ -131,6 +131,7 @@ func UpdateRedPacketRemain(packetID string) error {
 
 // 修改红包信息
 func UpdateRedPacketInfo(packetID string, req *db.FPacket) error {
+	req.UpdatedTime = time.Now().Unix()
 	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("packet_id = ?", packetID).Updates(req)
 	if result.Error != nil {
 		return errors.Wrap(result.Error, "修改红包状态失败")
@@ -151,7 +152,7 @@ func GetExpiredRedPacketList() ([]*db.FPacket, error) {
 // 查询过期的红包： 过期时间小于当前时间，状态为正常，红包剩余余额大于0， 每次查询100条
 func GetExpiredRedPacketListByPage() ([]*db.FPacket, error) {
 	var fPacketList []*db.FPacket
-	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("expire_time < ? and status = ? and remain > ?", time.Now().Unix(), RedPacketStatusNormal, 0).Limit(100).Find(&fPacketList)
+	result := db.DB.MysqlDB.DefaultGormDB().Table("f_packet").Where("expire_time < ? and status = ? and remain > ? and remain_amout > 0", time.Now().Unix(), RedPacketStatusNormal, 0).Limit(1).Find(&fPacketList)
 	if result.Error != nil {
 		return nil, errors.Wrap(result.Error, "查询过期红包失败")
 	}

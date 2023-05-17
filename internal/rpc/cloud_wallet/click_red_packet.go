@@ -256,11 +256,7 @@ func SendRedPacketMsg(redpacketInfo *db.FPacket, operationID string, clickUserID
 		}
 		// 发送给发送者的消息
 		err = contrive_msg.RedPacketGrabPushToUser(operationID, redpacketInfo.UserID, redpacketInfo.UserID, redpacketInfo.PacketID, userInfo.Nickname, recvUserInfo.Nickname, redpacketInfo.RecvID)
-		// 发送给接受者的消息
-		if err != nil {
-			return err
-		}
-		err = contrive_msg.RedPacketGrabPushToUser(operationID, redpacketInfo.RecvID, redpacketInfo.UserID, redpacketInfo.PacketID, userInfo.Nickname, recvUserInfo.Nickname, redpacketInfo.UserID)
+
 		if err != nil {
 			return err
 		}
@@ -278,12 +274,10 @@ func SendRedPacketMsg(redpacketInfo *db.FPacket, operationID string, clickUserID
 			return err
 		}
 
-		fmt.Println("走到发红包消息的这里来了\n")
 		// 这里是群聊红包逻辑
 		err = contrive_msg.RedPacketGrabPushToGroup(operationID, redpacketInfo.UserID, recvUserInfo.UserID, redpacketInfo.PacketID, userInfo.Nickname, recvUserInfo.Nickname, redpacketInfo.RecvID)
 		if err != nil {
-			fmt.Println("发送红包消息失败\n")
-			fmt.Println(err)
+			log.Error(operationID, "发送红包领取消息失败", err)
 			return err
 		}
 	}

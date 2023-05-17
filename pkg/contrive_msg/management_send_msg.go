@@ -180,6 +180,8 @@ func newGrabRedPacket(sendID, ReceID string, SessionType int32, OperateID string
 	return co
 }
 
+// 红包退回消息
+
 // 调用post发送消息
 func SendMessage(OperateID string, content []byte) error {
 	// 发送请求
@@ -197,6 +199,6 @@ func SendMessage(OperateID string, content []byte) error {
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("send message failed: %s", string(body))
 	}
-	log.Info(OperateID, string(body))
+	log.Error(OperateID, string(body))
 	return nil
 }
