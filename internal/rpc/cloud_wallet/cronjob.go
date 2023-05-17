@@ -5,10 +5,10 @@ import (
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
+	"Open_IM/pkg/contrive_msg"
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"net/http"
@@ -19,8 +19,8 @@ import (
 var NotifyChannel = make(chan string, 100)
 
 func StarCorn() {
-	HandleNotifyPay() // 处理支付回调
-	// CornReturn()
+	HandleNotifyPay()       // 处理支付回调
+	HandleRedPacketReturn() // 处理红包退回
 	for i := 0; i < 50; i++ {
 		go func() {
 			defer func() {
@@ -32,7 +32,6 @@ func StarCorn() {
 				MerOrderID := <-NotifyChannel // 我们平台生成的订单号
 				Operation := "竞技回调merOrderID ：" + MerOrderID
 				// 查询订单信息
-				log.Debug(Operation, "订单号", MerOrderID)
 				err, payOrder := imdb.GetThirdPayJdnMerOrderID(MerOrderID)
 				if err != nil {
 					if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -108,7 +107,6 @@ func HandleNotifyPay() {
 			start_time := time.Now().Add(-time.Hour * 2).Format("2006-01-02 15:04:05")
 			end_time := time.Now().Format("2006-01-02 15:04:05")
 			result, err := imdb.GetThirdPayOrderListByTime(start_time, end_time)
-			log.Info("定时任务：查询历史第三方支付订单", fmt.Sprintf(""), time.Now().Format("2006-01-02 15:04:05"))
 			if err != nil {
 				log.Error("查询订单失败，err: ", err)
 				time.Sleep(time.Minute)
@@ -144,8 +142,8 @@ func HandleNotifyPay() {
 	}()
 }
 
-// 退款
-func CornReturn() {
+// 处理红包退款
+func HandleRedPacketReturn() {
 	go func() {
 		defer func() {
 			if err := recover(); err != nil {
@@ -159,11 +157,12 @@ func CornReturn() {
 				time.Sleep(time.Minute)
 				continue
 			}
+			log.Info("红包退回脚本-master：定时退回", PacektSet)
 			for _, v := range PacektSet {
 				// 这里进行退款操作
 				err = returnRedPacket(v.PacketID)
 				if err != nil {
-					log.Error("红包退款失败，err: ", err)
+					log.Error("红包退回脚本-son：定时退回失败", err)
 					continue
 				}
 			}
@@ -183,26 +182,46 @@ func returnRedPacket(RedPacketID string) error {
 		}
 		return err
 	}
+
+	// 判断红包过期时间是否小于当前时间
+	if PacketInfo.ExpireTime > time.Now().Unix() {
+		// 红包未过期
+		return nil
+	}
+
+	// 红包状态为正常的红包才进行退款
+	if PacketInfo.Status != 1 {
+		return nil
+	}
+
+	// 红包剩余金额必须大于0
+	if PacketInfo.RemainAmout <= 0 {
+		return nil
+	}
+
 	// 查询用户信息
 	User, err := rocksCache.GetUserAccountInfoFromCache(PacketInfo.UserID)
 	if err != nil {
+		// 查询用户信息失败
 		return err
 	}
+
 	// 将红包的剩余的金额退回到用户的账户中
 	nc := NewNcountPay()
 	merOrderID := ncount.GetMerOrderID()
 	remainAmout := PacketInfo.RemainAmout
 	totalAmount := cast.ToString(cast.ToFloat64(remainAmout) / 100)
-	payResult := nc.payByBalance("红包退款", User.PacketAccountId, UserMainAccountPrefix, merOrderID, totalAmount)
+	payResult := nc.payByBalance("红包退款", User.PacketAccountId, User.MainAccountId, merOrderID, totalAmount)
 	if payResult.ErrCode == 0 {
 		// 红包退款成功
 		PacketInfo.Status = 100
 		PacketInfo.Remark = "红包已退款"
-
+		PacketInfo.RefoundAmout = PacketInfo.RemainAmout
 	} else {
 		// 红包退款失败 红包退款异常，需要进行数据库核查
 		PacketInfo.Status = 200
 		PacketInfo.Remark = "红包退款失败，需要进行数据核查:" + payResult.ErrMsg
+		// 这里最好进行报警处理 todo 通知管理员
 	}
 
 	PacketInfo.UpdatedTime = time.Now().Unix()
@@ -210,11 +229,23 @@ func returnRedPacket(RedPacketID string) error {
 	if err != nil {
 		return err
 	}
+	if PacketInfo.Status == 200 {
+		return nil
+	}
 
 	// 修改用户交易记录
 	err = AddNcountTradeLog(BusinessTypePacketExpire, int32(remainAmout), PacketInfo.UserID, User.MainAccountId, merOrderID, payResult.NcountOrderID, "")
-	return err
+	if err != nil {
+		return err
+	}
 
+	// 通知用户红包退款
+	// OperationID, redPacketID, content string, sessionID int, SenderID, ReciveID
+	err = contrive_msg.SendRebackMessage("红包退款消息", PacketInfo.PacketID, "红包过期，剩余金额退回到钱包", int(PacketInfo.PacketType), PacketInfo.UserID, PacketInfo.RecvID)
+	if err != nil {
+		return err
+	}
+	return err
 }
 
 func notifyThirdPay(MerOrderID string) {
