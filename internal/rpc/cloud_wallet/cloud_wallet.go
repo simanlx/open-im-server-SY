@@ -383,6 +383,15 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 		req.Size = 20
 	}
 
+	// 获取总量
+	tradein, tradOut, err := imdb.GetNcountTradeTotal(req.UserId, req.StartTime, req.EndTime)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Totalincome = tradein
+	resp.Totalpay = tradOut
+
 	//条件获取列表数据
 	list, count, err := imdb.FindNcountTradeList(req.UserId, req.StartTime, req.EndTime, req.Page, req.Size)
 	if err != nil {
