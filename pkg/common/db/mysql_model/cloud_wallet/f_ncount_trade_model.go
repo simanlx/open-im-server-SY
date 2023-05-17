@@ -69,6 +69,33 @@ func FindNcountTradeList(userId, startTime, endTime string, page, size int32) (l
 	return
 }
 
+// 获取账户一段时间内的：总支出和总收入
+// 条件是：ncount_status 状态为1
+// is_delete 为0
+// type 为 1是支出，2是收入，主要查询这两个字段
+func GetNcountTradeTotal(userId, startTime, endTime string) (int64, int64, error) {
+	var result struct {
+		TotalIn  int64 `json:"total_in"`
+		TotalOut int64 `json:"total_out"`
+	}
+
+	temres := &result
+	model := db.DB.MysqlDB.DefaultGormDB().Table("f_ncount_trade").
+		Where(" user_id = ? and ncount_status = ? and is_delete = ?", userId, 1, 0)
+
+	if len(startTime) > 0 {
+		model = model.Where("created_time >= ?", fmt.Sprintf("%s 00:00:00", startTime))
+	}
+
+	if len(endTime) > 0 {
+		model = model.Where("created_time <= ?", fmt.Sprintf("%s 23:59:59", endTime))
+	}
+
+	err := model.Select("sum(case when type = 1 then amount else 0 end) as total_in, sum(case when type = 2 then amount else 0 end) as total_out").Scan(&temres).Error
+
+	return temres.TotalIn, temres.TotalOut, err
+}
+
 // 软删除账户记录
 func DelNcountTradeRecord(delType, recordId int32, userId string) error {
 	var err error
