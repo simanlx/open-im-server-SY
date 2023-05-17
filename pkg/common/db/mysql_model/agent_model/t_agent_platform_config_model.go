@@ -18,7 +18,7 @@ type BeanShopConfig struct {
 func GetPlatformConfigValue(configKey string) string {
 	var info *db.TAgentPlatformConfig
 	err := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_platform_config").Where("config_key = ?", configKey).First(&info).Error
-	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return ""
 	}
 

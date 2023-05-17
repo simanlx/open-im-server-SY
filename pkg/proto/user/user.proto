@@ -228,6 +228,20 @@ message AttributeSwitchSetResp {
   CommonResp  CommonResp = 1;
 }
 
+message AttributeMenuReq {
+  string userId = 1;
+  string operationID = 2;
+}
+
+message AttributeMenuResp {
+  repeated UserMenuList menu_list = 1;
+}
+
+message UserMenuList{
+  string app_id = 1; //应用appid
+  string app_name = 2; //应用名字
+}
+
 service user {
   rpc GetUserInfo(GetUserInfoReq) returns(GetUserInfoResp);
   rpc UpdateUserInfo(UpdateUserInfoReq) returns(UpdateUserInfoResp);
@@ -253,5 +267,7 @@ service user {
 
   rpc AttributeSwitch(AttributeSwitchReq) returns (AttributeSwitchResp); //用户属性开关配置
   rpc AttributeSwitchSet(AttributeSwitchSetReq) returns (AttributeSwitchSetResp); //用户属性开关配置
+
+  rpc AttributeMenu(AttributeMenuReq) returns (AttributeMenuResp); //用户属性菜单
 }
 

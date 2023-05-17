@@ -325,6 +325,14 @@ message OpenAgentResp{
   CommonResp commonResp = 1;
 }
 
+message GetAgentOpenStatusReq{
+  string userId = 1;//用户id
+}
+
+message GetAgentOpenStatusResp{
+  bool agentOpenStatus = 1; //推广员开通状态
+}
+
 // 推广系统服务
 service AgentSystemService {
   // 获取用户推广员信息
@@ -369,6 +377,6 @@ service AgentSystemService {
   rpc RechargeNotify(RechargeNotifyReq)returns(RechargeNotifyResp);
   //开通推广员
   rpc OpenAgent(OpenAgentReq)returns(OpenAgentResp);
-
-
+  //获取用户推广员开通状态
+  rpc GetAgentOpenStatus(GetAgentOpenStatusReq)returns(GetAgentOpenStatusResp);
 }

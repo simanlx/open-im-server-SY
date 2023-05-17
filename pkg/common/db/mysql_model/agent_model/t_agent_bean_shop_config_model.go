@@ -43,7 +43,7 @@ func InsertAgentDiyShopBeanConfigs(data []*db.TAgentBeanShopConfig) (err error) 
 // 获取推广员咖豆配置
 func GetAgentBeanConfigById(userId string, configId int32) (info *db.TAgentBeanShopConfig, err error) {
 	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("id = ? and user_id = ?", configId, userId).First(&info).Error
-	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.Wrap(err, "")
 	}
 	return

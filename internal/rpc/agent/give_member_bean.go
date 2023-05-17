@@ -31,7 +31,7 @@ func (rpc *AgentServer) AgentGiveMemberBean(ctx context.Context, req *agent.Agen
 
 	//获取推广员信息
 	info, err := imdb.GetAgentByUserId(req.UserId)
-	if err != nil {
+	if err != nil || info.OpenStatus == 0 {
 		resp.CommonResp.Code = 400
 		resp.CommonResp.Msg = "推广员信息有误"
 		return resp, nil

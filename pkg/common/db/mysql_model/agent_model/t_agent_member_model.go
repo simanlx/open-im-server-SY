@@ -24,7 +24,7 @@ func BindAgentNumber(info *db.TAgentMember) error {
 // 推广员下属
 func AgentNumberByChessUserId(chessUserId int64) (info *db.TAgentMember, err error) {
 	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_member").Where("chess_user_id = ?", chessUserId).First(&info).Error
-	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.Wrap(err, "")
 	}
 	return

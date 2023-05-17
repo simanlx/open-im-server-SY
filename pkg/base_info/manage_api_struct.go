@@ -144,3 +144,7 @@ type AttributeSwitchSetReq struct {
 type AttributeSwitchSetResp struct {
 	CommResp
 }
+
+type AttributeMenuReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+}

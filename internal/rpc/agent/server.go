@@ -2,7 +2,6 @@ package agent
 
 import (
 	"Open_IM/pkg/common/config"
-	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/log"
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
@@ -23,7 +22,7 @@ type AgentServer struct {
 }
 
 func NewRpcAgentServer(port int) *AgentServer {
-	log.NewPrivateLog(constant.LogFileName)
+	log.NewPrivateLog("agent_server")
 	return &AgentServer{
 		rpcPort:         port,
 		rpcRegisterName: config.Config.RpcRegisterName.OpenImAgentName,

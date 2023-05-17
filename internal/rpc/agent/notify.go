@@ -93,6 +93,7 @@ func handelChessPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, ncountOrderN
 		ChessUserNickname: info.ChessUserNickname,
 		Describe:          fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
 		Amount:            info.Amount,
+		Status:            1,
 		Day:               time.Now().Format("2006-01-02"),
 		Month:             time.Now().Format("2006-01"),
 		CreatedTime:       time.Now(),
@@ -166,7 +167,7 @@ func (rpc *AgentServer) PlatformPurchaseBeanNotify(ctx context.Context, req *age
 		return resp, nil
 	}
 
-	//校验订单号
+	//校验订单号、已处理
 	_, err = imdb.GetOrderByChessOrderNo(req.ChessOrderNo)
 	if err == nil {
 		return resp, nil
@@ -239,6 +240,7 @@ func handelPlatformPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, agentMemb
 		ChessUserNickname: info.ChessUserNickname,
 		Describe:          fmt.Sprintf("%sID%d 购买%d咖豆", info.ChessUserNickname, info.ChessUserId, info.Number),
 		Amount:            contribution,
+		Status:            1,
 		Day:               time.Now().Format("2006-01-02"),
 		Month:             time.Now().Format("2006-01"),
 		CreatedTime:       time.Now(),

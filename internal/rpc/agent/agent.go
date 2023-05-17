@@ -89,7 +89,7 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 
 	//是否为推广员
 	info, err := imdb.GetAgentByChessUserId(req.ChessUserId)
-	if err == nil {
+	if err == nil && info.OpenStatus == 1 {
 		resp.IsAgent = true
 		resp.AgentName = info.Name
 		resp.AgentNumber = info.AgentNumber
@@ -116,7 +116,7 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 
 	//获取推广员信息
 	info, err := imdb.GetAgentByUserId(req.UserId)
-	if err != nil {
+	if err != nil || info.OpenStatus == 0 {
 		return resp, nil
 	}
 
@@ -194,7 +194,7 @@ func (rpc *AgentServer) AgentMemberList(_ context.Context, req *agent.AgentMembe
 
 	//获取推广员信息
 	info, err := imdb.GetAgentByUserId(req.UserId)
-	if err != nil {
+	if err != nil || info.OpenStatus == 0 {
 		return resp, nil
 	}
 
@@ -316,4 +316,19 @@ func CreateAgentNumber() int32 {
 	}
 
 	return int32(100000 + rand.Intn(900000))
+}
+
+// 获取推广员开通状态
+func (rpc *AgentServer) GetAgentOpenStatus(ctx context.Context, req *agent.GetAgentOpenStatusReq) (*agent.GetAgentOpenStatusResp, error) {
+	resp := &agent.GetAgentOpenStatusResp{}
+
+	//获取推广员信息
+	agentInfo, err := imdb.GetAgentByUserId(req.UserId)
+	if err != nil || agentInfo.OpenStatus == 0 {
+		return resp, nil
+	}
+
+	resp.AgentOpenStatus = true
+
+	return resp, nil
 }

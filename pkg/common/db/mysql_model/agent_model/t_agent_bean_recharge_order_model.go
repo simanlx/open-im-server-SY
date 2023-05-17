@@ -23,7 +23,7 @@ func CreatePurchaseBeanOrder(info *db.TAgentBeanRechargeOrder) error {
 // 获取咖豆购买订单by order_no
 func GetOrderByOrderNo(orderNo string) (info *db.TAgentBeanRechargeOrder, err error) {
 	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_recharge_order").Where("order_no = ?", orderNo).Take(&info).Error
-	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.Wrap(err, "")
 	}
 	return
@@ -32,7 +32,7 @@ func GetOrderByOrderNo(orderNo string) (info *db.TAgentBeanRechargeOrder, err er
 // 获取咖豆购买订单by chess_order_no
 func GetOrderByChessOrderNo(chessOrderNo string) (info *db.TAgentBeanRechargeOrder, err error) {
 	err = db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_recharge_order").Where("chess_order_no = ?", chessOrderNo).Take(&info).Error
-	if errors.Is(errors.Unwrap(err), gorm.ErrRecordNotFound) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.Wrap(err, "")
 	}
 	return
