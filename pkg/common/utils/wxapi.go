@@ -34,7 +34,7 @@ func AgentGiveMemberBeanWarn(agentNumber int32, chessUserId, beanNumber int64, e
 
 // 推广员提现申请通知
 func WithdrawApplyNotify(agentNumber, amount int32, balance int64, commission, commissionFee int32) {
-	content := fmt.Sprintf("推广系统业务通知\n> 业务类型 : <font color=\"warning\">推广员提现</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 余额 : <font color=\"comment\">%d</font>\n> 提现金额 : <font color=\"comment\">%d</font>\n> 提现手续费 : <font color=\"comment\">%d (%d‰)</font> ", agentNumber, balance/100, amount/100, commissionFee/100, commission)
+	content := fmt.Sprintf("推广系统业务通知\n> 业务类型 : <font color=\"warning\">推广员提现</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 余额 : <font color=\"comment\">%d元</font>\n> 提现金额 : <font color=\"comment\">%d元</font>\n> 提现手续费 : <font color=\"comment\">%d元 (%d‰)</font> ", agentNumber, balance/100, amount/100, commissionFee/100, commission)
 
 	//内容格式 - markdown
 	qyApi := &QyApi{}
