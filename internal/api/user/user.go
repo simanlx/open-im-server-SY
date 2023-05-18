@@ -634,6 +634,6 @@ func AttributeMenu(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": rpcResp.MenuList})
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": rpcResp})
 	return
 }

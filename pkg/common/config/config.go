@@ -597,6 +597,7 @@ type config struct {
 	} `yaml:"prometheus"`
 
 	Agent struct {
+		AppId                  string `yaml:"appId"`
 		SecretKey              string `yaml:"secretKey"`
 		MerchantId             string `yaml:"merchantId"`
 		ChessApiDomain         string `yaml:"chessApiDomain"`

@@ -10,6 +10,7 @@ import (
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	"Open_IM/pkg/proto/agent"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
+	utils2 "Open_IM/pkg/utils"
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
@@ -19,6 +20,7 @@ import (
 // 互娱商城购买咖豆下单(预提交)
 func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.ChessShopPurchaseBeanReq) (*agent.ChessShopPurchaseBeanResp, error) {
 	resp := &agent.ChessShopPurchaseBeanResp{OrderNo: "", CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+	log.Info(req.OperationId, "start 互娱商城购买咖豆下单(预提交), 参数:", utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("ChessShopPurchaseBean:%d", req.ChessUserId)
@@ -98,6 +100,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 // 推广员购买咖豆
 func (rpc *AgentServer) AgentPurchaseBean(ctx context.Context, req *agent.AgentPurchaseBeanReq) (*agent.AgentPurchaseBeanResp, error) {
 	resp := &agent.AgentPurchaseBeanResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+	log.Info(req.OperationId, "start 推广员购买咖豆, 参数:", utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("AgentPurchaseBean:%s", req.UserId)

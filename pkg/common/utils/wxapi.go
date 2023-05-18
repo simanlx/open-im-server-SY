@@ -34,7 +34,7 @@ func AgentGiveMemberBeanWarn(agentNumber int32, chessUserId, beanNumber int64, e
 
 // 推广员提现申请通知
 func WithdrawApplyNotify(agentNumber, amount int32, balance int64, commission, commissionFee int32) {
-	content := fmt.Sprintf("推广系统业务通知\n> 业务类型 : <font color=\"warning\">推广员提现申请</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 余额 : <font color=\"comment\">%d</font>\n> 提现金额 : <font color=\"comment\">%d</font>\n> 提现手续费 : <font color=\"comment\">%d (%d‰)</font> ", agentNumber, balance, amount, commissionFee, commission)
+	content := fmt.Sprintf("推广系统业务通知\n> 业务类型 : <font color=\"warning\">推广员提现</font>\n> 推广员编号 : <font color=\"comment\">%d</font>\n> 余额 : <font color=\"comment\">%d</font>\n> 提现金额 : <font color=\"comment\">%d</font>\n> 提现手续费 : <font color=\"comment\">%d (%d‰)</font> ", agentNumber, balance/100, amount/100, commissionFee/100, commission)
 
 	//内容格式 - markdown
 	qyApi := &QyApi{}
@@ -46,7 +46,7 @@ func WithdrawApplyNotify(agentNumber, amount int32, balance int64, commission, c
 
 // 请求企业微信api
 func WxApi(data interface{}, content string) {
-	key := config.Config.Agent.AgentRechargeNotifyUrl
+	key := config.Config.Agent.WxApiWebhookKey
 	resp, err := http.Post("https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key="+key, data, 3)
 	if err != nil {
 		log.Error("", fmt.Sprintf("通知内容(%s) 、api请求失败：%s", content, err.Error()))
