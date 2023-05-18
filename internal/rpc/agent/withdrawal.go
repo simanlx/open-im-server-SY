@@ -10,6 +10,7 @@ import (
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
 	"Open_IM/pkg/proto/agent"
 	rpc "Open_IM/pkg/proto/cloud_wallet"
+	utils2 "Open_IM/pkg/utils"
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
@@ -23,6 +24,7 @@ import (
 // 推广员余额提现
 func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.BalanceWithdrawalReq) (*agent.BalanceWithdrawalResp, error) {
 	resp := &agent.BalanceWithdrawalResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
+	log.Info(req.OperationId, "start 推广员余额提现, 参数:", utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("BalanceWithdrawal:%s", req.UserId)
