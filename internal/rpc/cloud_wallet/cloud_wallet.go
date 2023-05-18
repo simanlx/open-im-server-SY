@@ -3,7 +3,6 @@ package cloud_wallet
 import (
 	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/config"
-	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
@@ -45,7 +44,8 @@ type CloudWalletServer struct {
 }
 
 func NewRpcCloudWalletServer(port int) *CloudWalletServer {
-	log.NewPrivateLog(constant.LogFileName)
+	log.NewPrivateLog("open_im_cloud_wallet")
+	StarCorn()
 	return &CloudWalletServer{
 		rpcPort:         port,
 		rpcRegisterName: config.Config.RpcRegisterName.OpenImCloudWalletName,
@@ -340,6 +340,9 @@ func (rpc *CloudWalletServer) SetPaymentSecret(_ context.Context, req *cloud_wal
 		return resp, nil
 	}
 
+	//删除缓存
+	_ = rocksCache.DeleteAccountInfoFromCache(req.UserId)
+
 	resp.Step = 2
 	return resp, nil
 }
@@ -379,6 +382,15 @@ func (rpc *CloudWalletServer) CloudWalletRecordList(_ context.Context, req *clou
 	if req.Size <= 0 {
 		req.Size = 20
 	}
+
+	// 获取总量
+	tradein, tradOut, err := imdb.GetNcountTradeTotal(req.UserId, req.StartTime, req.EndTime)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Totalincome = tradein
+	resp.Totalpay = tradOut
 
 	//条件获取列表数据
 	list, count, err := imdb.FindNcountTradeList(req.UserId, req.StartTime, req.EndTime, req.Page, req.Size)
@@ -581,8 +593,9 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 	}
 
 	//充值支付
+	merOrderID := ncount.GetMerOrderID()
 	accountResp, err := rpc.count.QuickPayOrder(&ncount.QuickPayOrderReq{
-		MerOrderId: ncount.GetMerOrderID(),
+		MerOrderId: merOrderID,
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
 			PayType:       "3", //绑卡协议号充值
 			TranAmount:    cast.ToString(cast.ToFloat64(req.Amount) / 100),
@@ -607,7 +620,7 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 	}
 
 	//增加账户变更日志
-	err = AddNcountTradeLog(BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
+	err = AddNcountTradeLog(BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, merOrderID, accountResp.NcountOrderId, "")
 	if err != nil {
 		log.Error(req.OperationID, "增加账户变更日志失败[%s]", err.Error(), "参数：", BusinessTypeBankcardRecharge, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId)
 	}
@@ -685,8 +698,9 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 	}
 
 	//调用新生支付提现接口
+	merOrderID := ncount.GetMerOrderID()
 	accountResp, err := rpc.count.Withdraw(&ncount.WithdrawReq{
-		MerOrderID: ncount.GetMerOrderID(),
+		MerOrderID: merOrderID,
 		MsgCipher: ncount.WithdrawMsgCipher{
 			BusinessType:    "08",
 			TranAmount:      cast.ToFloat32(cast.ToFloat64(req.Amount) / 100),
@@ -712,7 +726,7 @@ func (rpc *CloudWalletServer) UserWithdrawal(_ context.Context, req *cloud_walle
 	}
 
 	//增加账户变更日志
-	err = AddNcountTradeLog(BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId, "")
+	err = AddNcountTradeLog(BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, merOrderID, accountResp.NcountOrderId, "")
 	if err != nil {
 		log.Error(req.OperationID, "增加账户变更日志失败[%s]", err.Error(), "参数：", BusinessTypeBankcardWithdrawal, req.Amount, req.UserId, bankCardInfo.NcountUserId, accountResp.NcountOrderId)
 	}

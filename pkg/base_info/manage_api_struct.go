@@ -144,3 +144,12 @@ type AttributeSwitchSetReq struct {
 type AttributeSwitchSetResp struct {
 	CommResp
 }
+
+type AttributeMenuReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type WgtVersionReq struct {
+	AppId       string `json:"app_id" binding:"required"`
+	OperationID string `json:"operationID" binding:"required"`
+}

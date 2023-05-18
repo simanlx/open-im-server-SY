@@ -11,6 +11,7 @@ import (
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/common/token_verify"
 	"Open_IM/pkg/grpc-etcdv3/getcdv3"
+	rpc "Open_IM/pkg/proto/agent"
 	pbConversation "Open_IM/pkg/proto/conversation"
 	pbFriend "Open_IM/pkg/proto/friend"
 	sdkws "Open_IM/pkg/proto/sdk_ws"
@@ -829,4 +830,40 @@ func (s *userServer) AttributeSwitchSet(_ context.Context, req *pbUser.Attribute
 	}
 
 	return resp, nil
+}
+
+// 用户属性开关
+func (s *userServer) AttributeMenu(ctx context.Context, req *pbUser.AttributeMenuReq) (*pbUser.AttributeMenuResp, error) {
+	resp := &pbUser.AttributeMenuResp{MenuList: []*pbUser.UserMenuList{}}
+
+	//rpc 调用推广系统、获取用户开通推广员状态
+	agentMenuSwitch := rpcGetAgentOpenStatus(ctx, req.UserId, req.OperationID)
+
+	if agentMenuSwitch {
+		resp.MenuList = append(resp.MenuList, &pbUser.UserMenuList{
+			AppId:   config.Config.Agent.AppId,
+			AppName: "推广后台",
+		})
+	}
+
+	return resp, nil
+}
+
+// 获取用户开通推广员状态
+func rpcGetAgentOpenStatus(ctx context.Context, userId, operationId string) bool {
+	req := &rpc.GetAgentOpenStatusReq{
+		UserId: userId,
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAgentName, operationId)
+	if etcdConn == nil {
+		return false
+	}
+
+	client := rpc.NewAgentSystemServiceClient(etcdConn)
+	RpcResp, err := client.GetAgentOpenStatus(ctx, req)
+	if err != nil {
+		return false
+	}
+	return RpcResp.AgentOpenStatus
 }

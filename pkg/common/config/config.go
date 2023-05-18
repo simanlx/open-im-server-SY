@@ -27,16 +27,6 @@ type callBackConfig struct {
 }
 
 type config struct {
-
-	/*
-		ncount :
-		    publicKey: "" #公钥
-		    privateKey: "" #私钥
-		    merchantId: "" #商户号
-		    notify:
-		      rechargeNotifyUrl: "" #充值回调地址
-		      withdrawNotifyUrl: "" #提现回调地址
-	*/
 	// 定制化内容 ：
 	Ncount struct {
 		PublicKey  string `yaml:"publicKey"`
@@ -45,6 +35,9 @@ type config struct {
 		Notify     struct {
 			RechargeNotifyUrl string `yaml:"rechargeNotifyUrl"`
 			WithdrawNotifyUrl string `yaml:"withdrawNotifyUrl"`
+
+			// 第三方支付回调
+			ThirdPayNotifyUrl string `yaml:"thirdPayNotifyUrl"`
 		}
 	}
 
@@ -122,6 +115,19 @@ type config struct {
 		LogLevel       int      `yaml:"logLevel"`
 		SlowThreshold  int      `yaml:"slowThreshold"`
 	}
+	AgentMysql struct {
+		DBAddress      []string `yaml:"dbMysqlAddress"`
+		DBUserName     string   `yaml:"dbMysqlUserName"`
+		DBPassword     string   `yaml:"dbMysqlPassword"`
+		DBDatabaseName string   `yaml:"dbMysqlDatabaseName"`
+		DBTableName    string   `yaml:"DBTableName"`
+		DBMsgTableNum  int      `yaml:"dbMsgTableNum"`
+		DBMaxOpenConns int      `yaml:"dbMaxOpenConns"`
+		DBMaxIdleConns int      `yaml:"dbMaxIdleConns"`
+		DBMaxLifeTime  int      `yaml:"dbMaxLifeTime"`
+		LogLevel       int      `yaml:"logLevel"`
+		SlowThreshold  int      `yaml:"slowThreshold"`
+	}
 	Mongo struct {
 		DBUri                string   `yaml:"dbUri"`
 		DBAddress            []string `yaml:"dbAddress"`
@@ -159,6 +165,7 @@ type config struct {
 		OpenImCachePort          []int `yaml:"openImCachePort"`
 		OpenImRealTimeCommPort   []int `yaml:"openImRealTimeCommPort"`
 		OpenImCloudWalletPort    []int `yaml:"openImCloudWalletPort"`
+		OpenImAgentPort          []int `yaml:"openImAgentPort"`
 		OpenImChatPort           []int `yaml:"openImChatPort"`
 	}
 	RpcRegisterName struct {
@@ -177,6 +184,7 @@ type config struct {
 		OpenImCacheName        string `yaml:"openImCacheName"`
 		OpenImRealTimeCommName string `yaml:"openImRealTimeCommName"`
 		OpenImCloudWalletName  string `yaml:"openImCloudWalletName"`
+		OpenImAgentName        string `yaml:"openImAgentName"`
 		OpenImChatName         string `yaml:"openImChatName"`
 	}
 	Etcd struct {
@@ -585,7 +593,18 @@ type config struct {
 		RealTimeCommPrometheusPort    []int `yaml:"realTimeCommPrometheusPort"`
 		MessageTransferPrometheusPort []int `yaml:"messageTransferPrometheusPort"`
 		CloudWalletPrometheusPort     []int `yaml:"cloudWalletPrometheusPort"`
+		AgentPrometheusPort           []int `yaml:"agentPrometheusPort"`
 	} `yaml:"prometheus"`
+
+	Agent struct {
+		AppId                  string `yaml:"appId"`
+		SecretKey              string `yaml:"secretKey"`
+		MerchantId             string `yaml:"merchantId"`
+		ChessApiDomain         string `yaml:"chessApiDomain"`
+		AgentRechargeNotifyUrl string `yaml:"agentRechargeNotifyUrl"`
+		AgentWithdrawNotifyUrl string `yaml:"agentWithdrawNotifyUrl"`
+		WxApiWebhookKey        string `yaml:"wxApiWebhookKey"`
+	} `yaml:"agent"`
 }
 type PConversation struct {
 	ReliabilityLevel int  `yaml:"reliabilityLevel"`

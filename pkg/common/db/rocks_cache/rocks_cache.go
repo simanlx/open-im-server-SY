@@ -3,6 +3,7 @@ package rocksCache
 import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
+	"Open_IM/pkg/common/db/mysql_model/agent_model"
 	imdb2 "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"Open_IM/pkg/common/log"
@@ -10,6 +11,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/spf13/cast"
 	"math/big"
 	"sort"
 	"strconv"
@@ -17,25 +19,29 @@ import (
 )
 
 const (
-	userInfoCache             = "USER_INFO_CACHE:"
-	friendRelationCache       = "FRIEND_RELATION_CACHE:"
-	blackListCache            = "BLACK_LIST_CACHE:"
-	groupCache                = "GROUP_CACHE:"
-	groupInfoCache            = "GROUP_INFO_CACHE:"
-	groupOwnerIDCache         = "GROUP_OWNER_ID:"
-	joinedGroupListCache      = "JOINED_GROUP_LIST_CACHE:"
-	groupMemberInfoCache      = "GROUP_MEMBER_INFO_CACHE:"
-	groupAllMemberInfoCache   = "GROUP_ALL_MEMBER_INFO_CACHE:"
-	allFriendInfoCache        = "ALL_FRIEND_INFO_CACHE:"
-	allDepartmentCache        = "ALL_DEPARTMENT_CACHE:"
-	allDepartmentMemberCache  = "ALL_DEPARTMENT_MEMBER_CACHE:"
-	joinedSuperGroupListCache = "JOINED_SUPER_GROUP_LIST_CACHE:"
-	groupMemberListHashCache  = "GROUP_MEMBER_LIST_HASH_CACHE:"
-	groupMemberNumCache       = "GROUP_MEMBER_NUM_CACHE:"
-	conversationCache         = "CONVERSATION_CACHE:"
-	conversationIDListCache   = "CONVERSATION_ID_LIST_CACHE:"
-	extendMsgSetCache         = "EXTEND_MSG_SET_CACHE:"
-	extendMsgCache            = "EXTEND_MSG_CACHE:"
+	userInfoCache               = "USER_INFO_CACHE:"
+	friendRelationCache         = "FRIEND_RELATION_CACHE:"
+	blackListCache              = "BLACK_LIST_CACHE:"
+	groupCache                  = "GROUP_CACHE:"
+	groupInfoCache              = "GROUP_INFO_CACHE:"
+	groupOwnerIDCache           = "GROUP_OWNER_ID:"
+	joinedGroupListCache        = "JOINED_GROUP_LIST_CACHE:"
+	groupMemberInfoCache        = "GROUP_MEMBER_INFO_CACHE:"
+	groupAllMemberInfoCache     = "GROUP_ALL_MEMBER_INFO_CACHE:"
+	allFriendInfoCache          = "ALL_FRIEND_INFO_CACHE:"
+	allDepartmentCache          = "ALL_DEPARTMENT_CACHE:"
+	allDepartmentMemberCache    = "ALL_DEPARTMENT_MEMBER_CACHE:"
+	joinedSuperGroupListCache   = "JOINED_SUPER_GROUP_LIST_CACHE:"
+	groupMemberListHashCache    = "GROUP_MEMBER_LIST_HASH_CACHE:"
+	groupMemberNumCache         = "GROUP_MEMBER_NUM_CACHE:"
+	conversationCache           = "CONVERSATION_CACHE:"
+	conversationIDListCache     = "CONVERSATION_ID_LIST_CACHE:"
+	extendMsgSetCache           = "EXTEND_MSG_SET_CACHE:"
+	extendMsgCache              = "EXTEND_MSG_CACHE:"
+	agentPlatFormConfig         = "AGENT_PLATFORM_CONFIG:"
+	UserUnionIdCache            = "USER_UNION_ID_CACHE:"
+	AgentUnionIdCache           = "USER_UNION_ID_CACHE:"
+	AgentFreezeBeanBalanceCache = "AGENT_FREEZE_BEAN_BALANCE_CACHE:"
 
 	// 云钱包云钱包相关
 	fAccountCache = "F_ACCOUNT_CACHE:"
@@ -622,4 +628,86 @@ func GetExtendMsg(sourceID string, sessionType int32, clientMsgID string, firstM
 
 func DelExtendMsg(ID string, index int32, clientMsgID string) error {
 	return utils.Wrap(db.DB.Rc.TagAsDeleted(extendMsgCache+clientMsgID), "DelExtendMsg err")
+}
+
+// 获取推广平台咖豆商城配置
+func GetAgentPlatformBeanConfigCache() ([]*agent_model.BeanShopConfig, error) {
+	getBeanConfig := func() (string, error) {
+		configV := agent_model.GetPlatformConfigValue("bean_shop")
+		return configV, nil
+	}
+
+	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+"bean_shop", time.Second*600, getBeanConfig)
+	if err != nil {
+		return nil, utils.Wrap(err, "Fetch failed")
+	}
+	var configValue []*agent_model.BeanShopConfig
+	err = json.Unmarshal([]byte(configStr), &configValue)
+	if err != nil {
+		return nil, utils.Wrap(err, "Unmarshal failed")
+	}
+	return configValue, nil
+}
+
+// 获取平台value类型配置
+func GetPlatformValueConfigCache(configKey string) string {
+	getBeanConfig := func() (string, error) {
+		configV := agent_model.GetPlatformConfigValue(configKey)
+		return configV, nil
+	}
+
+	configStr, err := db.DB.Rc.Fetch(agentPlatFormConfig+configKey, time.Second*600, getBeanConfig)
+	if err != nil {
+		return "0"
+	}
+	return configStr
+}
+
+// 根据UnionId获取用户userId
+func GetUsersUnionIdFromCache(UnionId string) string {
+	if len(UnionId) < 10 {
+		return ""
+	}
+
+	userIdFunc := func() (string, error) {
+		user, err := imdb.GetUserByUnionId(UnionId)
+		if err != nil {
+			return "", utils.Wrap(err, "")
+		}
+		return user.UserID, nil
+	}
+	userId, err := db.DB.Rc.Fetch(UserUnionIdCache+UnionId, time.Second*60*60*24, userIdFunc)
+	if err != nil {
+		return ""
+	}
+	return userId
+}
+
+// 冻结推广员咖豆
+func FreezeAgentBeanBalance(ctx context.Context, userId string, chessUserId, beanNumber int64) error {
+	return db.DB.RDB.Set(ctx, fmt.Sprintf("%s%s:%d", AgentFreezeBeanBalanceCache, userId, chessUserId), beanNumber, time.Second*120).Err()
+}
+
+// 解冻推广员咖豆
+func DelAgentBeanBalance(ctx context.Context, userId string, chessUserId int64) error {
+	return db.DB.RDB.Del(ctx, fmt.Sprintf("%s%s:%d", AgentFreezeBeanBalanceCache, userId, chessUserId)).Err()
+}
+
+// 获取推广员冻结的咖豆
+func GetAgentFreezeBeanBalance(ctx context.Context, userId string) (beanBalance int64) {
+	keys, err := db.DB.RDB.Keys(ctx, fmt.Sprintf("%s%s*", AgentFreezeBeanBalanceCache, userId)).Result()
+	if err != nil {
+		return beanBalance
+	}
+
+	for _, key := range keys {
+		freezeBalance, err := db.DB.RDB.Get(ctx, key).Result()
+		if err != nil {
+			continue
+		}
+
+		beanBalance = beanBalance + cast.ToInt64(freezeBalance)
+	}
+
+	return
 }

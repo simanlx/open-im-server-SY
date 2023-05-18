@@ -194,6 +194,7 @@ type GroupRequest struct {
 type User struct {
 	UserID           string    `gorm:"column:user_id;primary_key;size:64"`
 	Nickname         string    `gorm:"column:name;size:255"`
+	Unionid          string    `gorm:"column:unionid"`
 	FaceURL          string    `gorm:"column:face_url;size:255"`
 	Gender           int32     `gorm:"column:gender"`
 	PhoneNumber      string    `gorm:"column:phone_number;size:32"`
@@ -432,6 +433,7 @@ type FNcountTrade struct {
 	Amount       int32  `gorm:"column:amount;not null" json:"amount"`      //变更金额(单位：分)
 	//BeferAmount  int32     `gorm:"column:befer_amount" json:"befer_amount"`     //变更前金额(单位：分)
 	AfterAmount  int32     `gorm:"column:after_amount" json:"after_amount"`     //变更后金额(单位：分)
+	MerOrderId   string    `gorm:"column:mer_order_id" json:"mer_order_id"`     //平台订单号
 	ThirdOrderNo string    `gorm:"column:third_order_no" json:"third_order_no"` //第三方订单号
 	NcountStatus int32     `gorm:"column:ncount_status" json:"ncount_status"`   //异步通知状态（0未生效，1生效）
 	PacketID     string    `gorm:"column:packet_id" json:"packet_id"`           //红包id
@@ -495,36 +497,40 @@ func (FErrorLog) TableName() string {
 }
 
 // CREATE TABLE `f_packet` (
-// `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-// `packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
-// `submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
-// `user_id` varchar(255) NOT NULL COMMENT '红包发起者',
-// `user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
-// `packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
-// `is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
-// `exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
-// `packet_title` varchar(100) NOT NULL COMMENT '红包标题',
-// `amount` int(11) NOT NULL COMMENT '单个红包金额，如果说是',
-// `number` tinyint(3) NOT NULL COMMENT '红包个数',
-// `total_amount` int(11) DEFAULT NULL COMMENT '发红包的总金额 == remain_amount的初始值',
-// `expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
-// `mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
-// `operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
-// `recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
-// `send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
-// `bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
-// `remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
-// `remain_amout` int(11) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
-// `lucky_user_id` varchar(255) NOT NULL DEFAULT ” COMMENT '最佳手气红包用户ID',
-// `luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
-// `created_time` int(11) DEFAULT NULL,
-// `updated_time` int(11) DEFAULT NULL,
-// `status` tinyint(1) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常',
-// `is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
-// PRIMARY KEY (`id`),
-// KEY `idx_user_id` (`user_id`) USING BTREE,
-// KEY `idx_packet_id` (`packet_id`) USING BTREE
-// ) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
+//
+//	`id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+//	`packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
+//	`submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
+//	`remark` varchar(255) DEFAULT NULL COMMENT '红包状态描述',
+//	`status` int(2) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常  ,100 为退回，200 为退回异常',
+//	`user_id` varchar(255) NOT NULL COMMENT '红包发起者',
+//	`user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
+//	`packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
+//	`is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
+//	`is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
+//	`exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
+//	`packet_title` varchar(100) NOT NULL COMMENT '红包标题',
+//	`amount` int(11) NOT NULL COMMENT '单个红包金额，如果说是',
+//	`number` tinyint(3) NOT NULL COMMENT '红包个数',
+//	`total_amount` int(11) DEFAULT NULL COMMENT '发红包的总金额 == remain_amount的初始值',
+//	`expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
+//	`mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
+//	`operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
+//	`recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
+//	`send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
+//	`bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
+//	`remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
+//	`remain_amout` int(11) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
+//	`refound_amout` int(11) DEFAULT NULL COMMENT '退款金额',
+//	`lucky_user_id` varchar(255) NOT NULL DEFAULT '' COMMENT '最佳手气红包用户ID',
+//	`luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
+//	`created_time` int(11) DEFAULT NULL,
+//	`updated_time` int(11) DEFAULT NULL,
+//	PRIMARY KEY (`id`) USING BTREE,
+//	KEY `idx_user_id` (`user_id`) USING BTREE,
+//	KEY `idx_packet_id` (`packet_id`) USING BTREE
+//
+// ) ENGINE=InnoDB AUTO_INCREMENT=350 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';;
 type FPacket struct {
 	ID                   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID             string `gorm:"column:packet_id;not null" json:"packet_id"`
@@ -546,11 +552,13 @@ type FPacket struct {
 	RecvID               string `gorm:"column:recv_id;not null" json:"recv_id"`
 	Remain               int64  `gorm:"column:remain;not null" json:"remain"`                     // 剩余红包数量
 	RemainAmout          int64  `gorm:"column:remain_amout;not null" json:"remain_amout"`         // 剩余红包金额
+	RefoundAmout         int64  `gorm:"column:refound_amout;not null" json:"refound_amout"`       // 退款金额
 	LuckyUserID          string `gorm:"column:lucky_user_id;not null" json:"lucky_user_id"`       // 最佳手气红包用户ID
 	LuckUserAmount       int64  `gorm:"column:luck_user_amount;not null" json:"luck_user_amount"` // 最大红包的值： account amount  分为单位
 	CreatedTime          int64  `gorm:"column:created_time;not null" json:"created_time"`
 	UpdatedTime          int64  `gorm:"column:updated_time;not null" json:"updated_time"`
 	Status               int32  `gorm:"column:status;not null" json:"status"` // 0 创建未生效，1 为红包正在领取中，2为红包领取完毕，3为红包过期
+	Remark               string `gorm:"column:remark;not null" json:"remark"`
 	IsExclusive          int32  `gorm:"column:is_exclusive;not null" json:"is_exclusive"`
 }
 
@@ -593,4 +601,110 @@ type UserAttributeSwitch struct {
 
 func (UserAttributeSwitch) TableName() string {
 	return "user_attribute_switch"
+}
+
+/*
+CREATE TABLE `third_pay_order` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_no` varchar(255) DEFAULT NULL COMMENT '订单ID，用于提供支付的',
+  `mer_order_no` varchar(255) DEFAULT NULL COMMENT '商户订单ID',
+  `ncount_order_no` varchar(255) DEFAULT NULL COMMENT '调用新生支付的mer_order_id',
+  `ncount_ture_order_no` varchar(255) DEFAULT NULL COMMENT '新生支付的orderID',
+  `order_type` int(11) DEFAULT '100' COMMENT '100 是支付 ；200是提现 ；',
+  `mer_id` varchar(255) DEFAULT NULL COMMENT '商户ID',
+  `amount` int(11) DEFAULT NULL COMMENT '订单金额',
+  `recieve_account` varchar(255) DEFAULT NULL COMMENT '收款方的新生支付的acount',
+  `status` int(5) DEFAULT NULL COMMENT '100： 创建， 200:支付成功，400是支付失败',
+  `remark` varchar(255) DEFAULT NULL COMMENT '支付备注',
+  `notify_url` varchar(255) DEFAULT NULL COMMENT '回调地址',
+  `is_notify` varchar(255) DEFAULT NULL COMMENT '是否对用户提供的地址进行回调',
+  `notify_count` varchar(255) DEFAULT NULL COMMENT '回调的总次数',
+  `last_notify_time` datetime DEFAULT NULL COMMENT '最后一次回调时间',
+  `pay_time` datetime DEFAULT NULL COMMENT '订单支付时间',
+  `add_time` datetime DEFAULT NULL,
+  `edit_time` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8;
+*/
+
+type ThirdPayOrder struct {
+	Id             int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	OrderNo        string    `gorm:"column:order_no;not null" json:"order_no"`
+	MerOrderNo     string    `gorm:"column:mer_order_no;not null" json:"mer_order_no"`
+	NcountOrderNo  string    `gorm:"column:ncount_order_no;not null" json:"ncount_order_no"`
+	NcountTureNo   string    `gorm:"column:ncount_ture_order_no;not null" json:"ncount_ture_order_no"`
+	OderType       int32     `gorm:"column:order_type;not null" json:"order_type"`
+	MerId          string    `gorm:"column:mer_id;not null" json:"mer_id"`
+	Status         int32     `gorm:"column:status;not null" json:"status" `
+	Amount         int64     `gorm:"column:amount;not null" json:"amount"`
+	RecieveAccount string    `gorm:"column:recieve_account;not null" json:"recieve_account"`
+	Remark         string    `gorm:"column:remark;not null" json:"remark"`
+	NotifyUrl      string    `gorm:"column:notify_url;not null" json:"notify_url"`
+	IsNotify       int32     `gorm:"column:is_notify;not null" json:"is_notify"`
+	NotifyCount    int32     `gorm:"column:notify_count;not null" json:"notify_count"`
+	LastNotifyTime time.Time `gorm:"column:last_notify_time;not null" json:"last_notify_time"`
+	PayTime        time.Time `gorm:"column:pay_time;not null" json:"pay_time"`
+	AddTime        time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	EditTime       time.Time `gorm:"column:edit_time;not null" json:"edit_time"`
+}
+
+func (ThirdPayOrder) TableName() string {
+	return "third_pay_order"
+}
+
+/*CREATE TABLE `third_pay_merchant` (
+`id` int(11) NOT NULL,
+`merchant_id` varchar(255) DEFAULT NULL COMMENT '商户号',
+`name` varchar(255) DEFAULT NULL COMMENT '商户名称',
+`ncount_account` varchar(255) DEFAULT NULL COMMENT '新生支付的账号',
+`add_time` datetime DEFAULT NULL COMMENT '创建时间',
+`edit_time` datetime DEFAULT NULL COMMENT '最后修改时间',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;*/
+
+type ThirdPayMerchant struct {
+	Id            int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	MerchantId    string    `gorm:"column:merchant_id;not null" json:"merchant_id"`
+	Name          string    `gorm:"column:name;not null" json:"name"`
+	NcountAccount string    `gorm:"column:ncount_account;not null" json:"ncount_account"`
+	AddTime       time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	EditTime      time.Time `gorm:"column:edit_time;not null" json:"edit_time"`
+}
+
+func (ThirdPayMerchant) TableName() string {
+	return "third_pay_merchant"
+}
+
+type ThirdWithdraw struct {
+	Id            int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserId        string    `gorm:"column:user_id;not null" json:"user_id"`
+	MerOrderId    string    `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	NcountOrderId string    `gorm:"column:ncount_order_id;not null" json:"ncount_order_id"`
+	ThirdOrderId  string    `gorm:"column:third_order_id;not null" json:"third_order_id"`
+	Account       string    `gorm:"column:account;not null" json:"account"`
+	Amount        int64     `gorm:"column:amount;not null" json:"amount"`
+	RecevieAmount int64     `gorm:"column:recevie_amount;not null" json:"recevie_amount"`
+	Commission    int64     `gorm:"column:commission;not null" json:"commission"`
+	Status        int32     `gorm:"column:status;not null" json:"status"`
+	Remark        string    `gorm:"column:remark;not null" json:"remark"`
+	AddTime       time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	UpdateTime    time.Time `gorm:"column:update_time;not null" json:"update_time"`
+}
+
+func (ThirdWithdraw) TableName() string {
+	return "third_withdraw"
+}
+
+type AppWgtVersion struct {
+	Id          int32     `json:"id"`
+	AppId       string    `json:"app_id"`  // 应用appid
+	Version     string    `json:"version"` // 版本号
+	Url         string    `json:"url"`     // 应用url地址
+	Remarks     string    `json:"remarks"`
+	Status      int8      `json:"status"` // 状态
+	CreatedTime time.Time `json:"created_time"`
+}
+
+func (AppWgtVersion) TableName() string {
+	return "app_wgt_version"
 }

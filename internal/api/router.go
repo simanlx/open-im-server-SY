@@ -1,6 +1,7 @@
 package api
 
 import (
+	"Open_IM/internal/api/agent"
 	apiAuth "Open_IM/internal/api/auth"
 	clientInit "Open_IM/internal/api/client_init"
 	"Open_IM/internal/api/cloud_wallet/account"
@@ -10,17 +11,17 @@ import (
 	"Open_IM/internal/api/friend"
 	"Open_IM/internal/api/group"
 	"Open_IM/internal/api/manage"
+	"Open_IM/internal/api/middleware"
 	apiChat "Open_IM/internal/api/msg"
 	"Open_IM/internal/api/office"
 	"Open_IM/internal/api/organization"
+	"Open_IM/internal/api/system"
 	apiThird "Open_IM/internal/api/third"
 	"Open_IM/internal/api/user"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/utils"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 	"io"
 	"os"
 
@@ -38,13 +39,50 @@ func NewGinRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(utils.CorsHandler())
 	log.Info("load config: ", config.Config)
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	if config.Config.Prometheus.Enable {
 		promePkg.NewApiRequestCounter()
 		promePkg.NewApiRequestFailedCounter()
 		promePkg.NewApiRequestSuccessCounter()
 		r.Use(promePkg.PromeTheusMiddleware)
 		r.GET("/metrics", promePkg.PrometheusHandler())
+	}
+
+	//推广计划(鉴权)
+	agentGroup := r.Group("/agent")
+	agentGroup.Use(middleware.JWTAuth())
+	{
+		//新互娱接口 - start
+		agentGroup.POST("user_agent_info", agent.GetUserAgentInfo) //获取当前用户的推广员信息以及绑定关系
+		agentGroup.POST("apply", agent.AgentApply)                 //推广员申请提交
+		//新互娱接口 - end
+
+		agentGroup.POST("main", agent.AgentMainInfo)                           //推广员主页信息
+		agentGroup.POST("account/income_chart", agent.AgentAccountIncomeChart) //账户明细收益趋势图
+		agentGroup.POST("account/record_list", agent.AgentAccountRecordList)   //账户明细详情列表
+
+		//咖豆管理
+		agentGroup.POST("bean/platform_config", agent.PlatformBeanShopConfig)         //获取平台咖豆商城配置
+		agentGroup.POST("bean/config", agent.AgentDiyBeanShopConfig)                  //推广员自定义咖豆商城配置
+		agentGroup.POST("bean_account/record_list", agent.AgentBeanAccountRecordList) //咖豆账户明细详情列表
+		agentGroup.POST("bean/config_status", agent.AgentBeanShopUpStatus)            //咖豆管理上下架
+		agentGroup.POST("bean/config_up", agent.AgentBeanShopUpdate)                  //咖豆配置管理
+
+		agentGroup.POST("member_list", agent.AgentMemberList)          //推广下属用户列表
+		agentGroup.POST("give_member_bean", agent.AgentGiveMemberBean) //赠送下属成员咖豆
+		agentGroup.POST("purchase_bean", agent.PurchaseBean)           //推广员购买咖豆
+		agentGroup.POST("withdraw", agent.Withdraw)                    //推广员余额提现
+	}
+
+	//推广系统(不需要鉴权)
+	agentCallbackGroup := r.Group("/agent")
+	{
+		agentCallbackGroup.POST("open", agent.OpenAgent)                                           //推广员开通
+		agentCallbackGroup.POST("bind_agent_number", agent.BindAgentNumber)                        //绑定推广员
+		agentCallbackGroup.POST("game_shop/purchase_bean", agent.ChessShopPurchaseBean)            //互娱商城购买咖豆下单(预提交)
+		agentCallbackGroup.POST("notify/agent_purchase_bean", agent.ChessPurchaseBeanNotify)       //推广员成员购买咖豆回调(推广员商城) - 互娱回调
+		agentCallbackGroup.POST("notify/platform_purchase_bean", agent.PlatformPurchaseBeanNotify) //推广员成员购买咖豆回调(平台商城) - 互娱回调
+		agentCallbackGroup.POST("notify/recharge", agent.RechargeNotify)                           //推广员充值咖豆 - 新生支付回调
+		agentCallbackGroup.POST("game_shop/bean_config", agent.AgentGameShopBeanConfig)            //获取推广员游戏商城咖豆配置
 	}
 
 	// CloudWallet
@@ -84,6 +122,17 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/getAgoraToken", redpacket.GetAgoraToken)   // 获取声网token
 		cloudWalletGroup.POST("/translateVideo", redpacket.TranslateVideo) // 翻译文字
 		cloudWalletGroup.POST("/getVersion", redpacket.GetVersion)         // 获取版本
+
+		// 这里是做第三方支付
+		cloudWalletGroup.POST("/create_third_pay_order", redpacket.CreateThirdPayOrder) // 创建第三方订单 - 竞技使用
+		cloudWalletGroup.POST("/get_third_pay_order", redpacket.GetThirdPayOrder)       // 查询第三方订单
+		cloudWalletGroup.POST("/third_pay", redpacket.ThirdPay)                         // 第三方支付
+		cloudWalletGroup.POST("/third_withdraw", redpacket.ThirdWithdraw)               // 提现到用户的银行卡
+
+		// 这里做新生支付的统一封装
+		cloudWalletGroup.POST("/pay_callback", redpacket.ThirdPayCallback) // 第三方支付
+		cloudWalletGroup.POST("/pay_confirm", redpacket.PayConfirm)        // 第三方支付
+
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
 			context.JSON(200, gin.H{
@@ -111,6 +160,7 @@ func NewGinRouter() *gin.Engine {
 
 		userRouterGroup.POST("/attribute_switch", user.AttributeSwitch)        //获取用户属性开关配置
 		userRouterGroup.POST("/attribute_switch/set", user.AttributeSwitchSet) //用户属性开关设置
+		userRouterGroup.POST("/attribute/menu", user.AttributeMenu)            //用户属性菜单
 	}
 	//friend routing group
 	friendRouterGroup := r.Group("/friend")
@@ -170,7 +220,7 @@ func NewGinRouter() *gin.Engine {
 	//certificate
 	authRouterGroup := r.Group("/auth")
 	{
-		authRouterGroup.POST("/user_register", apiAuth.UserRegister) //1
+		authRouterGroup.POST("/user_register", apiAuth.UserRegister) //account rpc 调用
 		authRouterGroup.POST("/user_token", apiAuth.UserToken)       //1
 		authRouterGroup.POST("/parse_token", apiAuth.ParseToken)     //1
 		authRouterGroup.POST("/force_logout", apiAuth.ForceLogout)   //1
@@ -273,6 +323,11 @@ func NewGinRouter() *gin.Engine {
 	{
 		initGroup.POST("/set_client_config", clientInit.SetClientInitConfig)
 		initGroup.POST("/get_client_config", clientInit.GetClientInitConfig)
+	}
+
+	systemGroup := r.Group("/system")
+	{
+		systemGroup.POST("/wgt_version", system.WgtVersion) //wgt版本
 	}
 
 	return r

@@ -597,3 +597,43 @@ func AttributeSwitchSet(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 	return
 }
+
+// 用户属性菜单
+func AttributeMenu(c *gin.Context) {
+	var (
+		params api.AttributeMenuReq
+	)
+
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusOK, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+
+	req := &rpc.AttributeMenuReq{
+		UserId:      userId,
+		OperationID: params.OperationID,
+	}
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImUserName, req.OperationID)
+	if etcdConn == nil {
+		errMsg := req.OperationID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperationID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	client := rpc.NewUserClient(etcdConn)
+	rpcResp, err := client.AttributeMenu(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), err.Error(), req.String())
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": rpcResp})
+	return
+}

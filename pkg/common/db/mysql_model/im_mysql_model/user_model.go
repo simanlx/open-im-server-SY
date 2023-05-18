@@ -286,3 +286,12 @@ func GetBlockUsersNumCount() (int32, error) {
 	}
 	return int32(count), nil
 }
+
+func GetUserByUnionId(UnionId string) (*db.User, error) {
+	var user db.User
+	err := db.DB.MysqlDB.DefaultGormDB().Table("users").Where("unionid = ?", UnionId).Take(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

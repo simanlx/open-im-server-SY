@@ -3,6 +3,7 @@ package common
 import (
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/common/token_verify"
+	"Open_IM/pkg/proto/agent"
 	"Open_IM/pkg/proto/cloud_wallet"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -26,4 +27,13 @@ func ParseImToken(c *gin.Context, operationID string) (string, bool) {
 		return "", false
 	}
 	return userId, true
+}
+
+// 推广系统处理错误返回
+func HandleAgentCommonRespErr(commResp *agent.CommonResp, c *gin.Context) bool {
+	if commResp != nil && commResp.Code != 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": commResp.Code, "msg": commResp.Msg})
+		return true
+	}
+	return false
 }
