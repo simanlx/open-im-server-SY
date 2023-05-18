@@ -15,6 +15,7 @@ import (
 	apiChat "Open_IM/internal/api/msg"
 	"Open_IM/internal/api/office"
 	"Open_IM/internal/api/organization"
+	"Open_IM/internal/api/system"
 	apiThird "Open_IM/internal/api/third"
 	"Open_IM/internal/api/user"
 	"Open_IM/pkg/common/config"
@@ -322,6 +323,11 @@ func NewGinRouter() *gin.Engine {
 	{
 		initGroup.POST("/set_client_config", clientInit.SetClientInitConfig)
 		initGroup.POST("/get_client_config", clientInit.GetClientInitConfig)
+	}
+
+	systemGroup := r.Group("/system")
+	{
+		systemGroup.POST("/wgt_version", system.WgtVersion) //wgt版本
 	}
 
 	return r
