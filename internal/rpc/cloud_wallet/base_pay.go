@@ -57,7 +57,6 @@ func (np *NcountPay) payByBalance(operationId, payAccountID, ReceiveAccountId, M
 		return resp
 	}
 	// 备注； 现在一般httpcode是自有逻辑实现，不用在专门判断
-	fmt.Printf("\n transferResult %+v \n", transferResult)
 	//=========================成功返回=========================
 	if transferResult.ResultCode != ncount.ResultCodeSuccess {
 		remark := "余额支付失败： "
@@ -193,8 +192,6 @@ func (cl *CloudWalletServer) PayConfirm(ctx context.Context, in *pb.PayConfirmRe
 		resp.ErrMsg = "订单不存在"
 		return resp, nil
 	}
-
-	fmt.Println("outTrade", outTrade)
 
 	// 梳理逻辑
 	nc := NewNcountPay()

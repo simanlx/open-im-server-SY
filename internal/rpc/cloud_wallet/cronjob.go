@@ -6,11 +6,14 @@ import (
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	"Open_IM/pkg/contrive_msg"
+	"Open_IM/pkg/utils"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,8 +22,67 @@ import (
 var NotifyChannel = make(chan string, 100)
 
 func StarCorn() {
-	HandleNotifyPay()       // 处理支付回调
+	// 启动消费者
+	HandleThirdPayNotifyLogic()
 	HandleRedPacketReturn() // 处理红包退回
+
+	// 启动生产者
+	StartThirdPayNotifyTicker() // 处理支付回调
+}
+
+// 启动定时任务 ： 每分钟查询过去2个小时所有订单
+// 进行回调，主要是针对第三方支付- 新互娱支付
+func StartThirdPayNotifyTicker() {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error("Panic ,定时任务：查询历史第三方支付订单失败，err: ", err)
+			}
+		}()
+		for {
+			// 每分钟查询过去2个小时所有订单
+			start_time := time.Now().Add(-time.Hour * 2).Format("2006-01-02 15:04:05")
+			end_time := time.Now().Format("2006-01-02 15:04:05")
+			result, err := imdb.GetThirdPayOrderListByTime(start_time, end_time)
+			if err != nil {
+				log.Error("查询订单失败，err: ", err)
+				time.Sleep(time.Minute)
+				continue
+			}
+			operation := utils.OperationIDGenerator()
+			log.Info(operation, "第三方支付回调任务-master：", len(result), "个订单")
+			// 将订单数量写入channel通道
+			for _, v := range result {
+
+				// 1.如果是notify_count  =1 ,间隔时间为30秒
+				if v.LastNotifyTime.Add(time.Second*30).Unix() > time.Now().Unix() && v.NotifyCount == 1 {
+					continue
+				}
+				// 2.如果是notify_count  =2 ,间隔时间为5分钟
+				if v.LastNotifyTime.Add(time.Minute*5).Unix() > time.Now().Unix() && v.NotifyCount == 2 {
+					continue
+				}
+				// 3.如果是notify_count  =3 ,间隔时间为30分钟
+				if v.LastNotifyTime.Add(time.Minute*30).Unix() > time.Now().Unix() && v.NotifyCount == 3 {
+					continue
+				}
+				// 4.如果是notify_count  =4 ,间隔时间为30分钟
+				if v.LastNotifyTime.Add(time.Minute*30).Unix() > time.Now().Unix() && v.NotifyCount == 4 {
+					continue
+				}
+				// 5.如果是notify_count  =5 ,间隔时间为30分钟
+				if v.LastNotifyTime.Add(time.Minute*30).Unix() > time.Now().Unix() && v.NotifyCount == 5 {
+					continue
+				}
+				notifyThirdPay(v.NcountOrderNo)
+			}
+			time.Sleep(time.Minute)
+		}
+	}()
+}
+
+// 就是针对回调实际处理的函数
+func HandleThirdPayNotifyLogic() {
 	for i := 0; i < 50; i++ {
 		go func() {
 			defer func() {
@@ -41,7 +103,7 @@ func StarCorn() {
 					}
 					continue
 				}
-
+				log.Info("第三方支付回调任务-son：", payOrder.MerOrderNo, "订单状态：", payOrder.Status, "回调次数：", payOrder.NotifyCount)
 				// 如果请求超过5次就不再请求
 				if payOrder.NotifyCount >= 5 {
 					continue
@@ -92,54 +154,6 @@ func StarCorn() {
 
 		}()
 	}
-}
-
-// 这里来处理所有的支付回调
-func HandleNotifyPay() {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Error("Panic ,定时任务：查询历史第三方支付订单失败，err: ", err)
-			}
-		}()
-		for {
-			// 每分钟查询过去2个小时所有订单
-			start_time := time.Now().Add(-time.Hour * 2).Format("2006-01-02 15:04:05")
-			end_time := time.Now().Format("2006-01-02 15:04:05")
-			result, err := imdb.GetThirdPayOrderListByTime(start_time, end_time)
-			if err != nil {
-				log.Error("查询订单失败，err: ", err)
-				time.Sleep(time.Minute)
-				continue
-			}
-			// 将订单数量写入channel通道
-			for _, v := range result {
-
-				// 1.如果是notify_count  =1 ,间隔时间为30秒
-				if v.LastNotifyTime.Add(time.Second*30).Unix() > time.Now().Unix() && v.NotifyCount == 1 {
-					continue
-				}
-				// 2.如果是notify_count  =2 ,间隔时间为5分钟
-				if v.LastNotifyTime.Add(time.Minute*5).Unix() > time.Now().Unix() && v.NotifyCount == 2 {
-					continue
-				}
-				// 3.如果是notify_count  =3 ,间隔时间为30分钟
-				if v.LastNotifyTime.Add(time.Minute*30).Unix() > time.Now().Unix() && v.NotifyCount == 3 {
-					continue
-				}
-				// 4.如果是notify_count  =4 ,间隔时间为30分钟
-				if v.LastNotifyTime.Add(time.Minute*30).Unix() > time.Now().Unix() && v.NotifyCount == 4 {
-					continue
-				}
-				// 5.如果是notify_count  =5 ,间隔时间为30分钟
-				if v.LastNotifyTime.Add(time.Minute*30).Unix() > time.Now().Unix() && v.NotifyCount == 5 {
-					continue
-				}
-				notifyThirdPay(v.NcountOrderNo)
-			}
-			time.Sleep(time.Minute)
-		}
-	}()
 }
 
 // 处理红包退款
@@ -259,12 +273,12 @@ func HttpPost(Url string, content []byte) error {
 		return err
 	}
 	defer resp.Body.Close()
-	log.Info("竞技回调-打印响应-发送请求", string(content), Url)
 	// 判断状态码
 	if resp.StatusCode != http.StatusOK {
+		b, _ := ioutil.ReadAll(resp.Body)
+		log.Info("第三方回调失败", fmt.Sprintf("请求参数：%s,HTTPCode:%v,响应参数：%s", content, resp.StatusCode, string(b)))
 		return errors.New("返回响应HttpCode不为200," + strconv.Itoa(resp.StatusCode))
 	}
-	respContent, err := json.Marshal(resp.Body)
-	log.Debug("竞技回调-打印响应", respContent, Url)
+
 	return nil
 }
