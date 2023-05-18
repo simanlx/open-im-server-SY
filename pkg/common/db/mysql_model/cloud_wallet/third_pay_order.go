@@ -84,9 +84,10 @@ func GetThirdPayNcountMerOrderID(MerOrderID string) (error, *db.ThirdPayOrder) {
 // 查询一定时间内的所有订单 ，2 回调次数小于5次的,找一百条
 // 20个goroutine ，平均每个请求处理时间0.5 秒， 一分钟内可以处理 20*60*2 = 2400 个请求
 // 保证了第一次回调的时候，不会等待太久
+// 状态为200 的订单
 func GetThirdPayOrderListByTime(startTime, endTime string) ([]*db.ThirdPayOrder, error) {
 	resp := []*db.ThirdPayOrder{}
-	result := db.DB.MysqlDB.DefaultGormDB().Table("third_pay_order").Where("add_time >= ? and add_time <= ? and is_notify = 0 and notify_count < 5", startTime, endTime).Limit(100).Find(&resp)
+	result := db.DB.MysqlDB.DefaultGormDB().Table("third_pay_order").Where("add_time >= ? and add_time <= ? and is_notify = 0 and notify_count < 5 and status =200 ", startTime, endTime).Limit(100).Find(&resp)
 	if result.Error != nil {
 		return nil, result.Error
 	}
