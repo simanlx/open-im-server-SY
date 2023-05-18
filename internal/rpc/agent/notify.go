@@ -111,7 +111,7 @@ func handelChessPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, ncountOrderN
 	beanRecord := &db.TAgentBeanAccountRecord{
 		OrderNo:           info.OrderNo,
 		UserId:            info.UserId,
-		Type:              2,
+		Type:              1,
 		BusinessType:      imdb.BeanAccountBusinessTypeSale,
 		ChessUserId:       info.ChessUserId,
 		ChessUserNickname: info.ChessUserNickname,
@@ -371,7 +371,7 @@ func handelRechargeNotifyLogic(info *db.TAgentBeanRechargeOrder, ncountOrderNo, 
 	beanRecord := &db.TAgentBeanAccountRecord{
 		OrderNo:           info.OrderNo,
 		UserId:            info.UserId,
-		Type:              1,
+		Type:              2,
 		BusinessType:      imdb.BeanAccountBusinessTypePay,
 		ChessUserId:       info.ChessUserId,
 		ChessUserNickname: info.ChessUserNickname,

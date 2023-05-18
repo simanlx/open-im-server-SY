@@ -112,11 +112,11 @@ func (rpc *AgentServer) AgentBeanAccountRecordList(_ context.Context, req *agent
 	resp.Total = count
 	for _, v := range list {
 		resp.BeanRecordList = append(resp.BeanRecordList, &agent.BeanRecordList{
-			Type:              v.Type,
-			BusinessType:      v.BusinessType,
-			Amount:            v.Amount,
-			Number:            v.Number,
-			GiveNumber:        v.GiveNumber,
+			Type:         v.Type,
+			BusinessType: v.BusinessType,
+			Amount:       v.Amount,
+			Number:       v.Number + int64(v.GiveNumber),
+			//GiveNumber:        v.GiveNumber,
 			ChessUserId:       v.ChessUserId,
 			ChessUserNickname: v.ChessUserNickname,
 			CreatedTime:       v.CreatedTime.Format("2006-01-02 15:04:05"),
