@@ -49,10 +49,10 @@ func (rpc *AgentServer) AgentGameBeanShopConfig(_ context.Context, req *agent.Ag
 	configList, _ := imdb.GetAgentDiyShopBeanOnlineConfig(agentInfo.UserId)
 	if len(configList) > 0 {
 		resp.BeanShopConfig = make([]*agent.BeanShopConfig, 0)
-		for k, v := range configList {
-			//正序、最小配置大于推广员咖豆余额,咖豆不足、不返回咖豆配置
-			if k == 0 && agentInfo.BeanBalance < v.BeanNumber {
-				return resp, nil
+		for _, v := range configList {
+			//推广员咖豆余额 < 配置咖豆(购买值+赠送值)、不返回
+			if agentInfo.BeanBalance < (v.BeanNumber + int64(v.GiveBeanNumber)) {
+				continue
 			}
 
 			resp.BeanShopConfig = append(resp.BeanShopConfig, &agent.BeanShopConfig{
@@ -78,6 +78,7 @@ func (rpc *AgentServer) AgentDiyBeanShopConfig(_ context.Context, req *agent.Age
 	configList, _ := imdb.GetAgentDiyShopBeanConfig(req.UserId)
 	if len(configList) > 0 {
 		for _, v := range configList {
+			//
 			resp.BeanShopConfig = append(resp.BeanShopConfig, &agent.BeanShopConfig{
 				ConfigId:       v.Id,
 				BeanNumber:     v.BeanNumber,
