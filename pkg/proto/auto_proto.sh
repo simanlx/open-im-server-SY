@@ -4,7 +4,7 @@ source ./proto_dir.cfg
 
 for ((i = 0; i < ${#all_proto[*]}; i++)); do
   proto=${all_proto[$i]}
-  protoc -I ../../../  -I ./ --go_out=plugins=grpc:. $proto
+  protoc -I ../../../  -I ./ --go_out=. --go-grpc_out=. $proto
   echo "protoc --go_out=plugins=grpc:." $proto
 done
 echo "proto file generate success"
