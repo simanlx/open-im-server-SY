@@ -58,7 +58,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	//冻结的咖豆额度
 	freezeBeanBalance := rocksCache.GetAgentFreezeBeanBalance(ctx, agentInfo.UserId)
 	//校验推广员咖豆余额 + 冻结部分
-	if agentInfo.BeanBalance < (configInfo.BeanNumber + freezeBeanBalance) {
+	if agentInfo.BeanBalance < (configInfo.BeanNumber + int64(configInfo.GiveBeanNumber) + freezeBeanBalance) {
 		log.Error(req.OperationId, fmt.Sprintf("推广员(%d),下属成员(%d)购买咖豆,推广员咖豆余额不足,咖豆余额(%d),冻结咖豆(%d)", agentInfo.AgentNumber, req.ChessUserId, agentInfo.BeanBalance, freezeBeanBalance))
 		resp.CommonResp.Code = 400
 		resp.CommonResp.Msg = "推广员咖豆余额不足"
@@ -87,7 +87,7 @@ func (rpc *AgentServer) ChessShopPurchaseBean(ctx context.Context, req *agent.Ch
 	}
 
 	//冻结推广员咖豆
-	_ = rocksCache.FreezeAgentBeanBalance(ctx, agentInfo.UserId, req.ChessUserId, configInfo.BeanNumber)
+	_ = rocksCache.FreezeAgentBeanBalance(ctx, agentInfo.UserId, req.ChessUserId, configInfo.BeanNumber+int64(configInfo.GiveBeanNumber))
 
 	resp.OrderNo = orderNo
 	resp.GiveBeanNumber = configInfo.GiveBeanNumber
