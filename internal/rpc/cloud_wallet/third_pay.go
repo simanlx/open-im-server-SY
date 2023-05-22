@@ -43,7 +43,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		// 这里redis可能出现错误，但是都可以进行这么上报
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
 		res.CommonResp.ErrMsg = "您的帐号没有实名认证,请尽快去实名认证"
-		return res, err
+		return res, nil
 	}
 
 	// 校验密码
