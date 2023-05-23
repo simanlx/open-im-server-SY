@@ -404,7 +404,7 @@ func (h *handlerSendRedPacket) walletTransfer(fncount *db.FNcountAccount, in *pb
 // 银行卡转账
 func (h *handlerSendRedPacket) bankTransfer(redPacketID string, in *pb.SendRedPacketReq) (string, error) {
 	//银行卡充值到红包账户
-	err := BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount), redPacketID)
+	err := BankCardRechargePacketAccount(in.UserId, in.BindCardAgrNo, int32(in.Amount), redPacketID, h.merOrderID)
 	if err != nil {
 		return "", err
 	}
@@ -529,15 +529,13 @@ func spareEqualRedPacket(packetID string, amount, number int) error {
 }
 
 // 银行卡充值到红包账户
-func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, packetID string) error {
+func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, packetID, merOrderId string) error {
 	//获取用户账户信息
 	accountInfo, err := imdb.GetNcountAccountByUserId(userId)
 	if err != nil || accountInfo.Id <= 0 {
 		return errors.New("账户信息不存在")
 	}
 
-	//充值支付
-	merOrderId := ncount.GetMerOrderID()
 	accountResp, err := ncount.NewCounter().QuickPayOrder(&ncount.QuickPayOrderReq{
 		MerOrderId: merOrderId,
 		QuickPayMsgCipher: ncount.QuickPayMsgCipher{
@@ -579,9 +577,9 @@ func (rpc *CloudWalletServer) SendRedPacketConfirm(ctx context.Context, req *pb.
 	// 获取红包信息
 	redpacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			resp.CommonResp.ErrCode = 400
-			resp.CommonResp.ErrMsg = "红包不存在"
+			resp.CommonResp.ErrMsg = "红包ID不存在"
 			return resp, nil
 		}
 		return nil, err
@@ -592,7 +590,7 @@ func (rpc *CloudWalletServer) SendRedPacketConfirm(ctx context.Context, req *pb.
 	payresult := nc.payComfirm(redpacketInfo.MerOrderID, req.Code)
 	if payresult.ErrCode != 0 {
 		resp.CommonResp.ErrCode = 400
-		resp.CommonResp.ErrMsg = payresult.ErrMsg
+		resp.CommonResp.ErrMsg = "Notice:" + payresult.ErrMsg
 		return resp, nil
 	}
 

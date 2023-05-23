@@ -128,7 +128,7 @@ func SendRedPacketConfirm(c *gin.Context) {
 	}
 
 	// 复制结构体
-	req := &rpc.ClickRedPacketReq{}
+	req := &rpc.SendRedPacketConfirmReq{}
 	utils.CopyStructFields(req, &params)
 
 	//调用rpc
@@ -142,7 +142,7 @@ func SendRedPacketConfirm(c *gin.Context) {
 
 	// 创建rpc连接
 	client := rpc.NewCloudWalletServiceClient(etcdConn)
-	RpcResp, err := client.ClickRedPacket(context.Background(), req)
+	RpcResp, err := client.SendRedPacketConfirm(context.Background(), req)
 	if err != nil {
 		log.NewError(req.OperateID, "BindUserBankcard failed ", err.Error(), req.String())
 		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
