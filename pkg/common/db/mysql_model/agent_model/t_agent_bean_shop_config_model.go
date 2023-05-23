@@ -24,11 +24,11 @@ func DelAgentDiyShopBeanConfig(userId string) error {
 }
 
 // 修改配置上下架状态
-func UpAgentDiyShopBeanConfigStatus(userId string, configId, status int32) error {
+func UpAgentDiyShopBeanConfigStatus(userId string, configIds []int32, status int32) error {
 	model := db.DB.AgentMysqlDB.DefaultGormDB().Table("t_agent_bean_shop_config").Where("user_id = ?", userId)
 
-	if configId > 0 {
-		model = model.Where("id = ?", configId)
+	if len(configIds) > 0 {
+		model = model.Where("id in (?)", configIds)
 	}
 
 	return model.Update("status", status).Error
