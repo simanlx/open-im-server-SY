@@ -168,6 +168,8 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 				})
 			}
 		}
+
+		accountInfo.OpenStep = 3 //状态-绑定了银行卡
 	}
 
 	//删除缓存
