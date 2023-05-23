@@ -150,35 +150,46 @@ func (rpc *AgentServer) AgentBeanShopUpStatus(_ context.Context, req *agent.Agen
 		return resp, nil
 	}
 
-	// 上架状态、判断咖豆
-	if req.Status == 1 {
-		if req.IsAll == 1 {
+	if req.IsAll == 1 {
+		if req.Status == 1 {
 			configList, _ := imdb.GetAgentDiyShopBeanConfig(req.UserId)
+
+			openConfigIds := make([]int32, 0)
+			closeConfigIds := make([]int32, 0)
+
 			//校验配置
 			for _, v := range configList {
 				// 判断咖豆
 				if (v.BeanNumber + int64(v.GiveBeanNumber)) > agentInfo.BeanBalance {
-					resp.CommonResp.Msg = "咖豆余额不足，不能上架"
-					resp.CommonResp.Code = 400
-					return resp, nil
+					closeConfigIds = append(closeConfigIds, v.Id)
+				} else {
+					openConfigIds = append(openConfigIds, v.Id)
 				}
 			}
+
+			if len(openConfigIds) > 0 {
+				err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, openConfigIds, 1)
+			}
+
+			if len(closeConfigIds) > 0 {
+				err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, closeConfigIds, 0)
+			}
+
 		} else {
-			configInfo, err := imdb.GetAgentBeanConfigById(agentInfo.UserId, req.ConfigId)
+			err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, []int32{}, req.Status)
+		}
+	} else {
+		if req.Status == 1 {
+			configInfo, _ := imdb.GetAgentBeanConfigById(agentInfo.UserId, req.ConfigId)
 			// 判断咖豆
-			if err != nil || (configInfo.BeanNumber+int64(configInfo.GiveBeanNumber)) > agentInfo.BeanBalance {
+			if (configInfo.BeanNumber + int64(configInfo.GiveBeanNumber)) > agentInfo.BeanBalance {
 				resp.CommonResp.Msg = "咖豆余额不足，不能上架"
 				resp.CommonResp.Code = 400
 				return resp, nil
 			}
 		}
-	}
 
-	//批量操作
-	if req.IsAll == 1 {
-		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, 0, req.Status)
-	} else {
-		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, req.ConfigId, req.Status)
+		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, []int32{req.ConfigId}, req.Status)
 	}
 
 	if err != nil {
