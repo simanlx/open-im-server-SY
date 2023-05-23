@@ -113,7 +113,7 @@ func (rpc *AgentServer) GetUserAgentInfo(_ context.Context, req *agent.GetUserAg
 }
 
 // 推广员主页信息
-func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInfoReq) (*agent.AgentMainInfoResp, error) {
+func (rpc *AgentServer) AgentMainInfo(ctx context.Context, req *agent.AgentMainInfoReq) (*agent.AgentMainInfoResp, error) {
 	resp := &agent.AgentMainInfoResp{}
 
 	//获取推广员信息
@@ -140,6 +140,10 @@ func (rpc *AgentServer) AgentMainInfo(_ context.Context, req *agent.AgentMainInf
 	//获取提现手续费比例(‰)千分之几
 	commission := rocksCache.GetPlatformValueConfigCache("withdrawal_commission")
 	resp.Commission = cast.ToInt32(commission)
+
+	//提现次数
+	todayWithdrawalNumber := rocksCache.GetWithdrawalNumber(ctx, req.UserId)
+	resp.WithdrawalNumber = 3 - todayWithdrawalNumber //默认三次
 	return resp, nil
 }
 
