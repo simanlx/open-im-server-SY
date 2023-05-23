@@ -111,8 +111,11 @@ func NewGinRouter() *gin.Engine {
 		cloudWalletGroup.POST("/draw_account_callback", notify.WithDrawNotify) //提现回调
 
 		// 红包管理
-		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)                     //发送红包
-		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket)                   // 抢红包接口
+		cloudWalletGroup.POST("/send_red_packet", redpacket.SendRedPacket)   //发送红包
+		cloudWalletGroup.POST("/click_red_packet", redpacket.ClickRedPacket) // 抢红包接口
+		// 确认发送红包
+		cloudWalletGroup.POST("/send_red_packet/confirm", redpacket.SendRedPacketConfirm) //确认发送红包
+
 		cloudWalletGroup.POST("/red_packet/receive_detail", redpacket.RedPacketReceiveDetail)  // 红包领取明细
 		cloudWalletGroup.POST("/red_packet/info", redpacket.GetRedPacketInfo)                  // 红包详情
 		cloudWalletGroup.POST("/ban_gourp_click_red_packet", redpacket.BanGroupClickRedPacket) // 禁止群抢红包

@@ -234,10 +234,6 @@ func (h *handlerSendRedPacket) validateParam(req *pb.SendRedPacketReq) error {
 		return errors.New("send_type 发送方式输入错误 ")
 	}
 
-	if req.SendType == 2 && req.BankCardID == 0 {
-		return errors.New("SendType = 2 时，BankCardID && BindCardAgrNo 不能为空	")
-	}
-
 	if req.RecvID == "" {
 		return errors.New("RecvID 不能为空")
 	}
@@ -568,6 +564,46 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 	}
 
 	return nil
+}
+
+// 红包确认接口
+func (rpc *CloudWalletServer) SendRedPacketConfirm(ctx context.Context, req *pb.SendRedPacketConfirmReq) (*pb.SendRedPacketConfirmResp, error) {
+	var (
+		resp = &pb.SendRedPacketConfirmResp{
+			CommonResp: &pb.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "确认成功",
+			},
+		}
+	)
+	// 获取红包信息
+	redpacketInfo, err := imdb.GetRedPacketInfo(req.RedPacketID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			resp.CommonResp.ErrCode = 400
+			resp.CommonResp.ErrMsg = "红包不存在"
+			return resp, nil
+		}
+		return nil, err
+	}
+
+	// 发送红包确认
+	nc := NewNcountPay()
+	payresult := nc.payComfirm(redpacketInfo.MerOrderID, req.Code)
+	if payresult.ErrCode != 0 {
+		resp.CommonResp.ErrCode = 400
+		resp.CommonResp.ErrMsg = payresult.ErrMsg
+		return resp, nil
+	}
+
+	redpacketInfo.Remark = "银行卡支付已经确认，等待第三方回调"
+
+	// 更新红包信息
+	err = imdb.UpdateRedPacketInfo(redpacketInfo.PacketID, redpacketInfo)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 // 红包领取明细

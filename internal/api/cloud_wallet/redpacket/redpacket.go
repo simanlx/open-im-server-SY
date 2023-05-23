@@ -26,14 +26,13 @@ func SendRedPacket(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
-	/*	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperationID)
-		if !ok {
-			errMsg := params.OperationID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-			log.NewError(params.OperationID, errMsg)
-			c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
-			return
-		}*/
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperationID)
+	if !ok {
+		return
+	}
+	params.UserId = userId
+
 	UserID := "10018"
 	if params.UserId != "" {
 		UserID = params.UserId
@@ -80,14 +79,53 @@ func ClickRedPacket(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
-	/*	ok, UserID, errInfo := token_verify.GetUserIDFromToken(c.Request.Header.Get("token"), params.OperateID)
-		if !ok {
-			errMsg := params.OperateID + " " + "GetUserIDFromToken failed " + errInfo + " token:" + c.Request.Header.Get("token")
-			log.NewError(params.OperateID, errMsg)
-			c.JSON(http.StatusBadRequest, gin.H{"errCode": 500, "errMsg": errMsg})
-			return
-		}*/
+	//解析token、获取用户id
+	userId, ok := common.ParseImToken(c, params.OperateID)
+	if !ok {
+		return
+	}
+	params.UserId = userId
+
+	// 复制结构体
+	req := &rpc.ClickRedPacketReq{}
+	utils.CopyStructFields(req, &params)
+
+	//调用rpc
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImCloudWalletName, req.OperateID)
+	if etcdConn == nil {
+		errMsg := req.OperateID + "getcdv3.GetDefaultConn == nil"
+		log.NewError(req.OperateID, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	// 创建rpc连接
+	client := rpc.NewCloudWalletServiceClient(etcdConn)
+	RpcResp, err := client.ClickRedPacket(context.Background(), req)
+	if err != nil {
+		log.NewError(req.OperateID, "BindUserBankcard failed ", err.Error(), req.String())
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"errCode": RpcResp.CommonResp.ErrCode, "errMsg": RpcResp.CommonResp.ErrMsg})
+	return
+}
+
+// 确认发送红包
+func SendRedPacketConfirm(c *gin.Context) {
+	params := redpacket_struct.ConfirmSendRedPacketReq{}
+	if err := c.BindJSON(&params); err != nil {
+		log.Error("0", "ChargeNotify", err.Error(), params)
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	//解析token、获取用户id
+	_, ok := common.ParseImToken(c, params.OperateID)
+	if !ok {
+		return
+	}
 
 	// 复制结构体
 	req := &rpc.ClickRedPacketReq{}

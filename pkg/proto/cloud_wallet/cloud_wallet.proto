@@ -580,6 +580,22 @@ message ThirdWithdrawalResp {
   int32 amount = 3; //实际到账金额
 }
 
+
+//    type ConfirmSendRedPacketReq struct {
+//Code 	  string `json:"code" binding:"required"`        //验证码
+//    RedPacketID string `json:"redPacketID" binding:"required"` //红包id
+//    OperateID   string `json:"operateID"`   //链路跟踪id
+//    }
+message SendRedPacketConfirmReq{
+  string code = 1; //验证码
+  string redPacketID = 2; //红包id
+  string operateID = 3; //链路跟踪id
+}
+
+message SendRedPacketConfirmResp{
+  CommonResp commonResp = 1;
+}
+
 // 钱包服务
 service CloudWalletService {
   // ==================================云钱包管理 ========
@@ -624,6 +640,9 @@ service CloudWalletService {
 
   // 发送红包接口
   rpc SendRedPacket(SendRedPacketReq)returns(SendRedPacketResp);
+
+  // 确认发送红包接口
+  rpc SendRedPacketConfirm(SendRedPacketConfirmReq)returns(SendRedPacketConfirmResp);
 
   // 抢红包接口
   rpc ClickRedPacket(ClickRedPacketReq)returns(ClickRedPacketResp);
