@@ -496,41 +496,41 @@ func (FErrorLog) TableName() string {
 	return "f_error_log"
 }
 
-// CREATE TABLE `f_packet` (
-//
-//	`id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-//	`packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
-//	`submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
-//	`remark` varchar(255) DEFAULT NULL COMMENT '红包状态描述',
-//	`status` int(2) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常  ,100 为退回，200 为退回异常',
-//	`user_id` varchar(255) NOT NULL COMMENT '红包发起者',
-//	`user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
-//	`packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
-//	`is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
-//	`is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
-//	`exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
-//	`packet_title` varchar(100) NOT NULL COMMENT '红包标题',
-//	`amount` int(11) NOT NULL COMMENT '单个红包金额，如果说是',
-//	`number` tinyint(3) NOT NULL COMMENT '红包个数',
-//	`total_amount` int(11) DEFAULT NULL COMMENT '发红包的总金额 == remain_amount的初始值',
-//	`expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
-//	`mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
-//	`operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
-//	`recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
-//	`send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
-//	`bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
-//	`remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
-//	`remain_amout` int(11) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
-//	`refound_amout` int(11) DEFAULT NULL COMMENT '退款金额',
-//	`lucky_user_id` varchar(255) NOT NULL DEFAULT '' COMMENT '最佳手气红包用户ID',
-//	`luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
-//	`created_time` int(11) DEFAULT NULL,
-//	`updated_time` int(11) DEFAULT NULL,
-//	PRIMARY KEY (`id`) USING BTREE,
-//	KEY `idx_user_id` (`user_id`) USING BTREE,
-//	KEY `idx_packet_id` (`packet_id`) USING BTREE
-//
-// ) ENGINE=InnoDB AUTO_INCREMENT=350 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';;
+//CREATE TABLE `f_packet` (
+//`id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+//`packet_id` varchar(255) DEFAULT NULL COMMENT '红包ID',
+//`submit_time` varchar(255) DEFAULT NULL COMMENT '下单时间，用于退款',
+//`remark` varchar(255) DEFAULT NULL COMMENT '红包状态描述',
+//`status` int(2) NOT NULL COMMENT '红包状态： 1 为创建 、2 为正常、3为异常  ,100 为退回，200 为退回异常',
+//`user_id` varchar(255) NOT NULL COMMENT '红包发起者',
+//`user_redpacket_account` varchar(255) DEFAULT NULL COMMENT '发送红包的用户的账户',
+//`packet_type` tinyint(1) NOT NULL COMMENT '红包类型(1个人红包、2群红包)',
+//`is_lucky` tinyint(1) DEFAULT '0' COMMENT '是否为拼手气红包',
+//`is_exclusive` tinyint(1) NOT NULL COMMENT '是否为专属红包： 0为否，1为是',
+//`exclusive_user_id` varchar(255) DEFAULT '0' COMMENT '专属用户id',
+//`packet_title` varchar(100) NOT NULL COMMENT '红包标题',
+//`amount` int(11) NOT NULL COMMENT '单个红包金额，如果说是',
+//`number` tinyint(3) NOT NULL COMMENT '红包个数',
+//`total_amount` int(11) DEFAULT NULL COMMENT '发红包的总金额 == remain_amount的初始值',
+//`expire_time` int(11) DEFAULT NULL COMMENT '红包过期时间',
+//`mer_order_id` varchar(255) DEFAULT NULL COMMENT '红包第三方的请求ID',
+//`ncount_order_id` varchar(255) DEFAULT NULL COMMENT '新生支付id',
+//`operate_id` varchar(255) DEFAULT NULL COMMENT '链路追踪ID',
+//`recv_id` varchar(255) DEFAULT NULL COMMENT '被发送用户的ID',
+//`send_type` tinyint(11) DEFAULT NULL COMMENT '红包发送方式： 1：钱包余额，2是银行卡',
+//`bind_card_agr_no` varchar(255) DEFAULT NULL COMMENT '银行卡绑定协议号',
+//`remain` int(11) DEFAULT NULL COMMENT '剩余红包数量',
+//`remain_amout` int(11) NOT NULL DEFAULT '0' COMMENT '剩余红包金额',
+//`refound_amout` int(11) DEFAULT NULL COMMENT '退款金额',
+//`lucky_user_id` varchar(255) NOT NULL DEFAULT '' COMMENT '最佳手气红包用户ID',
+//`luck_user_amount` int(11) NOT NULL DEFAULT '0' COMMENT '最大红包的值： account amount  分为单位',
+//`created_time` int(11) DEFAULT NULL,
+//`updated_time` int(11) DEFAULT NULL,
+//PRIMARY KEY (`id`) USING BTREE,
+//KEY `idx_user_id` (`user_id`) USING BTREE,
+//KEY `idx_packet_id` (`packet_id`) USING BTREE,
+//KEY `idx_expire` (`expire_time`) USING BTREE
+//) ENGINE=InnoDB AUTO_INCREMENT=372 DEFAULT CHARSET=utf8mb4 COMMENT='用户红包表';
 type FPacket struct {
 	ID                   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
 	PacketID             string `gorm:"column:packet_id;not null" json:"packet_id"`
@@ -546,6 +546,7 @@ type FPacket struct {
 	TotalAmount          int64  `gorm:"column:total_amount;not null" json:"total_amount"`
 	ExpireTime           int64  `gorm:"column:expire_time;not null" json:"expire_time"`
 	MerOrderID           string `gorm:"column:mer_order_id;not null" json:"mer_order_id"`
+	NcountOrderID        string `gorm:"column:ncount_order_id;not null" json:"ncount_order_id"`
 	SendType             int32  `gorm:"column:send_type;not null" json:"send_type"`
 	BindCardAgrNo        string `gorm:"column:bind_card_agr_no;not null" json:"bind_card_agr_no"`
 	OperateID            string `gorm:"column:operate_id;not null" json:"operate_id"`

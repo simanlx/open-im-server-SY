@@ -111,12 +111,18 @@ func Withdraw(c *gin.Context) {
 		return
 	}
 
-	//提现金额限制
+	//提现金额规则限制、最低10元
 	if params.Amount < 1000 {
-		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "提现金额最少10元"})
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "最低提现金额为10元"})
 		return
 	}
-	
+
+	//提现金额规则限制、最高1万元
+	if params.Amount > 10000*100 {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "单笔最高提现金额1万元"})
+		return
+	}
+
 	req := &rpc.BalanceWithdrawalReq{
 		UserId:          c.GetString("userId"),
 		Amount:          params.Amount,

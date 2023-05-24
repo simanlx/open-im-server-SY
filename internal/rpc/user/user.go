@@ -842,7 +842,7 @@ func (s *userServer) AttributeMenu(ctx context.Context, req *pbUser.AttributeMen
 	if agentMenuSwitch {
 		resp.MenuList = append(resp.MenuList, &pbUser.UserMenuList{
 			AppId:   config.Config.Agent.AppId,
-			AppName: "推广后台",
+			AppName: "推广中心",
 		})
 	}
 
