@@ -25,6 +25,25 @@ import (
 	"google.golang.org/grpc"
 )
 
+// 单点登录
+func (rpc *rpcAuth) SingleLogin(_ context.Context, req *pbAuth.SingleLoginReq) (*pbAuth.SingleLoginResp, error) {
+	resp := &pbAuth.SingleLoginResp{CommonResp: &pbAuth.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
+	// 删除jwt token
+	if err := token_verify.DeleteToken(req.UserId, int(req.Platform)); err != nil {
+		errMsg := req.OperationID + " SingleLogin DeleteToken failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
+		log.NewError(req.OperationID, errMsg)
+	}
+
+	// 网关T出
+	if err := rpc.forceKickOff(req.UserId, req.Platform, req.OperationID); err != nil {
+		errMsg := req.OperationID + " SingleLogin forceKickOff failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
+		log.NewError(req.OperationID, errMsg)
+	}
+
+	return resp, nil
+}
+
 func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq) (*pbAuth.UserRegisterResp, error) {
 	fmt.Println("UserRegister")
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), "UserRegister注册-1>", utils.JsonFormat(req))
@@ -55,7 +74,14 @@ func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq)
 	return &pbAuth.UserRegisterResp{CommonResp: &pbAuth.CommonResp{}}, nil
 }
 
-func (rpc *rpcAuth) UserToken(_ context.Context, req *pbAuth.UserTokenReq) (*pbAuth.UserTokenResp, error) {
+func (rpc *rpcAuth) UserToken(ctx context.Context, req *pbAuth.UserTokenReq) (*pbAuth.UserTokenResp, error) {
+	//单点登录
+	_, _ = rpc.SingleLogin(ctx, &pbAuth.SingleLoginReq{
+		Platform:    req.Platform,
+		UserId:      req.FromUserID,
+		OperationID: req.OperationID,
+	})
+
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), " rpc args ", req.String())
 	_, err := imdb.GetUserByUserID(req.FromUserID)
 	if err != nil {

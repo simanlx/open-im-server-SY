@@ -67,3 +67,10 @@ type ParseTokenResp struct {
 	Data       map[string]interface{} `json:"data" swaggerignore:"true"`
 	ExpireTime ExpireTime             `json:"-"`
 }
+
+type SingleLoginReq struct {
+	Platform    int32  `json:"platform" binding:"required"`
+	UserId      string `json:"user_id" binding:"required"`
+	Secret      string `json:"secret" binding:"required"`
+	OperationId string `json:"operationId" binding:"required"`
+}

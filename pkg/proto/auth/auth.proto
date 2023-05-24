@@ -54,12 +54,23 @@ message ParseTokenResp{
     uint32 expireTimeSeconds = 4;
 }
 
+message SingleLoginReq{
+    int32  Platform = 1;
+    string UserId = 2;
+    string OperationID = 3;
+}
+
+message SingleLoginResp{
+    CommonResp commonResp = 1;
+}
 
 service Auth {
     rpc UserRegister(UserRegisterReq) returns(UserRegisterResp);
     rpc UserToken(UserTokenReq) returns(UserTokenResp);
     rpc ForceLogout(ForceLogoutReq) returns(ForceLogoutResp);
     rpc ParseToken(ParseTokenReq)returns(ParseTokenResp);
+
+    rpc SingleLogin(SingleLoginReq)returns(SingleLoginResp); //单点登录
 }
 
 

@@ -236,3 +236,43 @@ func ForceLogout(c *gin.Context) {
 	log.NewInfo(params.OperationID, utils.GetSelfFuncName(), " return ", resp)
 	c.JSON(http.StatusOK, resp)
 }
+
+// 单点登录test T
+func SingleLogin(c *gin.Context) {
+	params := api.SingleLoginReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
+		return
+	}
+
+	if params.Secret != config.Config.Secret {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "s err"})
+		return
+	}
+
+	etcdConn := getcdv3.GetDefaultConn(config.Config.Etcd.EtcdSchema, strings.Join(config.Config.Etcd.EtcdAddr, ","), config.Config.RpcRegisterName.OpenImAuthName, params.OperationId)
+	if etcdConn == nil {
+		errMsg := params.OperationId + " getcdv3.GetDefaultConn == nil"
+		log.NewError(params.OperationId, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+
+	req := &rpc.SingleLoginReq{
+		Platform:    params.Platform,
+		UserId:      params.UserId,
+		OperationID: params.OperationId,
+	}
+
+	client := rpc.NewAuthClient(etcdConn)
+	reply, err := client.SingleLogin(context.Background(), req)
+	if err != nil {
+		errMsg := params.OperationId + " UserToken failed " + err.Error() + req.String()
+		log.NewError(params.OperationId, errMsg)
+		c.JSON(http.StatusInternalServerError, gin.H{"errCode": 500, "errMsg": errMsg})
+		return
+	}
+	resp := api.ForceLogoutResp{CommResp: api.CommResp{ErrCode: reply.CommonResp.ErrCode, ErrMsg: reply.CommonResp.ErrMsg}}
+	log.NewInfo(params.OperationId, utils.GetSelfFuncName(), " return ", resp)
+	c.JSON(http.StatusOK, resp)
+}
