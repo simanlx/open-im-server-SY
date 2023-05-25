@@ -213,16 +213,6 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 		return resp, nil
 	}
 
-	//校验配置
-	for _, v := range req.BeanShopConfig {
-		// 上架状态、判断咖豆
-		if v.Status == 1 && ((v.BeanNumber + int64(v.GiveBeanNumber)) > agentInfo.BeanBalance) {
-			resp.CommonResp.Msg = "咖豆余额不足，不能上架"
-			resp.CommonResp.Code = 400
-			return resp, nil
-		}
-	}
-
 	//删除历史咖豆配置
 	_ = imdb.DelAgentDiyShopBeanConfig(req.UserId)
 
@@ -230,6 +220,11 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 	if len(req.BeanShopConfig) > 0 {
 		data := make([]*db.TAgentBeanShopConfig, 0)
 		for _, v := range req.BeanShopConfig {
+			// 上架状态、判断咖豆
+			if v.Status == 1 && ((v.BeanNumber + int64(v.GiveBeanNumber)) > agentInfo.BeanBalance) {
+				v.Status = 0
+			}
+
 			data = append(data, &db.TAgentBeanShopConfig{
 				UserId:         req.UserId,
 				BeanNumber:     v.BeanNumber,
@@ -241,7 +236,7 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 			})
 		}
 
-		err := imdb.InsertAgentDiyShopBeanConfigs(data)
+		err = imdb.InsertAgentDiyShopBeanConfigs(data)
 		if err != nil {
 			resp.CommonResp.Code = 400
 			resp.CommonResp.Msg = "更新失败"
