@@ -731,3 +731,9 @@ func WithdrawalNumberIncr(ctx context.Context, userId string) {
 
 	return
 }
+
+// 删除用户jwt token
+func DelUserJwtToken(ctx context.Context, userId string) {
+	_ = db.DB.RDB.Del(ctx, fmt.Sprintf("UID_PID_TOKEN_STATUS:%s:%s", userId, "Android")).Err()
+	_ = db.DB.RDB.Del(ctx, fmt.Sprintf("UID_PID_TOKEN_STATUS:%s:%s", userId, "IOS")).Err()
+}
