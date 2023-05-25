@@ -1,6 +1,7 @@
 package ncount
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -329,81 +330,6 @@ func Test_counter_NewAccount(t *testing.T) {
 	}
 }
 
-// 快捷支付确认 单元测试通过
-func Test_counter_QuickPayConfirm(t *testing.T) {
-	type fields struct {
-		notifyQuickPayConfirmURL string
-		notifyRefundURL          string
-		notifyWithdrawURL        string
-	}
-	type args struct {
-		req *QuickPayConfirmReq
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    *QuickPayConfirmResp
-		wantErr bool
-	}{
-		{
-			name: "测试快捷支付确认接口",
-			fields: fields{
-				notifyQuickPayConfirmURL: "http://www.baidu.com",
-				notifyRefundURL:          "http://www.baidu.com",
-				notifyWithdrawURL:        "http://www.baidu.com",
-			},
-			args: args{
-				req: &QuickPayConfirmReq{
-					merOrderId: GetMerOrderID(),
-					QuickPayConfirmMsgCipher: QuickPayMsgCipher{
-						TranAmount: "",
-						PayType:    "",
-						/*		CardNo:            "",
-								HolderName:        "",
-								CardAvailableDate: "",
-								Cvv2:              "",
-								MobileNo:          "",
-								IdentityType:      "",
-								IdentityCode:      "",
-								BindCardAgrNo:     "",
-								NotifyUrl:         "",
-								OrderExpireTime:   "",
-								UserId:            "",
-								ReceiveUserId:     "",
-								MerUserIp:         "",
-								RiskExpand:        "",
-								GoodsInfo:         "",
-								SubMerchantId:     "",
-								DivideFlag:        "",
-								DivideDetail:      "",
-								InstalmentNum:     "",
-								InstalmentType:    "",
-								InstalmentRate:    "",*/
-					},
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			c := &counter{
-				notifyQuickPayConfirmURL: tt.fields.notifyQuickPayConfirmURL,
-				notifyRefundURL:          tt.fields.notifyRefundURL,
-				notifyWithdrawURL:        tt.fields.notifyWithdrawURL,
-			}
-			got, err := c.QuickPayConfirm(tt.args.req)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("QuickPayConfirm() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("QuickPayConfirm() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 // 快捷支付接口测试 单元测试通过
 func Test_counter_QuickPayOrder(t *testing.T) {
 	type fields struct {
@@ -614,4 +540,132 @@ func Test_counter_Withdraw(t *testing.T) {
 // 发送自定义红包消息
 func Test_counter_SendRedPack(t *testing.T) {
 
+}
+
+// 在这里进行转账
+func Test_counter_QuickPayOrderOther(t *testing.T) {
+	type fields struct {
+		notifyQuickPayConfirmURL string
+		notifyRefundURL          string
+		notifyWithdrawURL        string
+	}
+	type args struct {
+		req *NAccountQuickPayOtherOther
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *QuickPayOrderResp
+		wantErr bool
+	}{
+		{
+			name: "周荣亮-转账",
+			fields: fields{
+				notifyQuickPayConfirmURL: "",
+				notifyRefundURL:          "",
+				notifyWithdrawURL:        "",
+			},
+			args: args{
+				req: &NAccountQuickPayOtherOther{
+					TranAmount:    "0.5",
+					PayType:       "2",
+					CardNo:        "6217710312086812",
+					HolderName:    "邹荣亮",
+					MobileNo:      "13530210115",
+					IdentityType:  "1",
+					IdentityCode:  "430426199102086615",
+					NotifyUrl:     "www.baidu.com",
+					ReceiveUserId: MER_USER_ID,
+					SubMerchantId: "2206301126073014978",
+				},
+			},
+		},
+		{
+			name: "声焕-转账",
+			fields: fields{
+				notifyQuickPayConfirmURL: "",
+				notifyRefundURL:          "",
+				notifyWithdrawURL:        "",
+			},
+			args: args{
+				req: &NAccountQuickPayOtherOther{
+					TranAmount:    "5",
+					PayType:       "2",
+					CardNo:        "6217680913281569", // 工商
+					HolderName:    "黄声焕",
+					MobileNo:      "13580779180",
+					IdentityType:  "1",
+					IdentityCode:  "445121199204134815",
+					NotifyUrl:     "https://www.baidu.com",
+					ReceiveUserId: MER_USER_ID,
+					SubMerchantId: "2206301126073014978",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &counter{
+				notifyQuickPayConfirmURL: tt.fields.notifyQuickPayConfirmURL,
+				notifyRefundURL:          tt.fields.notifyRefundURL,
+				notifyWithdrawURL:        tt.fields.notifyWithdrawURL,
+			}
+			got, _ := c.QuickPayOrderOther(tt.args.req)
+			fmt.Printf("got:%+v\n", got)
+		})
+	}
+}
+
+func Test_counter_QuickPayConfirm(t *testing.T) {
+	type fields struct {
+		notifyQuickPayConfirmURL string
+		notifyRefundURL          string
+		notifyWithdrawURL        string
+	}
+	type args struct {
+		req *QuickPayConfirmReq
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *QuickPayConfirmResp
+		wantErr bool
+	}{
+		{
+			name: "周荣亮-转账确认",
+			fields: fields{
+				notifyQuickPayConfirmURL: "",
+				notifyRefundURL:          "",
+				notifyWithdrawURL:        "",
+			},
+			args: args{
+				req: &QuickPayConfirmReq{
+					MerOrderId: GetMerOrderID(),
+					QuickPayConfirmMsgCipher: QuickPayConfirmMsgCipher{
+						NcountOrderId:        "2023052520676654", //订单ID
+						SmsCode:              "593018",           //code
+						PaymentTerminalInfo:  "02|AA01BB",
+						ReceiverTerminalInfo: "01|00001|CN|469023",
+						DeviceInfo:           "192.168.0.1|E1E2E3E4E5E6|123456789012345|20000|898600MFSSYYGXXXXXXP|H1H2H3H4H5H6|AABBCC",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &counter{
+				notifyQuickPayConfirmURL: tt.fields.notifyQuickPayConfirmURL,
+				notifyRefundURL:          tt.fields.notifyRefundURL,
+				notifyWithdrawURL:        tt.fields.notifyWithdrawURL,
+			}
+			got, err := c.QuickPayConfirm(tt.args.req)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("got:%+v\n", got)
+		})
+	}
 }
