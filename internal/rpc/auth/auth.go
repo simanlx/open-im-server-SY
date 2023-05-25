@@ -4,6 +4,7 @@ import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/common/token_verify"
@@ -26,18 +27,21 @@ import (
 )
 
 // 单点登录
-func (rpc *rpcAuth) SingleLogin(_ context.Context, req *pbAuth.SingleLoginReq) (*pbAuth.SingleLoginResp, error) {
+func (rpc *rpcAuth) SingleLogin(ctx context.Context, req *pbAuth.SingleLoginReq) (*pbAuth.SingleLoginResp, error) {
 	resp := &pbAuth.SingleLoginResp{CommonResp: &pbAuth.CommonResp{ErrCode: 0, ErrMsg: ""}}
 
 	// 删除jwt token
-	if err := token_verify.DeleteToken(req.UserId, int(req.Platform)); err != nil {
-		errMsg := req.OperationID + " SingleLogin DeleteToken failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
+	rocksCache.DelUserJwtToken(ctx, req.UserId)
+
+	// 安卓
+	if err := rpc.forceKickOff(req.UserId, 2, req.OperationID); err != nil {
+		errMsg := req.OperationID + " SingleLogin android forceKickOff failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
 		log.NewError(req.OperationID, errMsg)
 	}
 
-	// 网关T出
-	if err := rpc.forceKickOff(req.UserId, req.Platform, req.OperationID); err != nil {
-		errMsg := req.OperationID + " SingleLogin forceKickOff failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
+	// ios
+	if err := rpc.forceKickOff(req.UserId, 1, req.OperationID); err != nil {
+		errMsg := req.OperationID + " SingleLogin ios forceKickOff failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
 		log.NewError(req.OperationID, errMsg)
 	}
 
