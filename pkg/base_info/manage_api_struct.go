@@ -159,7 +159,7 @@ type FeedbackReq struct {
 	OperationID     string `json:"operationID" binding:"required"`
 	FeedbackType    int32  `json:"feedbackType" binding:"required"`
 	FeedbackContent string `json:"feedbackContent" binding:"required"`
-	FeedbackContact string `json:"feedbackContact" binding:"required"`
+	FeedbackContact string `json:"feedbackContact" `
 }
 
 type CommonQuestionReq struct {
