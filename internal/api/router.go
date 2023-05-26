@@ -164,6 +164,13 @@ func NewGinRouter() *gin.Engine {
 		userRouterGroup.POST("/attribute_switch", user.AttributeSwitch)        //获取用户属性开关配置
 		userRouterGroup.POST("/attribute_switch/set", user.AttributeSwitchSet) //用户属性开关设置
 		userRouterGroup.POST("/attribute/menu", user.AttributeMenu)            //用户属性菜单
+
+		// 用户反馈
+		userRouterGroup.POST("/feedback", user.Feedback) // 用户反馈
+		// 常见问题
+		userRouterGroup.POST("/question", user.CommonQuestion) // 常见问题
+		// 常见问题反馈
+		userRouterGroup.POST("/question/feedback", user.CommonQuestionFeedback) // 常见问题反馈
 	}
 	//friend routing group
 	friendRouterGroup := r.Group("/friend")
