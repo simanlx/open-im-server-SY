@@ -577,7 +577,7 @@ func Test_counter_QuickPayOrderOther(t *testing.T) {
 					IdentityCode:  "430426199102086615",
 					NotifyUrl:     "www.baidu.com",
 					ReceiveUserId: MER_USER_ID,
-					SubMerchantId: "2206301126073014978",
+					SubMerchantId: SUB_MERCHANT_ID,
 				},
 			},
 		},
@@ -599,7 +599,7 @@ func Test_counter_QuickPayOrderOther(t *testing.T) {
 					IdentityCode:  "445121199204134815",
 					NotifyUrl:     "https://www.baidu.com",
 					ReceiveUserId: MER_USER_ID,
-					SubMerchantId: "2206301126073014978",
+					SubMerchantId: SUB_MERCHANT_ID,
 				},
 			},
 		},
@@ -644,8 +644,8 @@ func Test_counter_QuickPayConfirm(t *testing.T) {
 				req: &QuickPayConfirmReq{
 					MerOrderId: GetMerOrderID(),
 					QuickPayConfirmMsgCipher: QuickPayConfirmMsgCipher{
-						NcountOrderId:        "2023052520676654", //订单ID
-						SmsCode:              "593018",           //code
+						NcountOrderId:        "2023052610846012", //订单ID
+						SmsCode:              "794268",           //code
 						PaymentTerminalInfo:  "02|AA01BB",
 						ReceiverTerminalInfo: "01|00001|CN|469023",
 						DeviceInfo:           "192.168.0.1|E1E2E3E4E5E6|123456789012345|20000|898600MFSSYYGXXXXXXP|H1H2H3H4H5H6|AABBCC",
