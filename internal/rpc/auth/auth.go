@@ -155,6 +155,8 @@ type rpcAuth struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbAuth.UnsafeAuthServer
 }
 
 func NewRpcAuthServer(port int) *rpcAuth {

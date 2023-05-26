@@ -32,6 +32,8 @@ type RPCServer struct {
 	platformList    []int
 	pushTerminal    []int
 	target          string
+
+	pbRelay.UnimplementedRelayServer
 }
 
 func initPrometheus() {
