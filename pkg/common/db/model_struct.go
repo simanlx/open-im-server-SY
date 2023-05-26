@@ -709,3 +709,50 @@ type AppWgtVersion struct {
 func (AppWgtVersion) TableName() string {
 	return "app_wgt_version"
 }
+
+//CREATE TABLE `help_feedback` (
+//  `id` int(11) NOT NULL,
+//  `user_id` varchar(255) DEFAULT NULL COMMENT '用户的ID',
+//  `type` int(1) DEFAULT NULL COMMENT '1:建议、2是功能问题、3是违法问题',
+//  `content` varchar(500) DEFAULT NULL COMMENT '问题描述（最大存储100个字节）',
+//  `contact` varchar(255) DEFAULT NULL COMMENT '联系人电话',
+//  `status` int(2) DEFAULT NULL COMMENT '1是正常状态，2是关闭状态',
+//  `add_time` datetime DEFAULT NULL,
+//  `update_time` datetime DEFAULT NULL,
+//  PRIMARY KEY (`id`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='帮助反馈表';
+type HelpFeedback struct {
+	Id         int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserId     string    `gorm:"column:user_id;not null" json:"user_id"`
+	Type       int32     `gorm:"column:type;not null" json:"type"`
+	Content    string    `gorm:"column:content;not null" json:"content"`
+	Contact    string    `gorm:"column:contact;not null" json:"contact"`
+	Status     int32     `gorm:"column:status;not null" json:"status"`
+	AddTime    time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	UpdateTime time.Time `gorm:"column:update_time;not null" json:"update_time"`
+}
+
+//CREATE TABLE `help_normal_question` (
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`title` varchar(255) DEFAULT NULL,
+//`content` text,
+//`solved` int(11) DEFAULT '0',
+//`unsolved` int(11) DEFAULT '0',
+//`status` tinyint(1) DEFAULT '1' COMMENT '1是正常，2是删除',
+//`ord` int(11) DEFAULT '0' COMMENT '排序',
+//`add_time` datetime DEFAULT NULL,
+//`update_time` datetime DEFAULT NULL,
+//PRIMARY KEY (`id`)
+//) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+
+type HelpNormalQuestion struct {
+	Id         int64     `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	Title      string    `gorm:"column:title;not null" json:"title"`
+	Content    string    `gorm:"column:content;not null" json:"content"`
+	Solved     int32     `gorm:"column:solved;not null" json:"solved"`
+	Unsolved   int32     `gorm:"column:unsolved;not null" json:"unsolved"`
+	Status     int32     `gorm:"column:status;not null" json:"status"`
+	Ord        int32     `gorm:"column:ord;not null" json:"ord"`
+	AddTime    time.Time `gorm:"column:add_time;not null" json:"add_time"`
+	UpdateTime time.Time `gorm:"column:update_time;not null" json:"update_time"`
+}

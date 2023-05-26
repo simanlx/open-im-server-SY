@@ -304,10 +304,7 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 		return resp, nil
 	}
 
-	// 真正的时候，需要关闭这里
-	temAmount := 1
-
-	totalAmount := cast.ToString(cast.ToFloat64(temAmount) / 100)
+	totalAmount := cast.ToString(cast.ToFloat64(realAmount) / 100)
 	payresult := nc.payByBalance(req.OperationID, payAccount, receiveAccount, merOrderID, totalAmount)
 	if payresult.ErrCode != 0 {
 		// 如果转账失败，这里是返回错误信息

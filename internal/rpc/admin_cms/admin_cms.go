@@ -32,6 +32,8 @@ type adminCMSServer struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbAdminCMS.UnsafeAdminCMSServer
 }
 
 func NewAdminCMSServer(port int) *adminCMSServer {
