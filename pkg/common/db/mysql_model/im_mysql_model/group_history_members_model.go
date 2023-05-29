@@ -27,12 +27,18 @@ func UpGroupMembersLastSendMsgTime(groupId, userId string) (err error) {
 	return
 }
 
+// 删除群历史成员
+func DeleteGroupHistoryMembers(groupId, userId string) (err error) {
+	err = db.DB.MysqlDB.DefaultGormDB().Table("group_history_members").Where("group_id = ? and user_id = ?", groupId, userId).Delete(&db.GroupHistoryMembers{}).Error
+	return
+}
+
 // 获取群历史成员列表
 func FindGroupMembersList(groupId string, page, size int32) (list []*GroupHistoryMembers, count int64, err error) {
-	err = db.DB.MysqlDB.DefaultGormDB().Table("group_history_members g").Select("g.user_id,g.last_send_msg_time,g.created_time,u.name nickname,u.face_url").
+	err = db.DB.MysqlDB.DefaultGormDB().Table("group_history_members g").Select("g.user_id,any_value(g.last_send_msg_time) last_send_msg_time,any_value(g.created_time) created_time,any_value(u.name) nickname,any_value(u.face_url) face_url").
 		Where(" g.group_id = ? ", groupId).
-		Joins("left join users u on g.user_id = u.user_id").
+		Joins("join users u on g.user_id = u.user_id").Group("g.user_id").
 		Count(&count).Limit(int(size)).Offset(int(size * (page - 1))).
-		Order("g.id desc").Find(&list).Error
+		Find(&list).Error
 	return
 }
