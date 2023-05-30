@@ -337,7 +337,8 @@ func NewGinRouter() *gin.Engine {
 
 	systemGroup := r.Group("/system")
 	{
-		systemGroup.POST("/wgt_version", system.WgtVersion) //wgt版本
+		systemGroup.POST("/wgt_version", system.WgtVersion)       //wgt版本
+		systemGroup.POST("/latest_version", system.LatestVersion) //家等你app最新版本
 	}
 
 	return r

@@ -567,22 +567,14 @@ func (FPacket) TableName() string {
 	return "f_packet"
 }
 
-//CREATE TABLE `f_version` (
-//`id` int(11) NOT NULL AUTO_INCREMENT,
-//`version_code` varchar(255) DEFAULT NULL,
-//`download_url` varchar(255) DEFAULT NULL,
-//`update_content` varchar(255) DEFAULT NULL,
-//`is_force` tinyint(1) DEFAULT NULL,
-//`create_time` int(11) DEFAULT NULL,
-//PRIMARY KEY (`id`)
-//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 type FVersion struct {
 	ID            int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	AppType       int32  `gorm:"column:app_type" json:"app_type"` //app类型(1、安卓，2、ios)
 	VersionCode   string `gorm:"column:version_code;not null" json:"version_code"`
 	DownloadUrl   string `gorm:"column:download_url;not null" json:"download_url"`
 	UpdateContent string `gorm:"column:update_content;not null" json:"update_content"`
 	IsForce       int32  `gorm:"column:is_force;not null" json:"is_force"`
+	Status        int32  `gorm:"column:status" json:"status"` //app类型(1、安卓，2、ios)
 	CreateTime    int64  `gorm:"column:create_time;not null" json:"create_time"`
 }
 
