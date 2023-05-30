@@ -171,3 +171,7 @@ type CommonQuestionFeedbackReq struct {
 	QuestionID  int64  `json:"questionID" binding:"required"`
 	Solved      int32  `json:"solved" ` // 1 . 0 未解决 1 已解决
 }
+
+type LatestVersionReq struct {
+	AppType int32 `json:"app_type"  binding:"required"` //app类型 (1安卓、2ios、3....)
+}
