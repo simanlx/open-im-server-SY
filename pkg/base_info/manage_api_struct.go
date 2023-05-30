@@ -153,3 +153,7 @@ type WgtVersionReq struct {
 	AppId       string `json:"app_id" binding:"required"`
 	OperationID string `json:"operationID" binding:"required"`
 }
+
+type LatestVersionReq struct {
+	AppType int32 `json:"app_type"  binding:"required"` //app类型 (1安卓、2ios、3....)
+}

@@ -2,6 +2,7 @@ package system
 
 import (
 	api "Open_IM/pkg/base_info"
+	"Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	"Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -33,4 +34,27 @@ func WgtVersion(c *gin.Context) {
 		"remarks": info.Remarks,
 	}})
 	return
+}
+
+// 家等你app最新版本
+func LatestVersion(c *gin.Context) {
+	params := &api.LatestVersionReq{}
+	if err := c.BindJSON(&params); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": err.Error()})
+		return
+	}
+
+	info, err := cloud_wallet.LatestVersionByAppType(params.AppType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"errCode": 400, "errMsg": "app版本不存在"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "data": map[string]string{
+		"version": info.VersionCode,
+		"url":     info.DownloadUrl,
+		"content": info.UpdateContent,
+	}})
+	return
+
 }
