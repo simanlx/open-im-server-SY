@@ -17,10 +17,10 @@ import (
 	"time"
 )
 
-// 推广员下属成员购买咖豆 - 互娱回调
+// 推广员下属成员购买咖豆(推广员商城) - 互娱回调
 func (rpc *AgentServer) ChessPurchaseBeanNotify(ctx context.Context, req *agent.ChessPurchaseBeanNotifyReq) (*agent.ChessPurchaseBeanNotifyResp, error) {
 	resp := &agent.ChessPurchaseBeanNotifyResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
-	log.Info("", fmt.Sprintf("start 推广员下属成员购买咖豆 - 互娱回调, 订单号(%s),新生支付订单号(%s),", req.OrderNo, req.NcountOrderNo), utils2.JsonFormat(req))
+	log.Info("", fmt.Sprintf("start 推广员下属成员购买咖豆(推广员商城) - 互娱回调, 订单号(%s),新生支付订单号(%s),", req.OrderNo, req.NcountOrderNo), utils2.JsonFormat(req))
 
 	// 加锁
 	lockKey := fmt.Sprintf("ChessPurchaseBeanNotify:%s", req.OrderNo)
@@ -76,7 +76,7 @@ func handelChessPurchaseBeanLogic(info *db.TAgentBeanRechargeOrder, ncountOrderN
 
 	//2、扣除推广员咖豆数、增加账户余额
 	err = tx.Table("t_agent_account").Where("user_id = ? and bean_balance >= ?", info.UserId, info.Number).UpdateColumns(map[string]interface{}{
-		"bean_balance": gorm.Expr(" bean_balance - ? ", info.Number),
+		"bean_balance": gorm.Expr(" bean_balance - ? ", info.Number+int64(info.GiveNumber)), // 减去(购买数 + 赠送数)
 		"balance":      gorm.Expr(" balance + ? ", info.Amount),
 	}).Error
 	if err != nil {

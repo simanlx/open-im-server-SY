@@ -28,6 +28,8 @@ type rpcConversation struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbConversation.UnsafeConversationServer
 }
 
 func (rpc *rpcConversation) ModifyConversationField(c context.Context, req *pbConversation.ModifyConversationFieldReq) (*pbConversation.ModifyConversationFieldResp, error) {

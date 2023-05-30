@@ -49,10 +49,10 @@ func (rpc *AgentServer) AgentGameBeanShopConfig(_ context.Context, req *agent.Ag
 	configList, _ := imdb.GetAgentDiyShopBeanOnlineConfig(agentInfo.UserId)
 	if len(configList) > 0 {
 		resp.BeanShopConfig = make([]*agent.BeanShopConfig, 0)
-		for k, v := range configList {
-			//正序、最小配置大于推广员咖豆余额,咖豆不足、不返回咖豆配置
-			if k == 0 && agentInfo.BeanBalance < v.BeanNumber {
-				return resp, nil
+		for _, v := range configList {
+			//推广员咖豆余额 < 配置咖豆(购买值+赠送值)、不返回
+			if agentInfo.BeanBalance < (v.BeanNumber + int64(v.GiveBeanNumber)) {
+				continue
 			}
 
 			resp.BeanShopConfig = append(resp.BeanShopConfig, &agent.BeanShopConfig{
@@ -71,6 +71,12 @@ func (rpc *AgentServer) AgentGameBeanShopConfig(_ context.Context, req *agent.Ag
 func (rpc *AgentServer) AgentDiyBeanShopConfig(_ context.Context, req *agent.AgentDiyBeanShopConfigReq) (*agent.AgentDiyBeanShopConfigResp, error) {
 	resp := &agent.AgentDiyBeanShopConfigResp{BeanShopConfig: []*agent.BeanShopConfig{}, TodaySales: 0}
 
+	//查询推广员是否存在
+	agentInfo, err := imdb.GetAgentByUserId(req.UserId)
+	if err != nil || agentInfo.OpenStatus == 0 {
+		return resp, nil
+	}
+
 	//获取今日出售咖豆数
 	resp.TodaySales = imdb.GetAgentTodaySalesNumber(req.UserId)
 
@@ -78,12 +84,18 @@ func (rpc *AgentServer) AgentDiyBeanShopConfig(_ context.Context, req *agent.Age
 	configList, _ := imdb.GetAgentDiyShopBeanConfig(req.UserId)
 	if len(configList) > 0 {
 		for _, v := range configList {
+			status := v.Status
+			// 上架状态、判断咖豆
+			if v.Status == 1 && ((v.BeanNumber + int64(v.GiveBeanNumber)) > agentInfo.BeanBalance) {
+				status = 0
+			}
+
 			resp.BeanShopConfig = append(resp.BeanShopConfig, &agent.BeanShopConfig{
 				ConfigId:       v.Id,
 				BeanNumber:     v.BeanNumber,
 				GiveBeanNumber: v.GiveBeanNumber,
 				Amount:         v.Amount,
-				Status:         v.Status,
+				Status:         status,
 			})
 		}
 	}
@@ -130,12 +142,54 @@ func (rpc *AgentServer) AgentBeanAccountRecordList(_ context.Context, req *agent
 func (rpc *AgentServer) AgentBeanShopUpStatus(_ context.Context, req *agent.AgentBeanShopUpStatusReq) (*agent.AgentBeanShopUpStatusResp, error) {
 	resp := &agent.AgentBeanShopUpStatusResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
-	//批量操作
-	var err error
+	//查询推广员是否存在
+	agentInfo, err := imdb.GetAgentByUserId(req.UserId)
+	if err != nil || agentInfo.OpenStatus == 0 {
+		resp.CommonResp.Msg = "推广员信息不存在"
+		resp.CommonResp.Code = 400
+		return resp, nil
+	}
+
 	if req.IsAll == 1 {
-		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, 0, req.Status)
+		if req.Status == 1 {
+			configList, _ := imdb.GetAgentDiyShopBeanConfig(req.UserId)
+
+			openConfigIds := make([]int32, 0)
+			closeConfigIds := make([]int32, 0)
+
+			//校验配置
+			for _, v := range configList {
+				// 判断咖豆
+				if (v.BeanNumber + int64(v.GiveBeanNumber)) > agentInfo.BeanBalance {
+					closeConfigIds = append(closeConfigIds, v.Id)
+				} else {
+					openConfigIds = append(openConfigIds, v.Id)
+				}
+			}
+
+			if len(openConfigIds) > 0 {
+				err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, openConfigIds, 1)
+			}
+
+			if len(closeConfigIds) > 0 {
+				err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, closeConfigIds, 0)
+			}
+
+		} else {
+			err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, []int32{}, req.Status)
+		}
 	} else {
-		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, req.ConfigId, req.Status)
+		if req.Status == 1 {
+			configInfo, _ := imdb.GetAgentBeanConfigById(agentInfo.UserId, req.ConfigId)
+			// 判断咖豆
+			if (configInfo.BeanNumber + int64(configInfo.GiveBeanNumber)) > agentInfo.BeanBalance {
+				resp.CommonResp.Msg = "咖豆余额不足，不能上架"
+				resp.CommonResp.Code = 400
+				return resp, nil
+			}
+		}
+
+		err = imdb.UpAgentDiyShopBeanConfigStatus(req.UserId, []int32{req.ConfigId}, req.Status)
 	}
 
 	if err != nil {
@@ -151,6 +205,14 @@ func (rpc *AgentServer) AgentBeanShopUpStatus(_ context.Context, req *agent.Agen
 func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentBeanShopUpdateReq) (*agent.AgentBeanShopUpdateResp, error) {
 	resp := &agent.AgentBeanShopUpdateResp{CommonResp: &agent.CommonResp{Code: 0, Msg: ""}}
 
+	//查询推广员是否存在
+	agentInfo, err := imdb.GetAgentByUserId(req.UserId)
+	if err != nil || agentInfo.OpenStatus == 0 {
+		resp.CommonResp.Msg = "推广员信息不存在"
+		resp.CommonResp.Code = 400
+		return resp, nil
+	}
+
 	//删除历史咖豆配置
 	_ = imdb.DelAgentDiyShopBeanConfig(req.UserId)
 
@@ -158,6 +220,11 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 	if len(req.BeanShopConfig) > 0 {
 		data := make([]*db.TAgentBeanShopConfig, 0)
 		for _, v := range req.BeanShopConfig {
+			// 上架状态、判断咖豆
+			if v.Status == 1 && ((v.BeanNumber + int64(v.GiveBeanNumber)) > agentInfo.BeanBalance) {
+				v.Status = 0
+			}
+
 			data = append(data, &db.TAgentBeanShopConfig{
 				UserId:         req.UserId,
 				BeanNumber:     v.BeanNumber,
@@ -169,7 +236,7 @@ func (rpc *AgentServer) AgentBeanShopUpdate(_ context.Context, req *agent.AgentB
 			})
 		}
 
-		err := imdb.InsertAgentDiyShopBeanConfigs(data)
+		err = imdb.InsertAgentDiyShopBeanConfigs(data)
 		if err != nil {
 			resp.CommonResp.Code = 400
 			resp.CommonResp.Msg = "更新失败"

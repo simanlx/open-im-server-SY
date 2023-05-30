@@ -43,6 +43,13 @@ func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.Balanc
 		return resp, nil
 	}
 
+	//提现金额规则限制、次数限制、每日三次
+	if rocksCache.GetWithdrawalNumber(ctx, req.UserId) >= 3 {
+		resp.CommonResp.Code = 400
+		resp.CommonResp.Msg = "对不起，您今日提现次数已满"
+		return resp, nil
+	}
+
 	//校验推广员余额
 	if int64(req.Amount) > agentInfo.Balance {
 		resp.CommonResp.Code = 400
@@ -80,6 +87,9 @@ func (rpc *AgentServer) BalanceWithdrawal(ctx context.Context, req *agent.Balanc
 		resp.CommonResp.Msg = err.Error()
 		return resp, nil
 	}
+
+	//每日提现次数++
+	rocksCache.WithdrawalNumberIncr(ctx, req.UserId)
 
 	return resp, nil
 }

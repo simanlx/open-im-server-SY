@@ -163,7 +163,7 @@ func BankCardRechargePacketAccount(userId, bindCardAgrNo string, amount int32, p
 			BindCardAgrNo: bindCardAgrNo,
 			ReceiveUserId: accountInfo.PacketAccountId, //收款账户
 			UserId:        accountInfo.MainAccountId,
-			SubMerchantId: "2206301126073014978", // 子商户编号
+			SubMerchantId: ncount.SUB_MERCHANT_ID, // 子商户编号
 		}})
 	if err != nil {
 		return errors.New(fmt.Sprintf("充值失败(%s)", err.Error()))

@@ -90,7 +90,7 @@ func (np *NcountPay) payByBankCard(operationId, payAccountID, ReceiveAccountId, 
 			BindCardAgrNo: BankProtocol,
 			ReceiveUserId: ReceiveAccountId, //收款账户
 			UserId:        payAccountID,
-			SubMerchantId: "2206301126073014978", // 子商户编号
+			SubMerchantId: ncount.SUB_MERCHANT_ID, // 子商户编号
 		}})
 	if err != nil {
 		//这里是网络层面的错误

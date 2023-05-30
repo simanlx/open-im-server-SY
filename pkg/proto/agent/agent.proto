@@ -112,6 +112,7 @@ message AgentMainInfoResp{
   int64  today_bind_user = 8; //今日推广用户
   int64  accumulated_bind_user = 9; //累计推广用户
   int32  commission = 10; //提现手续比例
+  int32  withdrawal_number = 11; //每日提现次数
 }
 
 message AgentAccountIncomeChartReq{

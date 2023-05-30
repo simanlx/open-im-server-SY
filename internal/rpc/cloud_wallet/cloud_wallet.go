@@ -168,6 +168,8 @@ func (rpc *CloudWalletServer) UserNcountAccount(_ context.Context, req *cloud_wa
 				})
 			}
 		}
+
+		accountInfo.OpenStep = 3 //状态-绑定了银行卡
 	}
 
 	//删除缓存
@@ -603,7 +605,7 @@ func (rpc *CloudWalletServer) UserRecharge(_ context.Context, req *cloud_wallet.
 			BindCardAgrNo: bankCardInfo.BindCardAgrNo,
 			ReceiveUserId: bankCardInfo.NcountUserId, //收款账户
 			UserId:        bankCardInfo.NcountUserId,
-			SubMerchantId: "2206301126073014978", // 子商户编号
+			SubMerchantId: ncount.SUB_MERCHANT_ID, // 子商户编号
 		}})
 
 	log.Info(req.OperationID, "银行卡充值-UserRecharge->", utils.JsonFormat(accountResp), err)

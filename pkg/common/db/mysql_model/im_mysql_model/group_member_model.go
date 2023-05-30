@@ -103,6 +103,9 @@ func GetGroupMemberInfoByGroupIDAndUserID(groupID, userID string) (*db.GroupMemb
 }
 
 func DeleteGroupMemberByGroupIDAndUserID(groupID, userID string) error {
+	// 删除群历史成员
+	_ = DeleteGroupHistoryMembers(groupID, userID)
+
 	return db.DB.MysqlDB.DefaultGormDB().Table("group_members").Where("group_id=? and user_id=? ", groupID, userID).Delete(db.GroupMember{}).Error
 }
 

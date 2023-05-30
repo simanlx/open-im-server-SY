@@ -153,3 +153,25 @@ type WgtVersionReq struct {
 	AppId       string `json:"app_id" binding:"required"`
 	OperationID string `json:"operationID" binding:"required"`
 }
+
+// 用户反馈、常见问题
+type FeedbackReq struct {
+	OperationID     string `json:"operationID" binding:"required"`
+	FeedbackType    int32  `json:"feedbackType" binding:"required"`
+	FeedbackContent string `json:"feedbackContent" binding:"required"`
+	FeedbackContact string `json:"feedbackContact" `
+}
+
+type CommonQuestionReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+}
+
+type CommonQuestionFeedbackReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+	QuestionID  int64  `json:"questionID" binding:"required"`
+	Solved      int32  `json:"solved" ` // 1 . 0 未解决 1 已解决
+}
+
+type LatestVersionReq struct {
+	AppType int32 `json:"app_type"  binding:"required"` //app类型 (1安卓、2ios、3....)
+}

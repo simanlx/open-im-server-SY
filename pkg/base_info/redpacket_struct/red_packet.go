@@ -31,6 +31,13 @@ type ClickRedPacketReq struct {
 	OperateID   string `json:"operateID"`   //链路跟踪id
 }
 
+// 确认发送红包
+type ConfirmSendRedPacketReq struct {
+	Code        string `json:"code" binding:"required"`        //验证码
+	RedPacketID string `json:"redPacketID" binding:"required"` //红包id
+	OperateID   string `json:"operateID"`                      //链路跟踪id
+}
+
 // 红包领取明细列表记录
 type RedPacketReceiveDetailReq struct {
 	StartTime   string `json:"start_time" binding:"required"`

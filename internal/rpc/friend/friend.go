@@ -32,6 +32,8 @@ type friendServer struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbFriend.UnimplementedFriendServer
 }
 
 func NewFriendServer(port int) *friendServer {

@@ -4,6 +4,7 @@ import (
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
 	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
+	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
 	promePkg "Open_IM/pkg/common/prometheus"
 	"Open_IM/pkg/common/token_verify"
@@ -24,6 +25,28 @@ import (
 
 	"google.golang.org/grpc"
 )
+
+// 单点登录
+func (rpc *rpcAuth) SingleLogin(ctx context.Context, req *pbAuth.SingleLoginReq) (*pbAuth.SingleLoginResp, error) {
+	resp := &pbAuth.SingleLoginResp{CommonResp: &pbAuth.CommonResp{ErrCode: 0, ErrMsg: ""}}
+
+	// 删除jwt token
+	rocksCache.DelUserJwtToken(ctx, req.UserId)
+
+	// 安卓
+	if err := rpc.forceKickOff(req.UserId, 2, req.OperationID); err != nil {
+		errMsg := req.OperationID + " SingleLogin android forceKickOff failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
+		log.NewError(req.OperationID, errMsg)
+	}
+
+	// ios
+	if err := rpc.forceKickOff(req.UserId, 1, req.OperationID); err != nil {
+		errMsg := req.OperationID + " SingleLogin ios forceKickOff failed " + err.Error() + req.UserId + utils.Int32ToString(req.Platform)
+		log.NewError(req.OperationID, errMsg)
+	}
+
+	return resp, nil
+}
 
 func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq) (*pbAuth.UserRegisterResp, error) {
 	fmt.Println("UserRegister")
@@ -55,7 +78,14 @@ func (rpc *rpcAuth) UserRegister(_ context.Context, req *pbAuth.UserRegisterReq)
 	return &pbAuth.UserRegisterResp{CommonResp: &pbAuth.CommonResp{}}, nil
 }
 
-func (rpc *rpcAuth) UserToken(_ context.Context, req *pbAuth.UserTokenReq) (*pbAuth.UserTokenResp, error) {
+func (rpc *rpcAuth) UserToken(ctx context.Context, req *pbAuth.UserTokenReq) (*pbAuth.UserTokenResp, error) {
+	//单点登录
+	_, _ = rpc.SingleLogin(ctx, &pbAuth.SingleLoginReq{
+		Platform:    req.Platform,
+		UserId:      req.FromUserID,
+		OperationID: req.OperationID,
+	})
+
 	log.NewInfo(req.OperationID, utils.GetSelfFuncName(), " rpc args ", req.String())
 	_, err := imdb.GetUserByUserID(req.FromUserID)
 	if err != nil {
@@ -125,6 +155,8 @@ type rpcAuth struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbAuth.UnsafeAuthServer
 }
 
 func NewRpcAuthServer(port int) *rpcAuth {

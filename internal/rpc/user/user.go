@@ -5,6 +5,7 @@ import (
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/constant"
 	"Open_IM/pkg/common/db"
+	imdb_user "Open_IM/pkg/common/db/mysql_model/cloud_wallet"
 	imdb "Open_IM/pkg/common/db/mysql_model/im_mysql_model"
 	rocksCache "Open_IM/pkg/common/db/rocks_cache"
 	"Open_IM/pkg/common/log"
@@ -20,11 +21,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"net"
 	"strconv"
 	"strings"
-
-	grpcPrometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 
 	"google.golang.org/grpc"
 	"gorm.io/gorm"
@@ -35,6 +35,8 @@ type userServer struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbUser.UnimplementedUserServer
 }
 
 func NewUserServer(port int) *userServer {
@@ -842,7 +844,7 @@ func (s *userServer) AttributeMenu(ctx context.Context, req *pbUser.AttributeMen
 	if agentMenuSwitch {
 		resp.MenuList = append(resp.MenuList, &pbUser.UserMenuList{
 			AppId:   config.Config.Agent.AppId,
-			AppName: "推广后台",
+			AppName: "推广中心",
 		})
 	}
 
@@ -866,4 +868,77 @@ func rpcGetAgentOpenStatus(ctx context.Context, userId, operationId string) bool
 		return false
 	}
 	return RpcResp.AgentOpenStatus
+}
+
+// 反馈
+func (s *userServer) Feedback(ctx context.Context, req *pbUser.FeedbackReq) (*pbUser.FeedbackResp, error) {
+	var (
+		resp = &pbUser.FeedbackResp{
+			CommonResp: &pbUser.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "反馈成功",
+			},
+		}
+	)
+	data := &db.HelpFeedback{
+		UserId:  req.UserId,
+		Type:    0,
+		Content: req.FeedbackContent,
+		Contact: req.FeedbackContact,
+		Status:  1,
+	}
+	// 用户反馈信息
+	err := imdb_user.InsertHelpFeedback(data)
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), "InsertHelpFeedback failed", err.Error())
+		return nil, err
+	}
+	return resp, nil
+}
+
+// 常见问题
+func (s *userServer) GetCommonProblem(ctx context.Context, req *pbUser.GetCommonProblemReq) (*pbUser.GetCommonProblemResp, error) {
+	var (
+		resp = &pbUser.GetCommonProblemResp{
+			CommonResp: &pbUser.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "获取成功",
+			},
+		}
+	)
+	// 查询常见问题、不需要鉴权
+	result, err := imdb_user.GetHelpNormalQuestion()
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), "GetHelpNormalQuestion failed", err.Error())
+		return nil, err
+	}
+	resp.CommonProblemList = []*pbUser.CommonProblemList{}
+
+	for _, v := range result {
+		resp.CommonProblemList = append(resp.CommonProblemList, &pbUser.CommonProblemList{
+			ProblemId:      v.Id,
+			ProblemTitle:   v.Title,
+			ProblemContent: v.Content,
+		})
+	}
+	return resp, nil
+}
+
+// 常见问题-反馈
+func (s *userServer) FeedbackCommonProblem(ctx context.Context, req *pbUser.FeedbackCommonProblemReq) (*pbUser.FeedbackCommonProblemResp, error) {
+	var (
+		resp = &pbUser.FeedbackCommonProblemResp{
+			CommonResp: &pbUser.CommonResp{
+				ErrCode: 0,
+				ErrMsg:  "反馈成功",
+			},
+		}
+	)
+
+	err := imdb_user.UpdateHelpNormalQuestionFeedback(req.ProblemId, int64(req.Solved))
+	if err != nil {
+		log.NewError(req.OperationID, utils.GetSelfFuncName(), "UpdateHelpNormalQuestionFeedback failed", err.Error())
+		return nil, err
+	}
+	return resp, nil
 }

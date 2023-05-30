@@ -42,6 +42,7 @@ const (
 	UserUnionIdCache            = "USER_UNION_ID_CACHE:"
 	AgentUnionIdCache           = "USER_UNION_ID_CACHE:"
 	AgentFreezeBeanBalanceCache = "AGENT_FREEZE_BEAN_BALANCE_CACHE:"
+	AgentWithdrawalNumberCache  = "AGENT_WITHDRAWAL_NUMBER_CACHE:"
 
 	// 云钱包云钱包相关
 	fAccountCache = "F_ACCOUNT_CACHE:"
@@ -710,4 +711,29 @@ func GetAgentFreezeBeanBalance(ctx context.Context, userId string) (beanBalance 
 	}
 
 	return
+}
+
+// 获取推广员今日提现次数
+func GetWithdrawalNumber(ctx context.Context, userId string) int32 {
+	day := time.Now().Format("20060102")
+	number, _ := db.DB.RDB.Get(ctx, fmt.Sprintf("%s%s:%s", AgentWithdrawalNumberCache, day, userId)).Result()
+	return cast.ToInt32(number)
+}
+
+// 推广员今日提现次数incr
+func WithdrawalNumberIncr(ctx context.Context, userId string) {
+	day := time.Now().Format("20060102")
+	err := db.DB.RDB.Incr(ctx, fmt.Sprintf("%s%s:%s", AgentWithdrawalNumberCache, day, userId)).Err()
+	if err == nil {
+		//时间一天+10s
+		_ = db.DB.RDB.Expire(ctx, fmt.Sprintf("%s%s:%s", AgentWithdrawalNumberCache, day, userId), time.Second*86410).Err()
+	}
+
+	return
+}
+
+// 删除用户jwt token
+func DelUserJwtToken(ctx context.Context, userId string) {
+	_ = db.DB.RDB.Del(ctx, fmt.Sprintf("UID_PID_TOKEN_STATUS:%s:%s", userId, "Android")).Err()
+	_ = db.DB.RDB.Del(ctx, fmt.Sprintf("UID_PID_TOKEN_STATUS:%s:%s", userId, "IOS")).Err()
 }

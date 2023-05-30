@@ -43,7 +43,7 @@ func (cl *CloudWalletServer) ThirdPay(ctx context.Context, in *pb.ThirdPayReq) (
 		// 这里redis可能出现错误，但是都可以进行这么上报
 		res.CommonResp.ErrCode = pb.CloudWalletErrCode_UserNotValidate
 		res.CommonResp.ErrMsg = "您的帐号没有实名认证,请尽快去实名认证"
-		return nil, err
+		return res, nil
 	}
 
 	// 校验密码
@@ -304,10 +304,7 @@ func (cl *CloudWalletServer) ThirdWithdrawal(ctx context.Context, req *pb.ThirdW
 		return resp, nil
 	}
 
-	// 真正的时候，需要关闭这里
-	temAmount := 1
-
-	totalAmount := cast.ToString(cast.ToFloat64(temAmount) / 100)
+	totalAmount := cast.ToString(cast.ToFloat64(realAmount) / 100)
 	payresult := nc.payByBalance(req.OperationID, payAccount, receiveAccount, merOrderID, totalAmount)
 	if payresult.ErrCode != 0 {
 		// 如果转账失败，这里是返回错误信息

@@ -39,6 +39,8 @@ type groupServer struct {
 	rpcRegisterName string
 	etcdSchema      string
 	etcdAddr        []string
+
+	pbGroup.UnsafeGroupServer
 }
 
 func NewGroupServer(port int) *groupServer {
