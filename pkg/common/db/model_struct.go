@@ -748,3 +748,14 @@ type HelpNormalQuestion struct {
 	AddTime    time.Time `gorm:"column:add_time;not null" json:"add_time"`
 	UpdateTime time.Time `gorm:"column:update_time;not null" json:"update_time"`
 }
+
+//CREATE TABLE `blockword` (
+//`id` int(11) NOT NULL AUTO_INCREMENT,
+//`word` varchar(100) DEFAULT NULL COMMENT '敏感字串',
+//PRIMARY KEY (`id`)
+//) ENGINE=InnoDB AUTO_INCREMENT=6097 DEFAULT CHARSET=utf8;
+
+type Blockword struct {
+	Id   int64  `gorm:"column:id;primary_key;AUTO_INCREMENT;not null" json:"id"`
+	Word string `gorm:"column:word;not null" json:"word"`
+}
