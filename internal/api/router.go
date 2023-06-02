@@ -145,7 +145,7 @@ func NewGinRouter() *gin.Engine {
 		// 这里临时给检测使用
 		cloudWalletGroup.GET("/check_status", func(context *gin.Context) {
 			context.JSON(200, gin.H{
-				"code": 0,
+				"code": 1,
 				"msg":  "ok",
 			})
 		}) // 抢红包接口
