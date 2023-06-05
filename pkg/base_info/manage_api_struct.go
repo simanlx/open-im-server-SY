@@ -175,3 +175,8 @@ type CommonQuestionFeedbackReq struct {
 type LatestVersionReq struct {
 	AppType int32 `json:"app_type"  binding:"required"` //app类型 (1安卓、2ios、3....)
 }
+
+type FilterContentReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+	Content     string `json:"content" binding:"required"`
+}
