@@ -605,6 +605,14 @@ type config struct {
 		AgentWithdrawNotifyUrl string `yaml:"agentWithdrawNotifyUrl"`
 		WxApiWebhookKey        string `yaml:"wxApiWebhookKey"`
 	} `yaml:"agent"`
+
+	WxPay struct {
+		AppId        string `yaml:"appId"`
+		MchId        string `yaml:"mchId"`
+		MchKey       string `yaml:"mchKey"`
+		CertPath     string `yaml:"certPath"`
+		UnifiedOrder string `yaml:"unifiedOrder"`
+	} `yaml:"wxpay"`
 }
 type PConversation struct {
 	ReliabilityLevel int  `yaml:"reliabilityLevel"`
