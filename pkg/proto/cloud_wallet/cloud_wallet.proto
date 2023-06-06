@@ -580,12 +580,6 @@ message ThirdWithdrawalResp {
   int32 amount = 3; //实际到账金额
 }
 
-
-//    type ConfirmSendRedPacketReq struct {
-//Code 	  string `json:"code" binding:"required"`        //验证码
-//    RedPacketID string `json:"redPacketID" binding:"required"` //红包id
-//    OperateID   string `json:"operateID"`   //链路跟踪id
-//    }
 message SendRedPacketConfirmReq{
   string code = 1; //验证码
   string redPacketID = 2; //红包id
@@ -594,6 +588,25 @@ message SendRedPacketConfirmReq{
 
 message SendRedPacketConfirmResp{
   CommonResp commonResp = 1;
+}
+
+message WxPayUnifiedOrderReq{
+  string userId = 1; // 用户id
+  int64  amount = 2; //金额(单位分)
+  string body = 3; //商品描述
+  string ip = 4; //ip
+  string operationId = 5; // 链路跟踪id
+}
+
+message WxPayUnifiedOrderResp{
+  CommonResp commonResp = 1; //
+  string appid = 2; //应用ID
+  string partnerid = 3; //商户号
+  string prepayid = 4; //预支付交易会话ID
+  string package = 5; //扩展字段 暂填写固定值Sign=WXPay
+  string noncestr = 6; //随机字符串
+  string timestamp = 7; //时间戳
+  string sign = 8; //签名
 }
 
 // 钱包服务
@@ -682,4 +695,7 @@ service CloudWalletService {
 
   // 第三方提现到云钱包
   rpc ThirdWithdrawal(ThirdWithdrawalReq)returns(ThirdWithdrawalResp);
+
+  // 微信支付统一下单
+  rpc WxPayUnifiedOrder(WxPayUnifiedOrderReq)returns(WxPayUnifiedOrderResp);
 }

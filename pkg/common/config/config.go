@@ -607,11 +607,12 @@ type config struct {
 	} `yaml:"agent"`
 
 	WxPay struct {
-		AppId        string `yaml:"appId"`
-		MchId        string `yaml:"mchId"`
-		MchKey       string `yaml:"mchKey"`
-		CertPath     string `yaml:"certPath"`
-		UnifiedOrder string `yaml:"unifiedOrder"`
+		AppId          string `yaml:"appId"`
+		MchId          string `yaml:"mchId"`
+		MchKey         string `yaml:"mchKey"`
+		CertPath       string `yaml:"certPath"`
+		UnifiedOrder   string `yaml:"unifiedOrder"`
+		WxPayNotifyUrl string `yaml:"wxPayNotifyUrl"`
 	} `yaml:"wxpay"`
 }
 type PConversation struct {

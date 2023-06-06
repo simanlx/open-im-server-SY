@@ -1,6 +1,7 @@
 package cloud_wallet
 
 import (
+	"Open_IM/pkg/cloud_wallet/ncount"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/proto/cloud_wallet"
 	"bytes"
@@ -12,6 +13,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/spf13/cast"
 	"golang.org/x/crypto/pkcs12"
 	"io/ioutil"
 	"log"
@@ -22,12 +24,6 @@ import (
 	"time"
 )
 
-const (
-	Fail            = "FAIL"
-	Success         = "SUCCESS"
-	UnifiedOrderUrl = "https://api.mch.weixin.qq.com/pay/unifiedorder"
-)
-
 type WxPayParams struct {
 	AppID          string `json:"appid"`            //应用id
 	MchID          string `json:"mch_id"`           //商户号
@@ -36,7 +32,7 @@ type WxPayParams struct {
 	Sign           string `json:"sign"`             //签名
 	Body           string `json:"body"`             //商品描述
 	OutTradeNo     string `json:"out_trade_no"`     //商户订单号
-	TotalFee       int    `json:"total_fee"`        //总金额、单位分
+	TotalFee       int64  `json:"total_fee"`        //总金额、单位分
 	SpbillCreateIp string `json:"spbill_create_ip"` //终端ip
 	NotifyUrl      string `json:"notify_url"`       //通知地址
 	TradeType      string `json:"trade_type"`       //交易类型
@@ -50,18 +46,23 @@ type WxPay struct {
 	CertData []byte //证书
 }
 
-// 获取云账户信息
-func (rpc *CloudWalletServer) UserNcountAccount22(_ context.Context, req *cloud_wallet.UserNcountAccountReq) (*cloud_wallet.UserNcountAccountResp, error) {
-	resp := &cloud_wallet.UserNcountAccountResp{Step: 0, BalAmount: "0", CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
+// 微信统一下单支付
+func (rpc *CloudWalletServer) WxPayUnifiedOrder(_ context.Context, req *cloud_wallet.WxPayUnifiedOrderReq) (*cloud_wallet.WxPayUnifiedOrderResp, error) {
+	resp := &cloud_wallet.WxPayUnifiedOrderResp{CommonResp: &cloud_wallet.CommonResp{ErrCode: 0, ErrMsg: ""}}
 
+	//创建订单
+
+	// 订单号
+	orderNo := ncount.GetMerOrderID()
+
+	//微信统一下单接口
 	wxPay := NewWxPay()
 	wxPayParams := WxPayParams{
-		Body:           "测试订单",
-		OutTradeNo:     "13568323788",
-		TotalFee:       1,
-		SpbillCreateIp: "127.0.0.1",
-		NotifyUrl:      "http://server.jiadengni.com:10002/cloudWallet/charge_account_callback",
-		TradeType:      "APP",
+		Body:           req.Body,
+		OutTradeNo:     orderNo,
+		TotalFee:       req.Amount,
+		SpbillCreateIp: req.Ip,
+		NotifyUrl:      config.Config.WxPay.WxPayNotifyUrl,
 	}
 	data, err := wxPay.UnifiedOrder(wxPayParams)
 	fmt.Println(data, err)
@@ -74,35 +75,24 @@ func (rpc *CloudWalletServer) UserNcountAccount22(_ context.Context, req *cloud_
 func NewWxPay() *WxPay {
 	srv := &WxPay{
 		SignType: "MD5",
-		AppID:    "wx93c8d6511c240c66",
-		MchID:    "1616233949",
-		MchKey:   "VCCaXCPTcaeiadxyXioCYyAqo7xlARFO",
+		AppID:    config.Config.WxPay.AppId,
+		MchID:    config.Config.WxPay.MchId,
+		MchKey:   config.Config.WxPay.MchKey,
 		CertData: nil,
 	}
-
 	return srv
-}
-
-// 读取证书
-func (p *WxPay) WriteCertData() error {
-	certPath := config.Config.WxPay.CertPath
-	certData, err := ioutil.ReadFile(certPath)
-	if err != nil {
-		return errors.New("读取证书失败")
-	}
-	p.CertData = certData
-	return nil
 }
 
 // https need no cert post
 func (p *WxPay) postWithoutCert(url string, params WxPayParams) (string, error) {
+	// 填充微信支付参数数据
+	params = p.fillWxPayParams(params)
+
 	h := &http.Client{}
 	response, err := h.Post(url, "application/xml; charset=utf-8", strings.NewReader(ToXml(params)))
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println("--postWithoutCert--", ToXml(params))
 
 	defer response.Body.Close()
 	res, err := ioutil.ReadAll(response.Body)
@@ -114,6 +104,9 @@ func (p *WxPay) postWithoutCert(url string, params WxPayParams) (string, error) 
 
 // https need cert post
 func (p *WxPay) postWithCert(url string, params WxPayParams) (string, error) {
+	// 填充微信支付参数数据
+	params = p.fillWxPayParams(params)
+
 	if p.CertData == nil {
 		return "", errors.New("证书数据为空")
 	}
@@ -142,7 +135,7 @@ func (p *WxPay) postWithCert(url string, params WxPayParams) (string, error) {
 	return string(res), nil
 }
 
-// wxpay参数转map
+// wxpayparams转map
 func WxPayParamsToMap(wxPayParams WxPayParams) map[string]string {
 	return map[string]string{
 		"appid":            wxPayParams.AppID,
@@ -152,11 +145,114 @@ func WxPayParamsToMap(wxPayParams WxPayParams) map[string]string {
 		"sign":             wxPayParams.Sign,
 		"body":             wxPayParams.Body,
 		"out_trade_no":     wxPayParams.OutTradeNo,
-		"total_fee":        strconv.Itoa(wxPayParams.TotalFee),
+		"total_fee":        cast.ToString(wxPayParams.TotalFee),
 		"spbill_create_ip": wxPayParams.SpbillCreateIp,
 		"notify_url":       wxPayParams.NotifyUrl,
 		"trade_type":       wxPayParams.TradeType,
 	}
+}
+
+// 签名
+func (p *WxPay) Sign(wxPayParams WxPayParams) string {
+	params := WxPayParamsToMap(wxPayParams)
+
+	var keys = make([]string, 0, len(params))
+	// 遍历签名参数
+	for k := range params {
+		if k != "sign" { // 排除sign字段
+			keys = append(keys, k)
+		}
+	}
+
+	// 排序
+	sort.Strings(keys)
+
+	//创建字符缓冲
+	var buf bytes.Buffer
+	for _, k := range keys {
+		buf.WriteString(k)
+		buf.WriteString(`=`)
+		buf.WriteString(params[k])
+		buf.WriteString(`&`)
+	}
+	// 加入apiKey作加密密钥
+	buf.WriteString(`key=`)
+	buf.WriteString(p.MchKey)
+	dataMd5 := md5.Sum(buf.Bytes())
+	str := hex.EncodeToString(dataMd5[:]) //需转换成切片
+
+	return strings.ToUpper(str)
+}
+
+func (p *WxPay) XmlToMap(xmlStr string) map[string]string {
+	params := make(map[string]string)
+	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
+
+	var (
+		key   string
+		value string
+	)
+
+	for t, err := decoder.Token(); err == nil; t, err = decoder.Token() {
+		switch token := t.(type) {
+		case xml.StartElement: // 开始标签
+			key = token.Name.Local
+		case xml.CharData: // 标签内容
+			content := string([]byte(token))
+			value = content
+		}
+		if key != "xml" {
+			if value != "\n" {
+				params[key] = value
+			}
+		}
+	}
+
+	return params
+}
+
+// 填充微信支付参数数据
+func (p *WxPay) fillWxPayParams(wxPayParams WxPayParams) WxPayParams {
+	wxPayParams.AppID = p.AppID
+	wxPayParams.MchID = p.MchID
+	wxPayParams.SignType = p.SignType
+	wxPayParams.TradeType = "APP"
+	wxPayParams.NonceStr = nonceStr()
+
+	//签名
+	wxPayParams.Sign = p.Sign(wxPayParams)
+
+	return wxPayParams
+}
+
+// 统一下单、返回预支付交易会话标识
+func (p *WxPay) UnifiedOrder(wxPayParams WxPayParams) (string, error) {
+	//统一下单接口
+	url := config.Config.WxPay.UnifiedOrder
+	xmlStr, err := p.postWithoutCert(url, wxPayParams)
+	if err != nil {
+		return "", err
+	}
+
+	// 解析xml为map数据
+	wxPayResp := p.XmlToMap(xmlStr)
+	prepayId, ok := wxPayResp["prepay_id"]
+	if !ok {
+		return "", errors.New("交易失败,no prepay_id ")
+	}
+
+	return prepayId, nil
+}
+
+// 读取证书
+func (p *WxPay) WriteCertData() error {
+	certPath := config.Config.WxPay.CertPath
+	certData, err := ioutil.ReadFile(certPath)
+	if err != nil {
+		return errors.New("读取证书失败")
+	}
+	p.CertData = certData
+	return nil
 }
 
 func ToXml(wxPayParams WxPayParams) string {
@@ -205,126 +301,4 @@ func pkcs12ToPem(p12 []byte, password string) tls.Certificate {
 		panic(err)
 	}
 	return cert
-}
-
-// 签名
-func (c *WxPay) Sign(wxPayParams WxPayParams) string {
-	params := WxPayParamsToMap(wxPayParams)
-
-	fmt.Println("--Sign---", params)
-
-	// 创建切片
-	var keys = make([]string, 0, len(params))
-	// 遍历签名参数
-	for k := range params {
-		if k != "sign" { // 排除sign字段
-			keys = append(keys, k)
-		}
-	}
-
-	// 由于切片的元素顺序是不固定，所以这里强制给切片元素加个顺序
-	sort.Strings(keys)
-
-	//创建字符缓冲
-	var buf bytes.Buffer
-	for _, k := range keys {
-		buf.WriteString(k)
-		buf.WriteString(`=`)
-		buf.WriteString(params[k])
-		buf.WriteString(`&`)
-	}
-	// 加入apiKey作加密密钥
-	buf.WriteString(`key=`)
-	buf.WriteString(c.MchKey)
-
-	fmt.Println("--Sign-string--", string(buf.Bytes()))
-
-	dataMd5 := md5.Sum(buf.Bytes())
-	str := hex.EncodeToString(dataMd5[:]) //需转换成切片
-
-	return strings.ToUpper(str)
-}
-
-func XmlToMap(xmlStr string) map[string]string {
-
-	params := make(map[string]string)
-	decoder := xml.NewDecoder(strings.NewReader(xmlStr))
-
-	var (
-		key   string
-		value string
-	)
-
-	for t, err := decoder.Token(); err == nil; t, err = decoder.Token() {
-		switch token := t.(type) {
-		case xml.StartElement: // 开始标签
-			key = token.Name.Local
-		case xml.CharData: // 标签内容
-			content := string([]byte(token))
-			value = content
-		}
-		if key != "xml" {
-			if value != "\n" {
-				params[key] = value
-			}
-		}
-	}
-
-	return params
-}
-
-// 处理 HTTPS API返回数据，转换成Map对象。return_code为SUCCESS时，验证签名。
-func (c *WxPay) processResponseXml(xmlStr string) (map[string]string, error) {
-	params := XmlToMap(xmlStr)
-	returnCode, ok := params["return_code"]
-	if !ok {
-		return nil, errors.New("no return_code in XML")
-	}
-
-	if returnCode == Fail {
-		return params, nil
-	} else if returnCode == Success {
-		if c.ValidSign(params) {
-			return params, nil
-		} else {
-			return nil, errors.New("invalid sign value in XML")
-		}
-	} else {
-		return nil, errors.New("return_code value is invalid in XML")
-	}
-}
-
-// 验证签名
-func (c *WxPay) ValidSign(params map[string]string) bool {
-	return true
-	//if !params.ContainsKey(Sign) {
-	//	return false
-	//}
-	//return params.GetString(Sign) == c.Sign(params)
-}
-
-// 统一下单
-func (c *WxPay) UnifiedOrder(wxPayParams WxPayParams) (map[string]string, error) {
-
-	//随机字符串
-	wxPayParams.NonceStr = nonceStr()
-
-	wxPayParams.AppID = c.AppID
-
-	wxPayParams.MchID = c.MchID
-
-	wxPayParams.SignType = c.SignType
-
-	fmt.Println("--wxPayParams--", wxPayParams)
-
-	//参数签名
-	wxPayParams.Sign = c.Sign(wxPayParams)
-
-	//统一下单接口
-	url := UnifiedOrderUrl
-	xmlStr, err := c.postWithoutCert(url, wxPayParams)
-	if err != nil {
-		return nil, err
-	}
-	return c.processResponseXml(xmlStr)
 }
