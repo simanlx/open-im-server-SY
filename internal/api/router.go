@@ -8,6 +8,7 @@ import (
 	"Open_IM/internal/api/cloud_wallet/notify"
 	"Open_IM/internal/api/cloud_wallet/redpacket"
 	"Open_IM/internal/api/conversation"
+	"Open_IM/internal/api/filter"
 	"Open_IM/internal/api/friend"
 	"Open_IM/internal/api/group"
 	"Open_IM/internal/api/manage"
@@ -45,6 +46,11 @@ func NewGinRouter() *gin.Engine {
 		promePkg.NewApiRequestSuccessCounter()
 		r.Use(promePkg.PromeTheusMiddleware)
 		r.GET("/metrics", promePkg.PrometheusHandler())
+	}
+
+	filterGroup := r.Group("/filter")
+	{
+		filterGroup.GET("/varify", filter.Filter)
 	}
 
 	//推广计划(鉴权)

@@ -3,6 +3,7 @@ package main
 import (
 	_ "Open_IM/cmd/open_im_api/docs"
 	"Open_IM/internal/api"
+	"Open_IM/internal/api/filter"
 	apiThird "Open_IM/internal/api/third"
 	"Open_IM/pkg/common/config"
 	"Open_IM/pkg/common/log"
@@ -26,6 +27,10 @@ import (
 func main() {
 	router := api.NewGinRouter()
 	log.NewPrivateLog("im_api")
+	err := filter.StartFilter()
+	if err != nil {
+		panic(err)
+	}
 	// 注册配置中心
 	go getcdv3.RegisterConf()
 	// 第三方
@@ -38,7 +43,7 @@ func main() {
 		address = config.Config.Api.ListenIP + ":" + strconv.Itoa(*ginPort)
 	}
 	fmt.Println("start api server, address: ", address, ", OpenIM version: ", constant.CurrentVersion)
-	err := router.Run(address)
+	err = router.Run(address)
 	if err != nil {
 		log.Error("", "api run failed ", address, err.Error())
 		panic("api start failed " + err.Error())
