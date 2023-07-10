@@ -78,6 +78,7 @@ message UserInfo{
   int32 globalRecvMsgOpt = 11;
   string birthStr = 12;
   string unionid = 13;
+  int64  id = 14;
 }
 
 message FriendInfo{

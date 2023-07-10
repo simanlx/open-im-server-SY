@@ -19,19 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Friend_AddFriend_FullMethodName          = "/friend.friend/addFriend"
-	Friend_GetFriendApplyList_FullMethodName = "/friend.friend/getFriendApplyList"
-	Friend_GetSelfApplyList_FullMethodName   = "/friend.friend/getSelfApplyList"
-	Friend_GetFriendList_FullMethodName      = "/friend.friend/getFriendList"
-	Friend_AddBlacklist_FullMethodName       = "/friend.friend/addBlacklist"
-	Friend_RemoveBlacklist_FullMethodName    = "/friend.friend/removeBlacklist"
-	Friend_IsFriend_FullMethodName           = "/friend.friend/isFriend"
-	Friend_IsInBlackList_FullMethodName      = "/friend.friend/isInBlackList"
-	Friend_GetBlacklist_FullMethodName       = "/friend.friend/getBlacklist"
-	Friend_DeleteFriend_FullMethodName       = "/friend.friend/deleteFriend"
-	Friend_AddFriendResponse_FullMethodName  = "/friend.friend/addFriendResponse"
-	Friend_SetFriendRemark_FullMethodName    = "/friend.friend/setFriendRemark"
-	Friend_ImportFriend_FullMethodName       = "/friend.friend/importFriend"
+	Friend_AddFriend_FullMethodName               = "/friend.friend/addFriend"
+	Friend_GetFriendApplyList_FullMethodName      = "/friend.friend/getFriendApplyList"
+	Friend_GetSelfApplyList_FullMethodName        = "/friend.friend/getSelfApplyList"
+	Friend_GetFriendList_FullMethodName           = "/friend.friend/getFriendList"
+	Friend_AddBlacklist_FullMethodName            = "/friend.friend/addBlacklist"
+	Friend_RemoveBlacklist_FullMethodName         = "/friend.friend/removeBlacklist"
+	Friend_IsFriend_FullMethodName                = "/friend.friend/isFriend"
+	Friend_IsInBlackList_FullMethodName           = "/friend.friend/isInBlackList"
+	Friend_GetBlacklist_FullMethodName            = "/friend.friend/getBlacklist"
+	Friend_DeleteFriend_FullMethodName            = "/friend.friend/deleteFriend"
+	Friend_AddFriendResponse_FullMethodName       = "/friend.friend/addFriendResponse"
+	Friend_SetFriendRemark_FullMethodName         = "/friend.friend/setFriendRemark"
+	Friend_ImportFriend_FullMethodName            = "/friend.friend/importFriend"
+	Friend_BatchSyncAgentFriend_FullMethodName    = "/friend.friend/BatchSyncAgentFriend"
+	Friend_BatchDelSyncAgentFriend_FullMethodName = "/friend.friend/BatchDelSyncAgentFriend"
 )
 
 // FriendClient is the client API for Friend service.
@@ -52,6 +54,8 @@ type FriendClient interface {
 	AddFriendResponse(ctx context.Context, in *AddFriendResponseReq, opts ...grpc.CallOption) (*AddFriendResponseResp, error)
 	SetFriendRemark(ctx context.Context, in *SetFriendRemarkReq, opts ...grpc.CallOption) (*SetFriendRemarkResp, error)
 	ImportFriend(ctx context.Context, in *ImportFriendReq, opts ...grpc.CallOption) (*ImportFriendResp, error)
+	BatchSyncAgentFriend(ctx context.Context, in *BatchSyncAgentFriendReq, opts ...grpc.CallOption) (*BatchSyncAgentFriendResp, error)
+	BatchDelSyncAgentFriend(ctx context.Context, in *BatchDelSyncAgentFriendReq, opts ...grpc.CallOption) (*BatchDelSyncAgentFriendResp, error)
 }
 
 type friendClient struct {
@@ -179,6 +183,24 @@ func (c *friendClient) ImportFriend(ctx context.Context, in *ImportFriendReq, op
 	return out, nil
 }
 
+func (c *friendClient) BatchSyncAgentFriend(ctx context.Context, in *BatchSyncAgentFriendReq, opts ...grpc.CallOption) (*BatchSyncAgentFriendResp, error) {
+	out := new(BatchSyncAgentFriendResp)
+	err := c.cc.Invoke(ctx, Friend_BatchSyncAgentFriend_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *friendClient) BatchDelSyncAgentFriend(ctx context.Context, in *BatchDelSyncAgentFriendReq, opts ...grpc.CallOption) (*BatchDelSyncAgentFriendResp, error) {
+	out := new(BatchDelSyncAgentFriendResp)
+	err := c.cc.Invoke(ctx, Friend_BatchDelSyncAgentFriend_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FriendServer is the server API for Friend service.
 // All implementations must embed UnimplementedFriendServer
 // for forward compatibility
@@ -197,6 +219,8 @@ type FriendServer interface {
 	AddFriendResponse(context.Context, *AddFriendResponseReq) (*AddFriendResponseResp, error)
 	SetFriendRemark(context.Context, *SetFriendRemarkReq) (*SetFriendRemarkResp, error)
 	ImportFriend(context.Context, *ImportFriendReq) (*ImportFriendResp, error)
+	BatchSyncAgentFriend(context.Context, *BatchSyncAgentFriendReq) (*BatchSyncAgentFriendResp, error)
+	BatchDelSyncAgentFriend(context.Context, *BatchDelSyncAgentFriendReq) (*BatchDelSyncAgentFriendResp, error)
 	mustEmbedUnimplementedFriendServer()
 }
 
@@ -242,6 +266,12 @@ func (UnimplementedFriendServer) SetFriendRemark(context.Context, *SetFriendRema
 }
 func (UnimplementedFriendServer) ImportFriend(context.Context, *ImportFriendReq) (*ImportFriendResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ImportFriend not implemented")
+}
+func (UnimplementedFriendServer) BatchSyncAgentFriend(context.Context, *BatchSyncAgentFriendReq) (*BatchSyncAgentFriendResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchSyncAgentFriend not implemented")
+}
+func (UnimplementedFriendServer) BatchDelSyncAgentFriend(context.Context, *BatchDelSyncAgentFriendReq) (*BatchDelSyncAgentFriendResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchDelSyncAgentFriend not implemented")
 }
 func (UnimplementedFriendServer) mustEmbedUnimplementedFriendServer() {}
 
@@ -490,6 +520,42 @@ func _Friend_ImportFriend_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Friend_BatchSyncAgentFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchSyncAgentFriendReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FriendServer).BatchSyncAgentFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Friend_BatchSyncAgentFriend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FriendServer).BatchSyncAgentFriend(ctx, req.(*BatchSyncAgentFriendReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Friend_BatchDelSyncAgentFriend_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchDelSyncAgentFriendReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FriendServer).BatchDelSyncAgentFriend(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Friend_BatchDelSyncAgentFriend_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FriendServer).BatchDelSyncAgentFriend(ctx, req.(*BatchDelSyncAgentFriendReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Friend_ServiceDesc is the grpc.ServiceDesc for Friend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -548,6 +614,14 @@ var Friend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "importFriend",
 			Handler:    _Friend_ImportFriend_Handler,
+		},
+		{
+			MethodName: "BatchSyncAgentFriend",
+			Handler:    _Friend_BatchSyncAgentFriend_Handler,
+		},
+		{
+			MethodName: "BatchDelSyncAgentFriend",
+			Handler:    _Friend_BatchDelSyncAgentFriend_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

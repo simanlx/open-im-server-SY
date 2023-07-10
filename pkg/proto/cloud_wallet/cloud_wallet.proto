@@ -286,6 +286,18 @@ message RedPacketReceiveDetailResp {
   repeated RedPacketReceiveDetail redPacketReceiveDetail = 1;
 }
 
+message RedPacketSendDetailReq {
+  string userId = 1; //用户id
+  string startTime = 2; //开始时间
+  string endTime = 3; //结束时间
+  string operationID = 4; //链路跟踪id
+}
+
+message RedPacketSendDetailResp {
+  repeated RedPacketSendDetail redPacketSendDetail = 1;
+  CommonResp commonResp = 2;
+}
+
 message RedPacketReceiveDetail {
   string packetId = 1; //红包id
   int32 amount = 2; //金额(分)
@@ -293,6 +305,18 @@ message RedPacketReceiveDetail {
   string receiveTime = 4; //领取时间
   int32 packetType = 5; //红包类型(1个人红包、2群红包)
   string isLucky = 6; //是否为拼手气红包
+}
+
+message RedPacketSendDetail{
+  string packetId = 1; //红包id
+  int32 amount = 2; //金额(分)
+  string packetTitle = 3; //红包标题
+  string sendTime = 4; //发送时间
+  int32 packetType = 5; //红包类型(1个人红包、2群红包)
+  string isLucky = 6; //是否为拼手气红包
+  int32 number = 7; //红包个数
+  int32 remain = 8; //剩余红包个数
+  int32 isExclusive = 9; //是否为专属红包(0不是、1是)
 }
 
 // 14. 根据日期查询用户的红包记录 ： userid- red.list
@@ -500,6 +524,8 @@ message  CreateThirdPayOrderReq {
   int32 amount = 4; //金额，单位分
   string operationID = 5; //链路跟踪id
   string remark = 6; //备注
+  string userId = 7; //用户id
+  int64  userIncrId = 8; //用户自增id
 }
 
 
@@ -596,6 +622,133 @@ message SendRedPacketConfirmResp{
   CommonResp commonResp = 1;
 }
 
+
+// getpaytype
+message GetPayTypeReq {
+  string operationID = 1; //链路跟踪id
+}
+
+//        "id": 5,
+//            "name": "新账通钱包",
+//            "info": "每单赠送同等数量咖啡积分",
+//            "tradeType": "NCOUNT-BALANCE",
+//            "checkType": 1,
+//            "isBankCard": 0,
+//            "state": 0,
+//            "payIcon": "https://cost.cdn.bcebos.com/crazy/pic/crazypay_icon.png",
+//            "sort": 5,
+//            "cardList": null,
+//            "ncountBalance": null
+
+message  PayType {
+  int32 id = 1; //支付类型 1：支付宝 2：微信 3：银联
+  string name = 2; //支付类型 1：支付宝 2：微信 3：银联
+  string info = 3; //支付类型 1：支付宝 2：微信 3：银联
+  string tradeType = 4; //支付类型 1：支付宝 2：微信 3：银联
+  int32 checkType = 5; //支付类型 1：支付宝 2：微信 3：银联
+  int32 isBankCard = 6; //支付类型 1：支付宝 2：微信 3：银联
+  int32 state = 7; //支付类型 1：支付宝 2：微信 3：银联
+  string payIcon = 8; //支付类型 1：支付宝 2：微信 3：银联
+  int32 sort = 9; //支付类型 1：支付宝 2：微信 3：银联
+}
+
+message GetPayTypeResp {
+  CommonResp commonResp = 1;
+  repeated PayType payTypeList = 2;
+}
+
+message WxPayUnifiedOrderReq{
+  string order_no = 1; // 订单号
+  string user_id = 2; // 用户id
+  string operationId = 3; // 链路跟踪id
+}
+
+message WxPayUnifiedOrderResp{
+  CommonResp commonResp = 1; //
+  string appid = 2; //应用ID
+  string partnerid = 3; //商户号
+  string prepayid = 4; //预支付交易会话ID
+  string package = 5; //扩展字段 暂填写固定值Sign=WXPay
+  string noncestr = 6; //随机字符串
+  string timestamp = 7; //时间戳
+  string sign = 8; //签名
+}
+
+message WxPayNotifyReq{
+  string appid = 1; //应用id
+  string mch_id = 2; //商户号
+  string nonce_str = 3; //随机字符串
+  string out_trade_no = 4; //商户订单号
+  string result_code = 5;
+  string return_code = 6;
+  string total_fee = 7; //总金额、单位分
+  string sign = 8; //签名
+  string trade_type = 9; //交易类型
+  string transaction_id = 10; //微信支付订单号
+  string time_end = 11; //支付时间、格式为yyyyMMddHHmmss
+  string attach = 12; //商家数据包
+  string operateID = 13; //链路跟踪id
+}
+
+message WxPayNotifyResp{
+  CommonResp commonResp = 1;
+  string Reply = 2;
+}
+
+
+
+message  AppCheckVersionReq {
+  string version = 1; //版本号
+  int32 channel = 2; //渠道号
+  string operationID = 3; //链路跟踪id
+}
+
+message  AppCheckVersionResp {
+  string version = 1; //版本号
+  int32 channel = 2; //渠道号
+  int32  is_checking = 3; //是否在审核
+  CommonResp commonResp = 4;
+}
+
+//   `user_name` varchar(255) DEFAULT NULL COMMENT '用户名',
+//  `user_id` int(11) DEFAULT NULL COMMENT '用户ID',
+//  `device` varchar(255) DEFAULT NULL COMMENT '装备',
+// ip
+message AppOpenRecordReq {
+  string user_name = 1; //用户名
+  string user_id = 2; //用户ID
+  string token = 3; //token
+  string device = 4; //装备
+  string ip = 5; //ip
+  string operationID = 6; //链路跟踪id
+
+}
+
+
+message  AppOpenRecordResp {
+  CommonResp commonResp = 1;
+}
+
+
+// type MerchantReturnReq struct {
+//	UserIDs     string `json:"userIDs" binding:"required"`     //用户ID
+//	Remark      string `json:"remark" binding:"required"`      //备注
+//	Amount      int32  `json:"amount" binding:"required"`      //金额，单位分
+//	OperationID string `json:"operationID" binding:"required"` // 链路跟踪id
+//}
+
+message TransferToUserReq {
+  string userIDs = 1; //用户ID
+  string remark = 2; //备注
+  int32 amount = 3; //金额，单位分
+  string operationID = 4; // 链路跟踪id
+}
+
+message TransferToUserResp {
+  CommonResp commonResp = 1;
+}
+
+
 // 钱包服务
 service CloudWalletService {
   // ==================================云钱包管理 ========
@@ -653,6 +806,9 @@ service CloudWalletService {
   //红包领取明细列表
   rpc RedPacketReceiveDetail(RedPacketReceiveDetailReq)returns(RedPacketReceiveDetailResp);
 
+  //红包发送明细列表
+  rpc RedPacketSendDetail(RedPacketSendDetailReq)returns(RedPacketSendDetailResp);
+
   //红包详情
   rpc RedPacketInfo(RedPacketInfoReq)returns(RedPacketInfoResp);
 
@@ -682,4 +838,24 @@ service CloudWalletService {
 
   // 第三方提现到云钱包
   rpc ThirdWithdrawal(ThirdWithdrawalReq)returns(ThirdWithdrawalResp);
+
+  // 转账给用户
+  rpc TransferToUser(TransferToUserReq)returns(TransferToUserResp);
+
+  // 获取支付方式
+  rpc GetPayType(GetPayTypeReq)returns(GetPayTypeResp);
+
+  // 微信支付统一下单
+  rpc WxPayUnifiedOrder(WxPayUnifiedOrderReq)returns(WxPayUnifiedOrderResp);
+
+  //微信支付成功回调
+  rpc WxPayNotify (WxPayNotifyReq)returns(WxPayNotifyResp);
+
+
+  // 上报用户登陆信息
+  rpc AppOpenRecord(AppOpenRecordReq)returns(AppOpenRecordResp);
+
+  // 获取app版本的当前是否正在审核 AppCheckVersion
+  rpc AppCheckVersion(AppCheckVersionReq)returns(AppCheckVersionResp);
+
 }

@@ -4,6 +4,19 @@ import (
 	open_im_sdk "Open_IM/pkg/proto/sdk_ws"
 )
 
+type GetGroupLocationListReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+	GroupID     string `json:"groupID" binding:"required"`
+}
+
+type ReportUserLocationReq struct {
+	OperationID string `json:"operationID" binding:"required"`
+	Latitude    string `json:"latitude" binding:"required"`
+	Longitude   string `json:"longitude" binding:"required"`
+	Battery     int32  `json:"battery" binding:"required"`
+	Step        int32  `json:"step" binding:"required"`
+}
+
 type GetUsersInfoReq struct {
 	OperationID string   `json:"operationID" binding:"required"`
 	UserIDList  []string `json:"userIDList" binding:"required"`

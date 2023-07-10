@@ -29,7 +29,8 @@ message GetFriendInfoResp{
 
 message AddFriendReq{
   CommID CommID = 1;
-  string ReqMsg = 2;
+  int32 is_manager = 2;
+  string ReqMsg = 3;
 }
 message AddFriendResp{
     int32 verifySwitch = 1; //验证开关
@@ -151,8 +152,26 @@ message GetSelfApplyListResp{
   repeated server_api_params.FriendRequest FriendRequestList = 3;
 }
 
+
+message BatchSyncAgentFriendReq{
+  repeated string FromUserID = 1;
+  repeated string ToUserID = 2;
+}
+
+message BatchSyncAgentFriendResp{
+  CommonResp CommonResp = 1;
+}
+
+message BatchDelSyncAgentFriendReq{
+  map<string, string> FormIDs = 1;
+}
+
+message BatchDelSyncAgentFriendResp{
+  CommonResp CommonResp = 1;
+}
+
 service friend{
- // rpc getFriendsInfo(GetFriendsInfoReq) returns(GetFriendInfoResp);
+  // rpc getFriendsInfo(GetFriendsInfoReq) returns(GetFriendInfoResp);
   rpc addFriend(AddFriendReq) returns(AddFriendResp);
   rpc getFriendApplyList(GetFriendApplyListReq) returns(GetFriendApplyListResp);
   rpc getSelfApplyList(GetSelfApplyListReq) returns(GetSelfApplyListResp);
@@ -166,6 +185,9 @@ service friend{
   rpc addFriendResponse(AddFriendResponseReq) returns(AddFriendResponseResp);
   rpc setFriendRemark(SetFriendRemarkReq) returns(SetFriendRemarkResp);
   rpc importFriend(ImportFriendReq)  returns(ImportFriendResp);
+
+  rpc BatchSyncAgentFriend(BatchSyncAgentFriendReq) returns(BatchSyncAgentFriendResp);
+  rpc BatchDelSyncAgentFriend(BatchDelSyncAgentFriendReq) returns(BatchDelSyncAgentFriendResp);
 
   // rpc CheckFriendFromCache(IsFriendReq) returns(IsFriendResp);
   // rpc CheckBlockFromCache(IsInBlackListReq) returns(IsFriendResp);
