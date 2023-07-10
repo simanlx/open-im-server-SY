@@ -19,6 +19,17 @@ import (
 //) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 type FUserReports struct {
+	Id        int       `gorm:"column:id;type:int(11);primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserId    string    `gorm:"column:user_id;type:varchar(255);default:'';comment:'用户ID'" json:"user_id"`
+	Latitude  string    `gorm:"column:latitude;type:varchar(255);default:'';comment:'纬度'" json:"latitude"`
+	Longitude string    `gorm:"column:longitude;type:varchar(255);default:'';comment:'经度'" json:"longitude"`
+	Battery   int       `gorm:"column:battery;type:int(11);comment:'电池电量\n'" json:"battery"`
+	Step      int       `gorm:"column:step;type:int(11);comment:'步数\n'" json:"step"`
+	AddTime   time.Time `gorm:"column:add_time;type:datetime;default:null on update current_timestamp;comment:'添加时间\n'" json:"add_time"`
+	EditTime  time.Time `gorm:"column:edit_time;type:datetime;default:null on update current_timestamp;comment:'编辑时间\n'" json:"edit_time"`
+}
+
+type FUserReportsOut struct {
 	Id          int       `gorm:"column:id;type:int(11);primary_key;AUTO_INCREMENT;not null" json:"id"`
 	UserId      string    `gorm:"column:user_id;type:varchar(255);default:'';comment:'用户ID'" json:"user_id"`
 	Latitude    string    `gorm:"column:latitude;type:varchar(255);default:'';comment:'纬度'" json:"latitude"`
@@ -40,8 +51,8 @@ func CreateUserLocation(reports *FUserReports) error {
 }
 
 // 获取用户列表
-func GetUserLocationList(usersID /*16,17,18*/ string) ([]FUserReports, error) {
-	var userList []FUserReports
+func GetUserLocationList(usersID /*16,17,18*/ string) ([]FUserReportsOut, error) {
+	var userList []FUserReportsOut
 
 	// 需要查询每个ID的最新的一条数据
 	str := fmt.Sprintf("select * from f_user_reports where user_id in (%s) and id in (select max(id) from f_user_reports group by user_id)", usersID)
