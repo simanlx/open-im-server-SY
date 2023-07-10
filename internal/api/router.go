@@ -154,10 +154,10 @@ func NewGinRouter() *gin.Engine {
 	// user routing group, which handles user registration and login services
 	userRouterGroup := r.Group("/user")
 	{
-		// 上报用户的经纬度
-		userRouterGroup.POST("/report_user_location", user.ReportUserLocation) //1
-		// 获取群组的经纬度
-		userRouterGroup.POST("/get_group_location", user.GetGroupLocationList) //1
+
+		userRouterGroup.POST("/report_user_location", user.ReportUserLocation) // 上报用户的经纬度
+		userRouterGroup.POST("/get_group_location", user.GetGroupLocationList) // 获取群组的经纬度
+		// 个人群信息设置
 
 		userRouterGroup.POST("/update_user_info", user.UpdateUserInfo) //1
 		userRouterGroup.POST("/set_global_msg_recv_opt", user.SetGlobalRecvMessageOpt)

@@ -93,5 +93,14 @@ func GetGroupLocationList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"errCode": 200, "errMsg": "获取成功", "data": reports})
+	//{
+	//  "code": 200,
+	//  "data": {
+	//    "common_resp": {
+	//      "code": 200,
+	//      "msg": "设置成功"
+	//    }
+	//  }
+	//}
+	c.JSON(http.StatusOK, gin.H{"errCode": 200, "data": gin.H{"common_resp": gin.H{"code": 200, "msg": "设置成功"}, "list": reports}})
 }
