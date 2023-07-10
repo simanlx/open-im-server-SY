@@ -25,11 +25,13 @@ func ReportUserLocation(c *gin.Context) {
 	}
 
 	reports := &imdb.FUserReports{
-		UserId:    userId,
-		Latitude:  params.Latitude,
-		Longitude: params.Longitude,
-		Battery:   int(params.Battery),
-		Step:      int(params.Step),
+		UserId:      userId,
+		Latitude:    params.Latitude,
+		Longitude:   params.Longitude,
+		Battery:     int(params.Battery),
+		Step:        int(params.Step),
+		Speed:       params.Speed,
+		RotateAngle: params.RotateAngle,
 	}
 	// 保存用户数据
 	err := imdb.CreateUserLocation(reports)

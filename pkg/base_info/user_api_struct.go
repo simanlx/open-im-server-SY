@@ -13,8 +13,10 @@ type ReportUserLocationReq struct {
 	OperationID string `json:"operationID" binding:"required"`
 	Latitude    string `json:"latitude" binding:"required"`
 	Longitude   string `json:"longitude" binding:"required"`
-	Battery     int32  `json:"battery" binding:"required"`
-	Step        int32  `json:"step" binding:"required"`
+	Battery     int32  `json:"battery" `
+	Speed       string `json:"speed" `
+	RotateAngle string `json:"rotateAngle" `
+	Step        int32  `json:"step" `
 }
 
 type GetUsersInfoReq struct {

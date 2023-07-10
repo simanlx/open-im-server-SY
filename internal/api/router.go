@@ -157,6 +157,14 @@ func NewGinRouter() *gin.Engine {
 
 		userRouterGroup.POST("/report_user_location", user.ReportUserLocation) // 上报用户的经纬度
 		userRouterGroup.POST("/get_group_location", user.GetGroupLocationList) // 获取群组的经纬度
+
+		// 设置用户群的设置信息（如果没有则创建）
+		//userRouterGroup.POST("/get_user_group_setting", user.GetUserGroupSetting)
+		//// 获取个人群状态信息 (如果没有则创建)
+		//userRouterGroup.POST("/set_user_group_setting", user.SetUserGroupSetting) // 设置用户群的设置信息（如果没有则创建）
+
+		// 开启群用户的电量、步数上报
+
 		// 个人群信息设置
 
 		userRouterGroup.POST("/update_user_info", user.UpdateUserInfo) //1

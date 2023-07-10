@@ -11,22 +11,26 @@ import (
 //  `user_id` varchar(255) DEFAULT '' COMMENT '用户ID',
 //  `latitude` varchar(255) DEFAULT '' COMMENT '纬度',
 //  `longitude` varchar(255) DEFAULT '' COMMENT '经度',
+//  `speed` varchar(255) DEFAULT '' COMMENT '速度',
+//  `rotate_angle` varchar(255) DEFAULT '' COMMENT '角度',
 //  `battery` int(11) DEFAULT '0' COMMENT '电池电量\n',
 //  `step` int(11) DEFAULT '0' COMMENT '步数\n',
 //  `add_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '添加时间\n',
 //  `edit_time` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '编辑时间\n',
 //  PRIMARY KEY (`id`)
-//) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+//) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 type FUserReports struct {
-	Id        int       `gorm:"column:id;type:int(11);primary_key;AUTO_INCREMENT;not null" json:"id"`
-	UserId    string    `gorm:"column:user_id;type:varchar(255);default:'';comment:'用户ID'" json:"user_id"`
-	Latitude  string    `gorm:"column:latitude;type:varchar(255);default:'';comment:'纬度'" json:"latitude"`
-	Longitude string    `gorm:"column:longitude;type:varchar(255);default:'';comment:'经度'" json:"longitude"`
-	Battery   int       `gorm:"column:battery;type:int(11);comment:'电池电量\n'" json:"battery"`
-	Step      int       `gorm:"column:step;type:int(11);comment:'步数\n'" json:"step"`
-	AddTime   time.Time `gorm:"column:add_time;type:datetime;default:null on update current_timestamp;comment:'添加时间\n'" json:"add_time"`
-	EditTime  time.Time `gorm:"column:edit_time;type:datetime;default:null on update current_timestamp;comment:'编辑时间\n'" json:"edit_time"`
+	Id          int       `gorm:"column:id;type:int(11);primary_key;AUTO_INCREMENT;not null" json:"id"`
+	UserId      string    `gorm:"column:user_id;type:varchar(255);default:'';comment:'用户ID'" json:"user_id"`
+	Latitude    string    `gorm:"column:latitude;type:varchar(255);default:'';comment:'纬度'" json:"latitude"`
+	Longitude   string    `gorm:"column:longitude;type:varchar(255);default:'';comment:'经度'" json:"longitude"`
+	Speed       string    `gorm:"column:speed;type:varchar(255);default:'';comment:'速度'" json:"speed"`
+	RotateAngle string    `gorm:"column:rotate_angle;type:varchar(255);default:'';comment:'角度'" json:"rotate_angle"`
+	Battery     int       `gorm:"column:battery;type:int(11);comment:'电池电量\n'" json:"battery"`
+	Step        int       `gorm:"column:step;type:int(11);comment:'步数\n'" json:"step"`
+	AddTime     time.Time `gorm:"column:add_time;type:datetime;default:null on update current_timestamp;comment:'添加时间\n'" json:"add_time"`
+	EditTime    time.Time `gorm:"column:edit_time;type:datetime;default:null on update current_timestamp;comment:'编辑时间\n'" json:"edit_time"`
 }
 
 type FUserReportsOut struct {
@@ -34,6 +38,8 @@ type FUserReportsOut struct {
 	UserId      string    `gorm:"column:user_id;type:varchar(255);default:'';comment:'用户ID'" json:"user_id"`
 	Latitude    string    `gorm:"column:latitude;type:varchar(255);default:'';comment:'纬度'" json:"latitude"`
 	Longitude   string    `gorm:"column:longitude;type:varchar(255);default:'';comment:'经度'" json:"longitude"`
+	Speed       string    `gorm:"column:speed;type:varchar(255);default:'';comment:'速度'" json:"speed"`
+	RotateAngle string    `gorm:"column:rotate_angle;type:varchar(255);default:'';comment:'角度'" json:"rotate_angle"`
 	Battery     int       `gorm:"column:battery;type:int(11);comment:'电池电量\n'" json:"battery"`
 	Step        int       `gorm:"column:step;type:int(11);comment:'步数\n'" json:"step"`
 	AddTime     time.Time `gorm:"column:add_time;type:datetime;default:null on update current_timestamp;comment:'添加时间\n'" json:"add_time"`
